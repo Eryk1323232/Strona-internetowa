@@ -19,8 +19,19 @@ const KLUCZ = 'zmien-mnie';            // ← TU wpisz swoje hasło (min. kilkan
 
 /* ——— strona pobiera dane (GET) ——— */
 function doGet(e) {
+  const p = (e && e.parameter) || {};
+  /* zapis przez GET (?ops=[…]) — gdy przeglądarka nie przepuszcza POST */
+  if (p.ops) {
+    let n = 0;
+    return odpowiedz(() => {
+      sprawdzKlucz(p.klucz);
+      const ops = JSON.parse(p.ops);
+      zapiszOperacje(ops); n = ops.length;
+      return wszystkieDane();
+    }, () => ({ zapisano: n }));
+  }
   return odpowiedz(() => {
-    sprawdzKlucz(e && e.parameter && e.parameter.klucz);
+    sprawdzKlucz(p.klucz);
     return wszystkieDane();
   });
 }
@@ -35,9 +46,9 @@ function doPost(e) {
   });
 }
 
-function odpowiedz(fn) {
+function odpowiedz(fn, dodatki) {
   let wynik;
-  try { wynik = { ok: true, dane: fn() }; }
+  try { wynik = { ok: true, dane: fn() }; if (dodatki) Object.assign(wynik, dodatki()); }
   catch (err) { wynik = { ok: false, blad: String(err && err.message || err) }; }
   return ContentService.createTextOutput(JSON.stringify(wynik)).setMimeType(ContentService.MimeType.JSON);
 }

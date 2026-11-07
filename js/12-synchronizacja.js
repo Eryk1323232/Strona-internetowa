@@ -47,13 +47,32 @@ function arkuszDb(url, klucz){
   try{ kolejka=JSON.parse(store.get(QK,'[]'))||[]; }catch(e){ kolejka=[]; }
   const zapiszKolejke=()=>store.set(QK, JSON.stringify(kolejka));
 
+  const adres = extra => url+(url.includes('?')?'&':'?')+'klucz='+encodeURIComponent(klucz)+'&t='+Date.now()+(extra||'');
+  const json = async r => { const j=await r.json(); if(!j.ok) throw new Error(j.blad||'Błąd Arkusza'); return j; };
+  let tylkoGet = store.get('arkuszTylkoGet','')===url;   /* ta przeglądarka nie przepuszcza POST do Google → zapis przez GET */
+  /* zapis przez GET: zmiany w adresie, w paczkach po ~6 000 znaków (limit długości adresu) */
+  async function wyslijGetem(ops){
+    let dane=null, paczka=[];
+    const wyslijPaczke = async () => { if(!paczka.length) return;
+      const j=await json(await fetch(adres('&ops='+encodeURIComponent(JSON.stringify(paczka)))));
+      if(j.zapisano!==paczka.length) throw new Error('Kod.gs w Arkuszu jest starszy niż strona — wklej nowy Kod.gs i wdróż nową wersję');
+      dane=j.dane; paczka=[]; };
+    for(const o of ops){
+      if(paczka.length && encodeURIComponent(JSON.stringify([...paczka,o])).length>6000) await wyslijPaczke();
+      paczka.push(o);
+    }
+    await wyslijPaczke();
+    return dane;
+  }
   async function wywolaj(body){
-    const r = body
-      ? await fetch(url, {method:'POST', body:JSON.stringify({klucz, ops:body})})     /* text/plain — bez zapytań CORS „preflight” */
-      : await fetch(url+(url.includes('?')?'&':'?')+'klucz='+encodeURIComponent(klucz)+'&t='+Date.now());
-    const j=await r.json();
-    if(!j.ok) throw new Error(j.blad||'Błąd Arkusza');
-    return j.dane;
+    if(!body) return (await json(await fetch(adres()))).dane;
+    if(!tylkoGet){
+      try{ return (await json(await fetch(url, {method:'POST', body:JSON.stringify({klucz, ops:body})}))).dane; }   /* text/plain — bez zapytań „preflight” */
+      catch(e){ if(!(e instanceof TypeError)) throw e; }          /* „Failed to fetch” — spróbuj przez GET */
+    }
+    const d=await wyslijGetem(body);
+    if(!tylkoGet){ tylkoGet=true; store.set('arkuszTylkoGet', url); }
+    return d;
   }
   /* stan z Arkusza + niewysłane zmiany z kolejki */
   function nalozone(){
