@@ -71,8 +71,8 @@ function arkuszDb(url, klucz){
       if(!wszystko && last[c]===sig) return; last[c]=sig;
       subs[c].forEach(([cb])=>{ try{ cb(snap); }catch(e){ console.error(e); } }); });
   }
-  function zgloszBlad(e){ console.warn('Arkusz Google:', e); blad=true; Object.values(subs).flat().forEach(([,err])=>{ try{ err&&err(e); }catch(_){} }); }
-  function sukces(d){
+  function zgloszBlad(e){ console.warn('Arkusz Google:', e); blad=true; window.arkuszBlad=String(e&&e.message||e)+(kolejka.length?` (czeka na wysłanie: ${kolejka.length})`:''); Object.values(subs).flat().forEach(([,err])=>{ try{ err&&err(e); }catch(_){} }); }
+  function sukces(d){ window.arkuszBlad='';
     /* Arkusz ma już jakiekolwiek dane (z innego urządzenia albo z importu) → niczego z przeglądarki nie dosyłaj */
     if(!startOk && Object.values(d||{}).some(a=>a.length)) db.pierwszyRaz=false;
     dane=d; store.set('arkuszPolaczono', url); const odswiezWszystko=blad||!startOk; blad=false; startOk=true; rozeslij(odswiezWszystko); db.pierwszyRaz=false; }
