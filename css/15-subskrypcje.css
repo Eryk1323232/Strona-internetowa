@@ -47,3 +47,16 @@ form.sub-add input[name=n]{width:230px} form.sub-add input[name=p]{width:110px;f
 form.sub-add input:focus,form.sub-add select:focus{outline:none;border-color:var(--accent)}
 form.sub-add button{height:36px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);padding:0 16px;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:13.5px}
 form.sub-add button:hover{background:var(--accent);color:var(--accent-ink)}
+/* status: aktywna / przerwa */
+td.sub-stc{min-width:118px}
+button.sub-st,span.sub-st{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px;border-radius:999px;font-family:var(--f-body);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.sub-st::before,span.sub-st::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+button.sub-st.on{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,var(--line));background:color-mix(in srgb,var(--ok) 9%,var(--surface))}
+button.sub-st.pz{color:var(--mark);border-color:color-mix(in srgb,var(--mark) 45%,var(--line));background:color-mix(in srgb,var(--mark) 9%,var(--surface))}
+button.sub-st.pz::before{border-radius:1px;width:7px;height:9px;background:linear-gradient(90deg,currentColor 0 35%,transparent 35% 65%,currentColor 65%)}
+button.sub-st:hover{filter:brightness(.96)}
+span.sub-st.off{cursor:default;color:var(--muted)}
+td.sub-stc .sub-pzod{display:block;margin-top:4px;width:140px}
+td.sub-stc small{display:block;font-size:11.5px;color:var(--muted);margin-top:3px}
+b.sub-pz{color:var(--mark);font-family:var(--f-body)!important;font-weight:600!important}
+tr.sub-pauza td.px-calc,tr.sub-pauza td.px-prod input{color:var(--muted)}

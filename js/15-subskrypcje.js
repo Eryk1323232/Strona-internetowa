@@ -9,6 +9,8 @@
      tryb auto = odnawia się sama · reczne = trzeba opłacić ręcznie · anul = anulowana
      do   (dla anulowanej) dzień, w którym przestaje działać
      pl   sposób płatności (karta, BLIK, PayPal, Google Play…)
+     przerwy  [{od, do}] — przerwy w płaceniu; do='' = przerwa trwa. Po przerwie płatności
+              liczą się od nowa od dnia wznowienia (tak działa większość serwisów).
    subCalc()  – następna płatność, ile dni zostało, koszt miesięczny, ile już wydano.
    Wygląd i obsługa wzorowane na Posiadówkach (tabela z polami do edycji w miejscu).
    ════════════════════════════════════════════════════════════════════════ */
@@ -16,7 +18,9 @@
 const SUB_J = {d:['dzień','dni','dni'], t:['tydzień','tygodnie','tygodni'], m:['miesiąc','miesiące','miesięcy'], r:['rok','lata','lat']};
 const SUB_TRYB = {auto:'Automatycznie', reczne:'Ręcznie', anul:'Anulowana'};
 const subNorm = (id,v={}) => ({id, n:String(v.n||'Subskrypcja'), p:String(v.p??'0'), co:Math.max(1,Math.round(+v.co||1)), j:SUB_J[v.j]?v.j:'m',
-  od:/^\d{4}-\d{2}-\d{2}$/.test(v.od)?v.od:todayISO(), tryb:SUB_TRYB[v.tryb]?v.tryb:'auto', do:/^\d{4}-\d{2}-\d{2}$/.test(v.do)?v.do:'', pl:String(v.pl||''), o:+v.o||0});
+  od:/^\d{4}-\d{2}-\d{2}$/.test(v.od)?v.od:todayISO(), tryb:SUB_TRYB[v.tryb]?v.tryb:'auto', do:/^\d{4}-\d{2}-\d{2}$/.test(v.do)?v.do:'', pl:String(v.pl||''), o:+v.o||0,
+  przerwy:(Array.isArray(v.przerwy)?v.przerwy:[]).map(x=>({od:String(x&&x.od||''), do:String(x&&x.do||'')})).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x.od)&&(!x.do||/^\d{4}-\d{2}-\d{2}$/.test(x.do))).sort((a,b)=>a.od.localeCompare(b.od))});
+const subPauza = s => s.przerwy.find(x=>!x.do);   /* trwająca przerwa albo undefined */
 let SUB = [];
 try{ const c=JSON.parse(store.get('subState','null')); if(Array.isArray(c)) SUB=c.map(s=>subNorm(s.id,s)); }catch(e){}
 const saveSub = () => store.set('subState', JSON.stringify(SUB));
@@ -26,7 +30,7 @@ const subPush = s => { const {id,...d}=s; cloud(db=>db.collection('subskrypcje')
 const subD = iso => { const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); };
 const subISO = dt => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
 /* k-ta płatność od startu (0 = pierwsza); miesiące i lata pilnują końca miesiąca (31.01 → 28.02) */
-function subNth(s,k){ const st=subD(s.od), n=s.co*k;
+function subNth(s,k,start){ const st=subD(start||s.od), n=s.co*k;
   if(s.j==='d'||s.j==='t'){ const x=new Date(st); x.setDate(x.getDate()+n*(s.j==='t'?7:1)); return x; }
   const mies=s.j==='r'?n*12:n, y=st.getFullYear()+Math.floor((st.getMonth()+mies)/12), m=(st.getMonth()+mies)%12;
   return new Date(y, m, Math.min(st.getDate(), new Date(y,m+1,0).getDate())); }
@@ -38,13 +42,21 @@ const subDniTxt = n => n===0?'dziś':n===1?'jutro':n===-1?'wczoraj':n>0?`za ${n}
 function subCalc(s){
   const t=new Date(); t.setHours(0,0,0,0);
   const koniec = s.tryb==='anul' && s.do ? subD(s.do) : null;
-  let k=0, wyd=0; const cena=pxEval(s.p), c=isNaN(cena)?0:cena;
-  /* zapłacone okresy: od startu do dziś (u anulowanej — tylko przed końcem) */
-  while(k<5000){ const dt=subNth(s,k); if(dt>t || (koniec && dt>=koniec)) break; wyd+=c; k++; }
-  let nast=subNth(s,k);
-  if(koniec && nast>=koniec) nast=null;
+  let ile=0, nast=null; const cena=pxEval(s.p), c=isNaN(cena)?0:cena;
+  /* okresy płacenia: od startu do pierwszej przerwy, od wznowienia do kolejnej przerwy… aż do dziś (u anulowanej — do końca) */
+  let start=s.od, pauza=null;
+  const odcinki=[];
+  for(const p of s.przerwy){ if(p.od<start) { if(p.do && p.do>start) start=p.do; continue; }
+    odcinki.push([start, p.od]); if(!p.do){ pauza=p; start=null; break; } start=p.do; }
+  if(start) odcinki.push([start, null]);
+  odcinki.forEach(([a,b],i)=>{ const kon=b?subD(b):null, ostatni=i===odcinki.length-1&&!pauza;
+    for(let k=0;k<5000;k++){ const dt=subNth(s,k,a);
+      if((kon&&dt>=kon) || (koniec&&dt>=koniec)) break;
+      if(dt>t){ if(ostatni) nast=dt; break; }
+      ile++; } });
   const aktywna = !(koniec && koniec<=t);
-  return {nast, dni:nast?subDni(nast):null, koniec, dniKoniec:koniec?subDni(koniec):null, aktywna, wyd, platnosci:k, mies:aktywna&&s.tryb!=='anul'?subMies(s):0, bad:isNaN(cena)};
+  return {nast, dni:nast?subDni(nast):null, koniec, dniKoniec:koniec?subDni(koniec):null, aktywna, pauza, wyd:ile*c, platnosci:ile,
+    mies:aktywna&&s.tryb!=='anul'&&!pauza?subMies(s):0, bad:isNaN(cena)};
 }
 
 let subFiltr = store.get('subFiltr','akt');   /* akt = aktywne, wszystkie */
@@ -54,7 +66,7 @@ function subHtml(){
   const mies=akt.reduce((a,x)=>a+x.c.mies,0), wyd=L.reduce((a,x)=>a+x.c.wyd,0);
   const najbl=akt.filter(x=>x.c.nast).sort((a,b)=>a.c.nast-b.c.nast)[0];
   const cells=`<div class="grid g4 px-cells sub-cells">
-      <div class="cell"><span class="label">Miesięcznie</span><span class="big">${fmt(mies,2)}<small>zł</small></span><p>${akt.filter(x=>x.s.tryb!=='anul').length} aktywnych subskrypcji</p></div>
+      <div class="cell"><span class="label">Miesięcznie</span><span class="big">${fmt(mies,2)}<small>zł</small></span><p>${akt.filter(x=>x.s.tryb!=='anul'&&!x.c.pauza).length} płatnych${akt.some(x=>x.c.pauza)?` · ${akt.filter(x=>x.c.pauza).length} w przerwie`:''}</p></div>
       <div class="cell"><span class="label">Rocznie</span><span class="big">${fmt(mies*12,2)}<small>zł</small></span><p>przy obecnych cenach</p></div>
       <div class="cell"><span class="label">Wydane łącznie</span><span class="big">${fmt(wyd,2)}<small>zł</small></span><p>${L.reduce((a,x)=>a+x.c.platnosci,0)} płatności</p></div>
       <div class="cell"><span class="label">Najbliższa płatność</span><span class="big px-name">${najbl?esc(najbl.s.n):'—'}</span><p>${najbl?`${dPL(subISO(najbl.c.nast))} · ${subDniTxt(najbl.c.dni)} · ${pxZl(pxEval(najbl.s.p)||0)}`:'brak zaplanowanych'}</p></div></div>`;
@@ -71,17 +83,22 @@ function subHtml(){
     :'<p class="nt-none">W ciągu 30 dni nic się nie odnawia.</p>';
 
   const k=(id,f)=>esc(id+'|'+f);
-  const rows=L.filter(x=>subFiltr==='wsz'||x.c.aktywna).sort((a,b)=>(b.c.aktywna-a.c.aktywna)||((a.c.nast||a.c.koniec||0)-(b.c.nast||b.c.koniec||0))).map(({s,c})=>{
+  const rows=L.filter(x=>subFiltr==='wsz'||x.c.aktywna).sort((a,b)=>(b.c.aktywna-a.c.aktywna)||((a.c.nast||a.c.koniec||(a.c.pauza?9e15:0))-(b.c.nast||b.c.koniec||(b.c.pauza?9e15:0)))).map(({s,c})=>{
     const termin = s.tryb==='anul'
       ? `<input type="date" class="g-in g-date" data-sk="${k(s.id,'do')}" value="${esc(s.do)}" aria-label="Działa do">`
-      : (c.nast?`<b>${dPL(subISO(c.nast))}</b>`:'—');
-    const kiedy = s.tryb==='anul' ? (c.koniec?(c.aktywna?`wygasa ${subDniTxt(c.dniKoniec)}`:'wygasła'):'ustaw datę końca') : (c.nast?subDniTxt(c.dni):'');
+      : c.pauza ? '<b class="sub-pz">przerwa</b>' : (c.nast?`<b>${dPL(subISO(c.nast))}</b>`:'—');
+    const kiedy = s.tryb==='anul' ? (c.koniec?(c.aktywna?`wygasa ${subDniTxt(c.dniKoniec)}`:'wygasła'):'ustaw datę końca') : c.pauza ? 'nic nie płacisz' : (c.nast?subDniTxt(c.dni):'');
+    const status = !c.aktywna ? '<span class="sub-st off">Zakończona</span>'
+      : `<button type="button" class="sub-st ${c.pauza?'pz':'on'}" data-sbp="${esc(s.id)}" aria-pressed="${!c.pauza}" title="${c.pauza?'Kliknij, gdy znowu zaczniesz płacić':'Kliknij, gdy robisz przerwę w płaceniu'}">${c.pauza?'Przerwa':'Aktywna'}</button>`
+        + (c.pauza?`<input type="date" class="g-in g-date sub-pzod" data-sk="${k(s.id,'pod')}" value="${esc(c.pauza.od)}" aria-label="Przerwa od">`:'')
+        + (s.przerwy.length&&!c.pauza?`<small>${s.przerwy.length} ${s.przerwy.length===1?'przerwa':s.przerwy.length<5?'przerwy':'przerw'} wcześniej</small>`:'');
     const pilne = c.aktywna && ((s.tryb!=='anul'&&c.dni!=null&&c.dni<=3) || (s.tryb==='anul'&&c.dniKoniec!=null&&c.dniKoniec>=0&&c.dniKoniec<=7));
-    return `<tr class="${c.aktywna?'':'sub-off'}${pilne?' sub-pilne':''}">
+    return `<tr class="${c.aktywna?'':'sub-off'}${pilne?' sub-pilne':''}${c.pauza?' sub-pauza':''}">
       <td class="px-prod"><input class="g-in g-txt sub-name" data-sk="${k(s.id,'n')}" value="${esc(s.n)}" aria-label="Nazwa subskrypcji" maxlength="60"></td>
       <td class="n"><input class="g-in g-num px-price${c.bad?' bad':''}" data-sk="${k(s.id,'p')}" value="${esc(String(s.p).replace(/\./g,','))}" aria-label="Cena za okres"></td>
       <td class="sub-co"><span class="sub-cow">co <input class="g-in g-num g-q" inputmode="numeric" data-sk="${k(s.id,'co')}" value="${s.co}" aria-label="Co ile">
         <select class="td-sel sub-sel" data-sk="${k(s.id,'j')}" aria-label="Jednostka">${Object.entries(SUB_J).map(([v,w])=>`<option value="${v}"${v===s.j?' selected':''}>${s.co===1?w[0]:w[s.co<5?1:2]}</option>`).join('')}</select></span></td>
+ <td class="sub-stc">${status}</td>
       <td><select class="td-sel sub-sel sub-tryb t-${s.tryb}" data-sk="${k(s.id,'tryb')}" aria-label="Sposób odnawiania">${Object.entries(SUB_TRYB).map(([v,w])=>`<option value="${v}"${v===s.tryb?' selected':''}>${w}</option>`).join('')}</select></td>
       <td><input class="g-in g-txt sub-pl" data-sk="${k(s.id,'pl')}" value="${esc(s.pl)}" placeholder="karta, BLIK…" list="subPlList" aria-label="Sposób płatności" maxlength="40"></td>
       <td><input type="date" class="g-in g-date" data-sk="${k(s.id,'od')}" value="${esc(s.od)}" aria-label="Pierwsza płatność"></td>
@@ -89,16 +106,16 @@ function subHtml(){
       <td class="n px-calc">${c.mies?fmt(c.mies,2):'—'}</td>
       <td class="n px-calc px-share">${fmt(c.wyd,2)}<small>${c.platnosci}×</small></td>
       <td class="n"><button type="button" class="g-del" data-sbdel="${esc(s.id)}" aria-label="Usuń subskrypcję">×</button></td></tr>`; }).join('');
-  const add=`<tr class="px-add"><td colspan="10"><form class="sub-add"><input name="n" placeholder="+ Subskrypcja, np. Spotify" aria-label="Nazwa nowej subskrypcji" autocomplete="off" required>
+  const add=`<tr class="px-add"><td colspan="11"><form class="sub-add"><input name="n" placeholder="+ Subskrypcja, np. Spotify" aria-label="Nazwa nowej subskrypcji" autocomplete="off" required>
       <input name="p" placeholder="Cena" inputmode="decimal" aria-label="Cena" autocomplete="off" required>
       <select name="j" class="td-sel sub-sel" aria-label="Co ile"><option value="m">co miesiąc</option><option value="r">co rok</option><option value="t">co tydzień</option></select>
       <input name="od" type="date" value="${todayISO()}" aria-label="Pierwsza płatność">
       <button type="submit">Dodaj</button></form></td></tr>`;
   const ileOff=L.length-akt.length;
   const table=`<div class="sub-bar"><div class="seg" role="tablist"><button type="button" data-sbf="akt" aria-selected="${subFiltr!=='wsz'}">Aktywne</button><button type="button" data-sbf="wsz" aria-selected="${subFiltr==='wsz'}">Wszystkie${ileOff?` <span class="ct">${ileOff} zakończone</span>`:''}</button></div></div>
-    <div class="tbl-wrap px-wrap"><table class="px-t sub-t"><thead><tr><th>Subskrypcja</th><th class="n">Cena</th><th>Odnawia się</th><th>Odnawianie</th><th>Płatność</th><th>Od</th><th>Następna płatność</th><th class="n">Miesięcznie</th><th class="n">Wydano</th><th></th></tr></thead>
+    <div class="tbl-wrap px-wrap"><table class="px-t sub-t"><thead><tr><th>Subskrypcja</th><th class="n">Cena</th><th>Odnawia się</th><th>Status</th><th>Odnawianie</th><th>Płatność</th><th>Od</th><th>Następna płatność</th><th class="n">Miesięcznie</th><th class="n">Wydano</th><th></th></tr></thead>
     <tbody>${rows}${add}</tbody>
-    <tfoot><tr class="px-sum"><td colspan="7">Razem</td><td class="n">${fmt(mies,2)}</td><td class="n">${fmt(wyd,2)}</td><td></td></tr></tfoot></table></div>
+    <tfoot><tr class="px-sum"><td colspan="8">Razem</td><td class="n">${fmt(mies,2)}</td><td class="n">${fmt(wyd,2)}</td><td></td></tr></tfoot></table></div>
     <datalist id="subPlList">${['Karta','BLIK','PayPal','Google Play','App Store','Przelew','Apple Pay','Google Pay'].map(x=>`<option value="${x}">`).join('')}</datalist>`;
   return `${cells}
     <section class="block"><div class="block-head"><h2>Nadchodzące</h2></div>${upcoming}</section>
@@ -133,10 +150,15 @@ document.addEventListener('change', e=>{
       s.tryb=v; }
     else if(f==='pl'){ s.pl=v.trim(); }
     else if(f==='od'||f==='do'||f==='j'){ s[f]=v; }
+    else if(f==='pod'){ const p=subPauza(s); if(p&&v) p.od=v; }
   }),0);
 });
 document.addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.matches && e.target.matches('input[data-sk]')){ e.preventDefault(); e.target.blur(); } });
 document.addEventListener('click', e=>{
+  const pb=e.target.closest('[data-sbp]');
+  if(pb){ return subUpdate(pb.dataset.sbp, s=>{ const p=subPauza(s), dzis=todayISO();
+    if(p){ if(p.od>=dzis) s.przerwy=s.przerwy.filter(x=>x!==p); else p.do=dzis; }   /* wznowienie (przerwa od dziś = pomyłka → usuń) */
+    else s.przerwy=[...s.przerwy, {od:dzis, do:''}]; }); }
   const fb=e.target.closest('[data-sbf]'); if(fb){ subFiltr=fb.dataset.sbf; store.set('subFiltr',subFiltr); return subRefresh(); }
   const b=e.target.closest('[data-sbdel]'); if(!b) return;
   if(!b.dataset.sbarm){ b.dataset.sbarm='1'; b.textContent='Usuń?'; b.classList.add('armed');
