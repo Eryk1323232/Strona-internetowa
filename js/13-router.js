@@ -75,8 +75,8 @@ $('#menuBtn').addEventListener('click',()=>{ const o=$('#side').classList.toggle
 /* motyw */
 const THEMES=['auto','jasny','ciemny'];
 function applyTheme(t){ const r=document.documentElement; if(t==='jasny') r.setAttribute('data-theme','light'); else if(t==='ciemny') r.setAttribute('data-theme','dark'); else r.removeAttribute('data-theme'); const seg=$('.theme-seg'); seg.dataset.pos=['jasny','auto','ciemny'].indexOf(t); seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.th===t)); }
-let theme=store.get('theme','jasny'); applyTheme(theme);
-document.querySelectorAll('.theme-seg button').forEach(b=>b.addEventListener('click',()=>{ theme=b.dataset.th; store.set('theme',theme); applyTheme(theme); }));
+let theme=store.get('motyw','ciemny'); applyTheme(theme);   /* wygląd „Skyline”: domyślnie ciemny */
+document.querySelectorAll('.theme-seg button').forEach(b=>b.addEventListener('click',()=>{ theme=b.dataset.th; store.set('motyw',theme); applyTheme(theme); }));
 /* rozwijane menu */
 const closeDD = () => document.querySelectorAll('li.dd.open').forEach(li=>{ li.classList.remove('open'); li.querySelector('.dd-btn').setAttribute('aria-expanded','false'); });
 document.addEventListener('click', e=>{
