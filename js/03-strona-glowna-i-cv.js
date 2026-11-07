@@ -21,6 +21,7 @@ const HOME_ICONS={
   fs25:'<path d="M4 16V9h7l2 4h5v3"/><circle cx="7" cy="17" r="2.5"/><circle cx="17" cy="17" r="2"/><path d="M8 9V6h3"/>',
   silownia:'<path d="M3 12h18M6 8v8M18 8v8M3 10v4M21 10v4"/>',
   posiadowki:'<path d="M8 3h8l-1 7a3 3 0 0 1-6 0zM12 13v6M8 21h8"/>',
+  subskrypcje:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/><path d="M16 14.5a1.8 1.8 0 1 0 0 .01"/>',
   cv:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>'
 };
 const HOME_SECTION={studia:'Studia', gry:'Gry', inne:'Inne', 'o-mnie':'O mnie'};

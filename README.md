@@ -29,6 +29,7 @@ css/
   11-posiadowki.css         Posiadówki
   12-dyski.css              Dyski
   13-strona-glowna-i-pasek.css  strona główna (kafle, widżety) i dolny pasek
+  15-subskrypcje.css        Subskrypcje
   14-wyglad.css             styl „krem + ceramika” — ładuje się ostatni i nadpisuje resztę
 js/
   00-ustawienia.js          adres i hasło Arkusza Google (zapis danych na GitHub Pages)
@@ -45,6 +46,7 @@ js/
   11-pasek-dolny.js         dolny pasek: zrzuty ekranu, pogoda, data i godzina
   12-synchronizacja.js      synchronizacja z chmurą (działa tylko na claude.ai)
   13-router.js              lista podstron, przełączanie stron, motyw, menu
+  15-subskrypcje.js         Subskrypcje: koszty, odnowienia, ile wydano (ładuje się przed routerem)
   14-szkice-formularzy.js   niezapisany tekst w formularzach przeżywa odświeżenie (localStorage) — ładuje się ostatni
 apps-script/
   Kod.gs                    kod do wklejenia w Arkusz Google → Rozszerzenia → Apps Script

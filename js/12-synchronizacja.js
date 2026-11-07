@@ -179,6 +179,9 @@ function arkuszDb(url, klucz){
     let pxF=true;
     gdb.collection('posiadowki').onSnapshot(s=>{ if(pxF&&s.empty&&wyslijLokalne()&&PX.length){ pxF=false; PX.forEach(pxPush); return ok(); }
       pxF=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.xk) return; PX=s.docs.map(d=>pxNorm(d.id,d.data())); savePos(); ok(); }, fail);
+    let sbF=true;
+    gdb.collection('subskrypcje').onSnapshot(s=>{ if(sbF&&s.empty&&wyslijLokalne()&&SUB.length){ sbF=false; SUB.forEach(subPush); return ok(); }
+      sbF=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.sk) return; SUB=s.docs.map(d=>subNorm(d.id,d.data())); saveSub(); ok(); }, fail);
     let plF=true;
     gdb.collection('plany').onSnapshot(s=>{ if(plF&&s.empty&&wyslijLokalne()&&PL.length){ plF=false; PL.forEach(plPush); return ok(); }
       plF=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.pk) return; PL=s.docs.map(d=>plNorm(d.id,d.data())); savePlans(); ok(); }, fail);

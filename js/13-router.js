@@ -18,6 +18,7 @@ const ROUTES = {
   'fs25':    {title:'Farming Simulator 25', parent:'gry', render:pFs},
   'silownia':{title:'Siłownia', parent:'inne', render:pGym},
   'posiadowki':{title:'Posiadówki', parent:'inne', render:pPos},
+  'subskrypcje':{title:'Subskrypcje', parent:'inne', render:pSub},
   'todo':    {title:'To-Do', parent:'studia', render:pTodo},
   'notatki': {title:'Notatki', parent:'studia', render:pNotes},
   'kalkulatory':{title:'Kalkulatory', parent:'studia', render:pCalcs},
