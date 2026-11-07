@@ -107,7 +107,13 @@ const SB_IC={
 document.body.insertAdjacentHTML('beforeend', `<footer id="sbar" class="sbar" aria-label="Pasek stanu">
   <div class="sb-l"><button type="button" class="sb-btn" data-snip="area" title="Wytnij zaznaczony obszar"><svg class="wx-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SB_IC.snip}</svg><span class="sb-hide">Wycinek</span></button>
     <button type="button" class="sb-btn" data-snip="page" title="Zrzut całej strony"><svg class="wx-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SB_IC.page}</svg><span class="sb-hide">Cała strona</span></button></div>
-  <div class="sb-r"><a class="sb-wx" id="sbWx" href="#start" title="Pogoda"></a><span class="sb-sep" aria-hidden="true"></span><span class="sb-date" id="sbDate"></span><span class="sb-time" id="sbTime"></span></div></footer>`);
+  <div class="sb-r"><button type="button" class="sb-sync" id="sbSync" data-s="local"><i aria-hidden="true"></i><span class="sb-hide"></span></button><span class="sb-sep" aria-hidden="true"></span><a class="sb-wx" id="sbWx" href="#start" title="Pogoda"></a><span class="sb-sep" aria-hidden="true"></span><span class="sb-date" id="sbDate"></span><span class="sb-time" id="sbTime"></span></div></footer>`);
+/* stan zapisu danych (kropka w pasku): zielona = zapisane w chmurze/Arkuszu, żółta = łączenie, czerwona = błąd, szara = tylko ta przeglądarka */
+function sbSyncRefresh(){ const b=$('#sbSync'); if(!b) return;
+  const L={cloud:'Zapisano', wait:'Łączenie…', err:'Błąd zapisu', local:'Tylko lokalnie'};
+  b.dataset.s=syncState; b.querySelector('span').textContent=L[syncState]||''; b.title=syncText(); b.setAttribute('aria-label','Stan zapisu: '+syncText()); }
+document.addEventListener('click', e=>{ if(e.target.closest('#sbSync')) snipToast(syncText()); });   /* na telefonie: dotknij kropki */
+sbSyncRefresh(); setInterval(sbSyncRefresh, 2000);
 tickClock(); setInterval(tickClock, 1000);
 wxRefreshUI(); wxLoad(); setInterval(()=>wxLoad(), 30*60e3);
 

@@ -289,4 +289,4 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Escape'){ if(tdRenaming){ tdRenaming=false; document.activeElement&&document.activeElement.blur(); tdRefresh(); } else if(tdSel) tdClose(); }
 });
 document.addEventListener('focusout', e=>{ if(e.target.matches && e.target.matches('.td-rename')) setTimeout(()=>{ if(tdRenaming){ tdRenaming=false; tdRefresh(); } },0); });
-const refreshAll = () => { refreshWot(); tdRefresh(); ntRefresh(); gymRefresh(); planRefresh(); pxRefresh(); trRefresh(); mxRefresh(); dkRefresh(); };
+const refreshAll = () => { typeof sbSyncRefresh==='function' && sbSyncRefresh(); refreshWot(); tdRefresh(); ntRefresh(); gymRefresh(); planRefresh(); pxRefresh(); trRefresh(); mxRefresh(); dkRefresh(); };

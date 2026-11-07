@@ -88,6 +88,14 @@ body{padding-bottom:var(--sbar-h)}
 .sb-wx:hover{background:var(--soft)}
 .sb-wx .wx-ic{width:18px;height:18px;color:var(--mark)}
 .sb-wx span{color:var(--muted)}
+.sb-sync{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 8px;border:0;border-radius:999px;background:none;color:var(--muted);font:inherit;cursor:pointer}
+.sb-sync:hover{background:var(--soft)}
+.sb-sync i{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.sb-sync[data-s="cloud"] i{background:#3f9b6b}
+.sb-sync[data-s="wait"] i{background:#d9a441;animation:sbPulse 1.2s ease-in-out infinite}
+.sb-sync[data-s="err"] i{background:#c4553f}
+.sb-sync[data-s="err"]{color:#c4553f}
+@keyframes sbPulse{50%{opacity:.35}}
 .sb-sep{width:1px;height:16px;background:var(--line);margin:0 4px}
 .sb-date{color:var(--muted)}
 .sb-time{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:500;padding-left:6px}
