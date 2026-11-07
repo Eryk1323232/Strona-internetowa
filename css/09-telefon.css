@@ -1,0 +1,33 @@
+/* ════════════════════════════════════════════════════════════════════════
+   WERSJA NA TELEFON (≤ 900 px i ≤ 560 px)
+   ════════════════════════════════════════════════════════════════════════
+   Reguły, które włączają się na wąskich ekranach: menu „Menu”, jedna kolumna kafli itp.
+   ════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width:900px){
+  .hdr-in{gap:12px;min-height:56px;flex-wrap:wrap}
+  .menu-btn{display:block}
+  .brand small{display:none}
+  .hdr-tools{gap:6px}
+  .topnav{display:none;flex-basis:100%;order:3;border-top:1px solid var(--line);margin:0 -4px;padding:6px 0 14px}
+  .topnav.open{display:block;max-height:calc(100vh - 70px);overflow-y:auto}
+  .navtree{flex-direction:column;gap:2px}
+  .navtree>li{flex-direction:column}
+  .navtree .top{padding:10px 4px;border-bottom:0;margin:0}
+  .dd-btn{cursor:default}
+  .dd-btn::after{display:none}
+  .dd-menu,li.dd:not(.shut):hover .dd-menu{display:block;position:static;border:0;border-left:1px solid var(--line);box-shadow:none;background:none;margin:0 0 6px 10px;padding:0;min-width:0}
+  .dd-menu a{padding:7px 14px}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--bg)}
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .plan,.calc,.cv,.split,.split.even{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .g3,.g2{grid-template-columns:minmax(0,1fr)}
+  .fields{grid-template-columns:minmax(0,1fr)}
+  .tl-item{grid-template-columns:minmax(0,1fr);gap:4px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .page{animation:rise .35s ease-out both}
+  @keyframes rise{from{transform:translateY(6px)}to{transform:none}}
+}

@@ -1,0 +1,35 @@
+/* ════════════════════════════════════════════════════════════════════════
+   DYSKI (STUDIA)
+   ════════════════════════════════════════════════════════════════════════
+   Karty dysków (.dk-card) pogrupowane w sekcje semestrów.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ——— Dyski ——— */
+.dk-bar{margin-bottom:8px}
+.dk-plus{display:inline-flex;align-items:center;gap:12px;border:1.5px dashed var(--muted);background:none;border-radius:999px;padding:8px 22px 8px 8px;cursor:pointer;color:var(--ink);font-family:var(--f-body);font-weight:600;font-size:15px}
+.dk-plus span{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:22px;font-weight:400;line-height:1}
+.dk-plus:hover{border-color:var(--accent);color:var(--accent)} .dk-plus:hover span{background:var(--accent);color:var(--accent-ink)}
+.dk-sem{margin-top:36px}
+.dk-sem .block-head{justify-content:flex-start;gap:12px;align-items:center}
+.dk-ct{font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.dk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr));gap:14px}
+.dk-card{display:flex;flex-wrap:wrap;align-items:center;gap:12px 14px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);min-width:0}
+.dk-card:hover{border-color:var(--mark)}
+.dk-ic{width:46px;height:46px;flex:none;border-radius:14px;display:grid;place-items:center;background:var(--soft);color:var(--muted)}
+.dk-ic svg{width:24px;height:24px}
+.dk-gd .dk-ic{background:color-mix(in srgb,#34A853 14%,var(--surface));color:#2F8F4A}
+.dk-od .dk-ic,.dk-tm .dk-ic{background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--accent)}
+.dk-db .dk-ic{background:color-mix(in srgb,#0061FF 12%,var(--surface));color:#2A5FD0}
+.dk-mg .dk-ic{background:color-mix(in srgb,var(--bad) 12%,var(--surface));color:var(--bad)}
+.dk-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dk-body b{font-family:var(--f-display);font-weight:600;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dk-host{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dk-acts{display:flex;align-items:center;gap:6px;width:100%;justify-content:flex-end;padding-top:10px;border-top:1px solid var(--line-soft)}
+.dk-acts .dk-open{margin-right:auto}
+.td-btn.dk-copy.copied{border-color:var(--ok);color:var(--ok)}
+.dk-open{display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:999px;background:var(--ink);color:var(--bg);text-decoration:none;font-size:13px;font-weight:600}
+.dk-open:hover{background:var(--accent);color:var(--accent-ink)}
+.dk-empty{margin-top:24px}
+.dk-panel{width:min(560px,100%)}
+.dk-form input,.dk-form .mx-f input[name=n]{font-family:var(--f-body)!important;font-size:15.5px!important;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font-family:var(--f-body);font-size:15.5px;padding:0 12px;height:46px}
+.dk-form input:focus{outline:none;border-color:var(--accent)}

@@ -1,0 +1,88 @@
+<!doctype html>
+<!--
+  ════════════════════════════════════════════════════════════════════════
+   PRACOWNIA — prywatna strona Eryka (budownictwo PB · gry · siłownia)
+  ════════════════════════════════════════════════════════════════════════
+   Ten plik to tylko „szkielet”: nagłówek z menu i puste miejsce na treść.
+   Treść każdej podstrony rysuje JavaScript (folder js/), wygląd — CSS (folder css/).
+
+   Kolejność plików poniżej MA ZNACZENIE:
+   • css/14-wyglad.css musi być ostatni (nadpisuje wcześniejsze style),
+   • js/00-ustawienia.js i js/01-dane.js pierwsze, js/13-router.js uruchamia stronę, js/14-szkice-formularzy.js na samym końcu.
+
+   Menu: dopisujesz/usuwasz pozycje w <nav> niżej. Każdy link ma
+   href="#klucz" i data-r="klucz" — ten sam klucz musi być w ROUTES (js/13-router.js).
+  ════════════════════════════════════════════════════════════════════════
+-->
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pracownia Eryka</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23F7F2EA' stroke='%233A2622' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23E59A78'/%3E%3Cpath d='M16 9a7 7 0 0 1 0 14z' fill='%234E5FA6'/%3E%3C/svg%3E">
+
+<!-- czcionki: Fraunces (tytuły), DM Sans (tekst), DM Mono (liczby) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=DM+Mono:wght@400;500&display=swap">
+
+<!-- style — w tej kolejności -->
+<link rel="stylesheet" href="css/01-zmienne-i-podstawy.css">
+<link rel="stylesheet" href="css/02-naglowek-i-menu.css">
+<link rel="stylesheet" href="css/03-uklad-strony.css">
+<link rel="stylesheet" href="css/04-world-of-tanks.css">
+<link rel="stylesheet" href="css/05-cv.css">
+<link rel="stylesheet" href="css/06-silownia.css">
+<link rel="stylesheet" href="css/07-todo.css">
+<link rel="stylesheet" href="css/08-notatki.css">
+<link rel="stylesheet" href="css/09-telefon.css">
+<link rel="stylesheet" href="css/10-kalkulatory.css">
+<link rel="stylesheet" href="css/11-posiadowki.css">
+<link rel="stylesheet" href="css/12-dyski.css">
+<link rel="stylesheet" href="css/13-strona-glowna-i-pasek.css">
+<link rel="stylesheet" href="css/14-wyglad.css">
+</head>
+<body>
+
+<!-- ═══════════ NAGŁÓWEK: logo · menu · motyw ═══════════ -->
+<header class="hdr">
+  <div class="hdr-in">
+    <a class="brand" href="#start" aria-label="Pracownia — strona główna"><span class="badge" aria-hidden="true"><svg class="ring" viewBox="0 0 100 100"><defs><path id="bdgPath" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0"/></defs><text><textPath href="#bdgPath" textLength="234" lengthAdjust="spacing">PRACOWNIA · ERYK · PB · </textPath></text></svg><span class="core"></span></span><span class="brand-word"><b>Pracownia</b><small>Eryk · Budownictwo PB</small></span></a>
+    <nav class="topnav" id="side" aria-label="Główna nawigacja">
+      <ul class="navtree">
+        <li><a class="top" href="#start" data-r="start">Strona główna</a></li>
+        <li class="dd"><button type="button" class="top dd-btn" aria-expanded="false" aria-haspopup="true">O mnie</button>
+          <ul class="dd-menu"><li><a href="#cv" data-r="cv">CV</a></li></ul></li>
+        <li class="dd"><button type="button" class="top dd-btn" aria-expanded="false" aria-haspopup="true">Studia</button>
+          <ul class="dd-menu"><li><a href="#todo" data-r="todo">To-Do</a></li><li><a href="#notatki" data-r="notatki">Notatki</a></li><li><a href="#kalkulatory" data-r="kalkulatory">Kalkulatory</a></li><li><a href="#dyski" data-r="dyski">Dyski</a></li></ul></li>
+        <li class="dd"><button type="button" class="top dd-btn" aria-expanded="false" aria-haspopup="true">Gry</button>
+          <ul class="dd-menu"><li><a href="#wot" data-r="wot">World of Tanks</a></li><li><a href="#fs25" data-r="fs25">Farming Simulator 25</a></li></ul></li>
+        <li class="dd"><button type="button" class="top dd-btn" aria-expanded="false" aria-haspopup="true">Inne</button>
+          <ul class="dd-menu"><li><a href="#silownia" data-r="silownia">Siłownia</a></li><li><a href="#posiadowki" data-r="posiadowki">Posiadówki</a></li></ul></li>
+      </ul>
+    </nav>
+    <div class="hdr-tools"><div class="theme-seg" role="group" aria-label="Motyw strony"><button type="button" data-th="jasny" aria-label="Jasny motyw" title="Jasny"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3 3l1.1 1.1M11.9 11.9 13 13M3 13l1.1-1.1M11.9 4.1 13 3"/></svg></button><button type="button" data-th="auto" aria-label="Motyw systemowy" title="Jak w systemie"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="2.5" width="13" height="9"/><path d="M5.5 14.5h5M8 11.5v3"/></svg></button><button type="button" data-th="ciemny" aria-label="Ciemny motyw" title="Ciemny"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 9.6A6 6 0 0 1 6.4 2.5a6 6 0 1 0 7.1 7.1z" stroke-linejoin="round"/></svg></button><span class="knob" aria-hidden="true"></span></div><button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="side">Menu</button></div>
+  </div>
+</header>
+
+<!-- ═══════════ TREŚĆ: tu router wstawia aktualną podstronę ═══════════ -->
+<main id="main"><div class="page" id="page"></div></main>
+
+<!-- skrypty — w tej kolejności (każdy plik ma na górze opis, co zawiera) -->
+<script src="js/00-ustawienia.js"></script>
+<script src="js/01-dane.js"></script>
+<script src="js/02-narzedzia.js"></script>
+<script src="js/03-strona-glowna-i-cv.js"></script>
+<script src="js/04-world-of-tanks.js"></script>
+<script src="js/05-todo.js"></script>
+<script src="js/06-notatki.js"></script>
+<script src="js/07-silownia.js"></script>
+<script src="js/08-posiadowki.js"></script>
+<script src="js/09-kalkulatory.js"></script>
+<script src="js/10-dyski.js"></script>
+<script src="js/11-pasek-dolny.js"></script>
+<script src="js/12-synchronizacja.js"></script>
+<script src="js/13-router.js"></script>
+<script src="js/14-szkice-formularzy.js"></script>
+</body>
+</html>

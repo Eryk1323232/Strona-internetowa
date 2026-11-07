@@ -1,0 +1,42 @@
+/* ════════════════════════════════════════════════════════════════════════
+   ZMIENNE (KOLORY, CZCIONKI) I PODSTAWY
+   ════════════════════════════════════════════════════════════════════════
+   Tu zmieniasz wygląd całej strony w jednym miejscu.
+     --bg       tło strony              --surface  tło kart i tabel
+     --ink      kolor tekstu            --muted    tekst przygaszony (opisy)
+     --line     linie / ramki           --accent   kolor akcentu (niebieski)
+     --mark     drugi akcent (brzoskwinia)  --ok / --bad  zielony / czerwony
+     --band, --band-2  kolory pasa za tytułem strony
+     --r        zaokrąglenie kart       --shadow   cień kart
+   Pierwszy blok :root = motyw jasny, dwa kolejne = motyw ciemny
+   (automatyczny wg systemu oraz wymuszony przyciskiem w nagłówku).
+   Czcionki: Fraunces (nagłówki), DM Sans (tekst), DM Mono (liczby)
+   — ładowane z Google Fonts w index.html.
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  --bg:#F7F2EA; --surface:#FFFDF9; --ink:#3A2622; --muted:#8C7B71; --line:#E6DACB; --line-soft:#EFE6DA;
+  --accent:#4E5FA6; --accent-ink:#FFFFFF; --mark:#E59A78; --ok:#5E8A5B; --bad:#C0573F;
+  --band:#EDD9CC; --band-2:#E3E7F1; --soft:#F2E9DF; --r:14px; --r-sm:9px;
+  --f-display:"Fraunces",Georgia,"Times New Roman",serif;
+  --f-body:"DM Sans","Segoe UI",Roboto,Arial,sans-serif;
+  --f-mono:"DM Mono",ui-monospace,Consolas,monospace;
+  --shadow:0 1px 2px rgba(58,38,34,.04),0 8px 24px -12px rgba(58,38,34,.14);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1D1613; --surface:#271E1A; --ink:#F2E8DC; --muted:#B3A395; --line:#3C302A; --line-soft:#30261F;
+  --accent:#9DAAEA; --accent-ink:#191512; --mark:#EFA584; --ok:#8DBB89; --bad:#EA8A73;
+  --band:#2D221D; --band-2:#232633; --soft:#2A201C; --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 28px -14px rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1D1613; --surface:#271E1A; --ink:#F2E8DC; --muted:#B3A395; --line:#3C302A; --line-soft:#30261F;
+  --accent:#9DAAEA; --accent-ink:#191512; --mark:#EFA584; --ok:#8DBB89; --bad:#EA8A73;
+  --band:#2D221D; --band-2:#232633; --soft:#2A201C; --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 28px -14px rgba(0,0,0,.6); color-scheme:dark}
+
+
+/* ——— podstawy ——— */
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;margin:0}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num,td.n,.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}

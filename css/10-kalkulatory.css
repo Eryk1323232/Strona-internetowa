@@ -1,0 +1,75 @@
+/* ════════════════════════════════════════════════════════════════════════
+   KALKULATORY (STUDIA)
+   ════════════════════════════════════════════════════════════════════════
+   Karty kalkulatorów (.calc-card) oraz okienko „Wyniki Pawła / Wyniki moje” (.mx-*).
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ——— Kalkulatory ——— */
+.calc-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:16px}
+.calc-card{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:24px;min-height:200px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow);background-image:linear-gradient(160deg,color-mix(in srgb,var(--band) 55%,transparent),transparent 65%)}
+.calc-ic{width:56px;height:56px;border-radius:16px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent)}
+.calc-ic svg{width:34px;height:34px}
+.calc-card h2{font-size:28px;margin-top:auto}
+.calc-soon{align-self:flex-start;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border:1px dashed var(--muted);border-radius:999px;padding:3px 10px}
+/* ——— Wyniki (mieszanki) ——— */
+.mx-tests{display:flex;flex-direction:column;gap:10px}
+.mx-test{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px}
+.mx-test-g{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.mx-test-g label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mx-test-g label.w{grid-column:1/-1}
+.mx-sl{font-size:12px;font-weight:600;color:var(--muted)}
+.mx-test input,.mx-test textarea{border:1px solid var(--line);border-radius:var(--r-sm);background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14.5px;padding:8px 10px;min-width:0}
+.mx-test input{height:40px}
+.mx-test textarea{resize:vertical;line-height:1.5}
+.mx-test input:focus,.mx-test textarea:focus{outline:none;border-color:var(--accent)}
+.mx-test .g-del{margin-top:22px}
+.mx-tt{margin-top:12px}
+.mx-tt .label{display:block;margin-bottom:6px}
+table.mx-bt{width:100%;border-collapse:collapse;font-size:14px}
+table.mx-bt th{background:none;padding:6px 8px 6px 0;border-bottom:1px solid var(--line);font-size:10.5px}
+table.mx-bt td{padding:7px 8px 7px 0;border-bottom:1px solid var(--line-soft);vertical-align:top}
+td.mx-res{font-family:var(--f-mono);white-space:nowrap}
+td.mx-tn{color:var(--muted)}
+@media (max-width:560px){ .mx-test-g{grid-template-columns:minmax(0,1fr)} table.mx-bt thead{display:none} table.mx-bt td{display:block;border:0;padding:2px 0} table.mx-bt tr{display:block;border-bottom:1px solid var(--line-soft);padding:6px 0} }
+button.calc-card{text-align:left;cursor:pointer;color:var(--ink);font:inherit}
+button.calc-card:hover{border-color:var(--mark)}
+.calc-card.mine{background-image:linear-gradient(160deg,color-mix(in srgb,var(--band) 70%,transparent),transparent 65%)}
+.calc-card.mine .calc-ic{color:var(--mark)}
+.mx-base{margin:0 0 8px;font-size:13.5px;color:var(--muted)}
+.mx-base b{color:var(--ink)}
+select.mx-sel{height:44px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font-family:var(--f-body);font-size:15px;padding:0 10px;cursor:pointer}
+.calc-card.res{background-image:linear-gradient(160deg,color-mix(in srgb,var(--band-2) 75%,transparent),transparent 65%)}
+.calc-count{font-size:13px;color:var(--muted)}
+.calc-open{align-self:flex-start;font-size:13px;font-weight:600;color:var(--accent)}
+.mx-add{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;border:1.5px dashed var(--muted);background:none;border-radius:var(--r);padding:16px;cursor:pointer;color:var(--ink);font-family:var(--f-body);font-weight:600;font-size:15px;margin-bottom:14px}
+.mx-add span{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:20px;line-height:1;font-weight:400}
+.mx-add:hover{border-color:var(--accent);color:var(--accent)} .mx-add:hover span{background:var(--accent);color:var(--accent-ink)}
+.mx-list{display:flex;flex-direction:column;gap:12px}
+.mx-item{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:16px 18px}
+.mx-ih{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.mx-ih b{font-family:var(--f-display);font-weight:600;font-size:20px}
+.mx-acts{display:flex;gap:6px;align-items:center}
+.mx-bar{display:flex;height:10px;border-radius:999px;overflow:hidden;gap:2px;margin-bottom:10px;background:var(--line-soft)}
+.mx-bar i{display:block;min-width:3px}
+table.mx-t{width:100%;border-collapse:collapse;font-size:14.5px}
+table.mx-t td{padding:6px 0;border-top:1px solid var(--line-soft)}
+table.mx-t td.n{font-family:var(--f-mono);text-align:right;padding-left:12px;white-space:nowrap}
+td.mx-pct{color:var(--muted);width:70px}
+.mx-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:10px;vertical-align:0;flex:none}
+.mx-note{margin:10px 0 0;padding:10px 12px;border-radius:var(--r-sm);background:var(--soft);font-size:14px;white-space:pre-wrap}
+.mx-f{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.mx-f input[name=n],.mx-f textarea{border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font-family:var(--f-body);font-size:15.5px;padding:10px 12px}
+.mx-f input[name=n]{height:46px;font-family:var(--f-display);font-size:19px}
+.mx-f textarea{resize:vertical;line-height:1.55}
+.mx-f input:focus,.mx-f textarea:focus,.mx-row input:focus,.mx-row select:focus{outline:none;border-color:var(--accent)}
+.mx-rows{display:flex;flex-direction:column;gap:8px}
+.mx-row{display:flex;align-items:center;gap:8px}
+.mx-row input,.mx-row select{height:40px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font-family:var(--f-body);font-size:14.5px;padding:0 10px}
+.mx-row input[name=pn]{flex:1;min-width:0}
+.mx-row input[name=pv]{width:96px;text-align:right;font-family:var(--f-mono)}
+.mx-row select{width:96px;cursor:pointer}
+.mx-addrow{align-self:flex-start;background:none;border:1px dashed var(--muted);border-radius:999px;padding:7px 14px;cursor:pointer;color:var(--muted);font-family:var(--f-body);font-size:13px;margin-top:4px}
+.mx-addrow:hover{border-color:var(--accent);color:var(--accent)}
+.mx-sum{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.mx-sum.warn{color:var(--bad)}
+@media (max-width:560px){ .mx-row input[name=pv],.mx-row select{width:72px} }

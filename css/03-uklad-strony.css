@@ -1,0 +1,70 @@
+/* ════════════════════════════════════════════════════════════════════════
+   UKŁAD STRONY I WSPÓLNE ELEMENTY
+   ════════════════════════════════════════════════════════════════════════
+   Szerokość strony, nagłówki h1/h2/h3, sekcje (.block), siatki kafli (.grid, .cell),
+   kafle podstron (.sub), tabele, zakładki (.tabs/.ptabs).
+   Używane na wielu podstronach — zmiana tutaj działa wszędzie.
+   ════════════════════════════════════════════════════════════════════════ */
+
+
+h1{font-family:var(--f-display);font-stretch:125%;font-weight:800;font-size:clamp(34px,6vw,64px);line-height:.95;letter-spacing:-.01em;text-transform:uppercase;margin:0 0 28px;text-wrap:balance}
+h1 .acc{color:var(--accent)}
+.lede{max-width:62ch;color:var(--muted);font-size:16px;margin:0 0 34px}
+h2{font-family:var(--f-display);font-stretch:115%;font-weight:750;font-size:20px;letter-spacing:.01em;text-transform:uppercase;margin:0;text-wrap:balance}
+h3{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:15px;letter-spacing:.04em;text-transform:uppercase;margin:0}
+.label{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+section.block{border-top:2px solid var(--ink);padding-top:14px;margin-top:40px}
+.block-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.block-head .label{white-space:nowrap}
+
+/* siatka kafli */
+.grid{display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cell{background:var(--surface);padding:18px 18px 16px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.cell>.label{font-family:var(--f-display);font-stretch:108%;font-size:13.5px;font-weight:750;letter-spacing:.05em;color:var(--ink)}
+.cell .big{font-family:var(--f-display);font-stretch:110%;font-weight:700;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.cell .big small{font-size:14px;font-weight:500;color:var(--muted);margin-left:4px}
+.cell p{margin:0;color:var(--muted);font-size:13.5px}
+a.cell{text-decoration:none;transition:background .15s}
+a.cell:hover{background:var(--bg)}
+a.cell .go{margin-top:auto;font-family:var(--f-mono);font-size:11.5px;color:var(--accent)}
+
+/* kafle podstron */
+.subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.sub{border:1px solid var(--ink);background:var(--surface);padding:20px;text-decoration:none;display:flex;flex-direction:column;gap:10px;min-height:170px;position:relative}
+.sub:hover{background:var(--ink);color:var(--bg)}
+.sub:hover p,.sub:hover .label{color:var(--line)}
+.sub .shape{width:38px;height:38px}
+.sub p{margin:0;color:var(--muted);font-size:14px}
+.sub .go{margin-top:auto;font-family:var(--f-mono);font-size:12px}
+.sub.soon{border-style:dashed;border-color:var(--muted);cursor:default}
+.sub.soon:hover{background:var(--surface);color:var(--ink)}
+.sub.soon:hover p{color:var(--muted)}
+
+/* tabele */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-family:var(--f-mono);font-weight:500;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--ink);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th.n,td.n{text-align:right}
+tfoot td{border-top:1px solid var(--ink);font-weight:600}
+tr.dim td{color:var(--muted)}
+.chip{display:inline-block;font-family:var(--f-mono);font-size:10.5px;padding:1px 7px;border:1px solid currentColor;letter-spacing:.04em;white-space:nowrap}
+.chip.on{color:var(--accent)}
+.chip.off{color:var(--muted);border-style:dashed}
+.dot{display:inline-block;width:8px;height:8px;margin-right:6px;vertical-align:1px}
+.dot.on{background:var(--accent)} .dot.off{border:1px solid var(--muted)}
+
+/* zakładki wewnętrzne */
+.tabs,.ptabs{display:flex;gap:0;border-bottom:1px solid var(--ink);overflow-x:auto;margin-top:8px;scrollbar-width:thin}
+.tabs button,.ptabs button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px 8px;cursor:pointer;font-family:var(--f-display);font-stretch:108%;font-weight:650;font-size:13px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;color:var(--muted)}
+.tabs button[aria-selected="true"],.ptabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs button:hover,.ptabs button:hover{color:var(--ink)}
+.panel{padding-top:22px}
+
+/* dwie kolumny: wykres + tabela (Siłownia, Magazyn WoT) */
+.split{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px;align-items:start}
