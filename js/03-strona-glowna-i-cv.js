@@ -44,9 +44,28 @@ function homeTile(x,i){ const r=ROUTES[x.k];
 function homeGreeting(){ const h=new Date().getHours();
   return h<5?['Dobranoc','']:h<12?['Dzień ','dobry']:h<18?['Dzień ','dobry']:['Dobry ','wieczór']; }
 
+/* ——— baner powitalny: ciemne „rozmyte w ruchu” tło (rysowane w kodzie, bez zdjęcia), promienie, czerwona linia ——— */
+function heroStreaks(){
+  let r='', seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  for(let i=0;i<46;i++){ const y=rnd()*100, h=0.4+rnd()*rnd()*9, x=rnd()*80-20, w=30+rnd()*90, l=Math.round(18+rnd()*rnd()*120), o=(0.25+rnd()*0.6).toFixed(2);
+    r+=`<rect x="${x.toFixed(1)}%" y="${y.toFixed(1)}%" width="${w.toFixed(1)}%" height="${h.toFixed(2)}%" fill="rgb(${l},${l},${l+4})" opacity="${o}"/>`; }
+  return r;
+}
+function heroRays(){ let s=''; [30,60,90,120,150,180,210,240,270,300,330].forEach(a=>{ if(a===0) return; const t=a*Math.PI/180, r1=a%90?150:162, r2=r1+(a%90?22:30);
+    s+=`<line x1="${(200+r1*Math.sin(t)).toFixed(1)}" y1="${(200-r1*Math.cos(t)*0.78).toFixed(1)}" x2="${(200+r2*Math.sin(t)).toFixed(1)}" y2="${(200-r2*Math.cos(t)*0.78).toFixed(1)}"/>`; }); return s; }
 function pStart(){
-  const [g1,g2]=homeGreeting();
-  return `<h1 class="home-h1">${g1}<span class="acc">${g2}</span>${g2?'':''}, Eryk</h1>
+  const [g1,g2]=homeGreeting(), n=new Date();
+  const dzien=n.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
+  return `<section class="hero" aria-label="Powitanie">
+    <svg class="hero-bg" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="hBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="38 1.2"/></filter>
+      <filter id="hGrain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0"/></filter></defs>
+      <g class="hero-streaks" filter="url(#hBlur)">${heroStreaks()}</g><rect width="100%" height="100%" filter="url(#hGrain)" class="hero-grain"/></svg>
+    <div class="hero-mark" aria-hidden="true"><svg viewBox="0 0 400 400"><g class="hero-rays">${heroRays()}</g><line class="hero-red" x1="200" y1="-40" x2="200" y2="228"/><line class="hero-diag" x1="118" y1="262" x2="268" y2="150"/></svg></div>
+    <div class="hero-txt"><span class="hero-small">${esc(dzien)}</span>
+      <h1 class="hero-title">${esc(g1.trim())}${g2?`<br>${esc(g2)}`:''}</h1>
+      <span class="hero-small">Eryk · <b id="heroTime">${n.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</b></span></div>
+    <span class="hero-foot" aria-hidden="true">Ostatnio odwiedzane ↓</span>
+  </section>
   <section class="home-recent" aria-label="Ostatnio odwiedzane"><div class="home-tiles">${homeRecent().map(homeTile).join('')}</div></section>
   <section class="home-widgets">
     ${widgetClock()}

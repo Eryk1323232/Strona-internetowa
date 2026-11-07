@@ -91,6 +91,7 @@ function isoWeek(d){ const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.ge
 function tickClock(){
   const n=new Date(), hm=n.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}), s=String(n.getSeconds()).padStart(2,'0');
   const bt=$('#sbTime'); if(bt) bt.innerHTML=`${hm}<em>:${s}</em>`;
+  const ht=$('#heroTime'); if(ht) ht.textContent=hm;
   const bd=$('#sbDate'); if(bd) bd.textContent=n.toLocaleDateString('pl-PL',{weekday:'short',day:'numeric',month:'short'});
   const wt=$('#wcTime'); if(!wt) return;
   wt.innerHTML=`${hm}<em>:${s}</em>`; $('#wcDate').textContent=n.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -112,7 +113,7 @@ document.body.insertAdjacentHTML('beforeend', `<footer id="sbar" class="sbar" ar
 function sbSyncRefresh(){ const b=$('#sbSync'); if(!b) return;
   const L={cloud:'Zapisano', wait:'Łączenie…', err:'Błąd zapisu', local:'Tylko lokalnie'};
   b.dataset.s=syncState; b.querySelector('span').textContent=L[syncState]||''; b.title=syncText(); b.setAttribute('aria-label','Stan zapisu: '+syncText()); }
-document.addEventListener('click', e=>{ if(e.target.closest('#sbSync')) snipToast(syncText()+(syncState==='err'&&window.arkuszBlad?' Szczegóły: '+window.arkuszBlad:'')+' [v6]'); });   /* na telefonie: dotknij kropki */
+document.addEventListener('click', e=>{ if(e.target.closest('#sbSync')) snipToast(syncText()+(syncState==='err'&&window.arkuszBlad?' Szczegóły: '+window.arkuszBlad:'')+' [v7]'); });   /* na telefonie: dotknij kropki */
 sbSyncRefresh(); setInterval(sbSyncRefresh, 2000);
 tickClock(); setInterval(tickClock, 1000);
 wxRefreshUI(); wxLoad(); setInterval(()=>wxLoad(), 30*60e3);

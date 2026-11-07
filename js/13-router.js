@@ -34,6 +34,7 @@ function render(){
   /* stare adresy działów (#gry itd.) przekierowują na pierwszą podstronę */
   const RD={'o-mnie':'cv','studia':'todo','gry':'wot','inne':'silownia'}; if(RD[key]){ history.replaceState(null,'','#'+RD[key]); key=RD[key]; }
   zapamiętajWizytę(key);
+  document.body.classList.toggle('is-home', key==='start');   /* strona główna: ciemny baner na całą szerokość */
   $('#page').innerHTML=ROUTES[key].render();
   if(key==='start') tickClock();
   document.querySelectorAll('.navtree a').forEach(a=>{
