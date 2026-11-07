@@ -69,7 +69,7 @@ function arkuszDb(url, klucz){
     if(!dane) return; const m=nalozone();
     Object.keys(subs).forEach(c=>{ const snap=migawka(m,c), sig=JSON.stringify(snap.docs.map(d=>[d.id,d.data()]));
       if(!wszystko && last[c]===sig) return; last[c]=sig;
-      subs[c].forEach(([cb])=>{ try{ cb(snap); }catch(e){ console.error(e); } }); });
+      subs[c].forEach(([cb])=>{ try{ cb(snap); }catch(e){ console.error(e); window.arkuszBlad=`błąd przy wczytywaniu „${c}”: ${e&&e.message||e}`; } }); });
   }
   function zgloszBlad(e){ console.warn('Arkusz Google:', e); blad=true; window.arkuszBlad=String(e&&e.message||e)+(kolejka.length?` (czeka na wysłanie: ${kolejka.length})`:''); Object.values(subs).flat().forEach(([,err])=>{ try{ err&&err(e); }catch(_){} }); }
   function sukces(d){ window.arkuszBlad='';
@@ -129,7 +129,7 @@ function arkuszDb(url, klucz){
   const ark = window.claude?.use ? null : arkuszUstawienia();
   if(!window.claude?.use && !ark) return;          /* brak chmury — zapis tylko w przeglądarce */
   syncState='wait';
-  const timer = setTimeout(()=>{ if(syncState==='wait'){ syncState=ark?'err':'local'; refreshAll(); } }, ark?25000:10000);
+  const timer = setTimeout(()=>{ if(syncState==='wait'){ syncState=ark?'err':'local'; if(ark&&!window.arkuszBlad) window.arkuszBlad='Arkusz nie odpowiedział w ciągu 25 s'; refreshAll(); } }, ark?25000:10000);
   const fail = ()=>{ clearTimeout(timer); syncState='err'; refreshAll(); };
   const ok = ()=>{ clearTimeout(timer); syncState='cloud'; saveLocal(); refreshAll(); };
   try{
