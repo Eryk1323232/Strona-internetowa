@@ -14,5 +14,5 @@
 
    W wersji na claude.ai te ustawienia są ignorowane — tam działa baza claude.ai.
    ════════════════════════════════════════════════════════════════════════ */
-const ARKUSZ_URL   = 'https://script.google.com/macros/s/AKfycbwxEitk70Ade9d_GkJ6zAEK57_iTNTRbUTD6ip9TNjhNut47QQJBUeTlxs1hwSiNrt8/exec';   // np. 'https://script.google.com/macros/s/AKfy..../exec'
-const ARKUSZ_KLUCZ = '134679P!';   // np. 'moje-tajne-haslo-123'
+const ARKUSZ_URL   = '';   // np. 'https://script.google.com/macros/s/AKfy..../exec'
+const ARKUSZ_KLUCZ = '';   // np. 'moje-tajne-haslo-123'
