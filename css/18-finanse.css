@@ -1,0 +1,110 @@
+/* ════════════════════════════════════════════════════════════════════════
+   PIENIĄDZE → okienko „Finanse”
+   ════════════════════════════════════════════════════════════════════════
+   Korzysta z okienka i formularzy Zakładów (.bk-panel, .bk-typ, .bk-chip, .bk-bar,
+   .bk-plus / .bk-minus) — tu tylko dodatki (.fin-*).
+   ════════════════════════════════════════════════════════════════════════ */
+/* kafel „Zostaje” */
+.fin-zost{border-top:1px solid var(--ok)!important}
+.fin-zost.over{border-color:var(--bad)!important}
+.fin-zost.over .big,.fin-zost.over p{color:var(--bad)}
+.fin-cells .big,.fin-avgcells .big{white-space:nowrap}
+.fin-avgcells .big small{text-transform:none!important;letter-spacing:.02em!important}
+/* formularz */
+form.fin-add{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+form.fin-add input,form.fin-add select{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:7px 10px;font-size:14px;color:var(--ink);font-family:var(--f-body);height:40px}
+form.fin-add input[name=a]{width:110px;font-family:var(--f-mono);font-size:15px}
+form.fin-add input[name=kat]{width:140px}
+form.fin-add input[name=n]{flex:1 1 150px;min-width:120px}
+form.fin-add input[type=date]{width:150px;font-family:var(--f-mono)}
+form.fin-add input:focus,form.fin-add select:focus{outline:none;border-color:var(--accent)}
+form.fin-add button{height:40px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);padding:0 20px;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:14px}
+form.fin-add button:hover{background:var(--accent);color:var(--accent-ink)}
+form.fin-add .tr-err{flex-basis:100%}
+form.fin-add .tr-err:empty{display:none}
+form.fin-add .fin-dir{display:none}
+form.fin-add[data-t="prz"] .fin-dir{display:block}
+form.fin-add[data-t="prz"] .fin-konto,form.fin-add[data-t="prz"] .fin-kat{display:none}
+.fin-typ .t-wyd input:checked+span{background:var(--bad);color:var(--surface)}
+.fin-typ .t-wpl input:checked+span{background:var(--ok);color:var(--surface)}
+.fin-typ .t-prz input:checked+span{background:var(--ink);color:var(--bg)}
+/* średnie */
+.fin-avgbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.fin-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
+.fin-seg button{border:0;background:none;border-radius:999px;padding:7px 14px;font-family:var(--f-body);font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.fin-seg button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.fin-from{font-size:12.5px;color:var(--muted)}
+.fin-avgcells .cell{cursor:help}
+.fin-chart{position:relative;margin-top:14px}
+.fin-chart svg{max-height:300px;min-width:560px}
+.fin-chart .bk-grid{stroke:var(--line-soft)}
+.fin-chart .fin-base{stroke:var(--muted);opacity:.6}
+.fin-chart .fin-bw{fill:var(--bad);opacity:.85}
+.fin-chart .fin-bp{fill:var(--ok);opacity:.85}
+.fin-chart .fin-avg{stroke:var(--ink);stroke-dasharray:5 4;opacity:.55}
+.fin-chart .fin-avgl{font-size:10.5px}
+.fin-chart rect.fin-hit{fill:transparent;cursor:pointer;outline:none}
+.fin-chart rect.fin-hit:hover,.fin-chart rect.fin-hit:focus{fill:color-mix(in srgb,var(--ink) 6%,transparent)}
+.fin-tip i{display:block;font-style:normal;font-family:var(--f-mono);font-size:11.5px}
+.fin-tip i.bk-minus{color:var(--mark)!important}
+.fin-tip b.bk-minus{color:var(--mark)!important}
+.fin-leg{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--muted)}
+.fin-leg span::before{content:"";display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+.fin-leg .w::before{background:var(--bad)}
+.fin-leg .p::before{background:var(--ok)}
+.fin-leg .a::before{height:0;border-top:1px dashed var(--ink);vertical-align:3px}
+/* historia */
+.fin-hbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.fin-hbar .bk-chips{margin:0}
+.fin-mnav{display:inline-flex;align-items:center;gap:6px}
+.fin-mnav b{min-width:150px;text-align:center;font-weight:600;text-transform:capitalize}
+.fin-mnav button{width:32px;height:32px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;font-size:16px}
+.fin-mnav button:hover:not(:disabled){border-color:var(--ink)}
+.fin-mnav button:disabled{opacity:.35;cursor:default}
+.fin-msum{margin:0 0 10px;font-size:13.5px;color:var(--muted)}
+.fin-msum b{font-family:var(--f-mono);font-weight:500}
+table.fin-t{width:100%}
+tr.fin-day td{background:color-mix(in srgb,var(--soft) 70%,var(--surface))!important;padding:8px 10px!important}
+tr.fin-day b{font-weight:600;text-transform:capitalize;font-size:13.5px}
+tr.fin-day span{float:right;display:inline-flex;gap:12px;font-family:var(--f-mono);font-size:13px}
+tr.fin-day i{font-style:normal}
+table.fin-t input.fin-katin{width:130px}
+table.fin-t td.fin-n input{width:100%;min-width:120px}
+table.fin-t td.fin-n small{display:block;font-size:11px;color:var(--mark);padding-left:8px}
+table.fin-t td.fin-kc{font-size:13px;color:var(--muted)}
+tr.fin-r-wpl .bk-amt em{color:var(--ok)}
+tr.fin-r-wyd .bk-amt em{color:var(--bad)}
+tr.fin-r-prz .bk-amt em{color:var(--muted)}
+.bk-amt b{font-family:var(--f-mono);font-weight:500;padding:0 8px}
+tr.fin-auto td{color:var(--muted)}
+tr.fin-pre td,tr.fin-fut td{opacity:.55}
+.fin-tag{display:inline-block;line-height:1.4;white-space:nowrap;font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:999px;padding:2px 9px;margin-left:6px;color:var(--muted)}
+.fin-tag-zak{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.fin-tag-sub{color:var(--mark);border-color:color-mix(in srgb,var(--mark) 45%,var(--line))}
+input.fin-dt{width:28px;height:28px;padding:0;border:0;background:transparent;color:transparent;cursor:pointer;vertical-align:middle;color-scheme:inherit}
+input.fin-dt::-webkit-datetime-edit{display:none}
+input.fin-dt:focus{outline:1px solid var(--accent)}
+/* kategorie */
+.fin-kat-l{display:flex;flex-direction:column;gap:12px}
+.fin-kr{display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:baseline}
+.fin-kn{font-weight:600;font-size:14px}
+.fin-kv{font-family:var(--f-mono);font-size:13.5px}
+.fin-kv small{color:var(--muted);margin-left:4px}
+.fin-kr .bk-bar{grid-column:1/-1}
+.fin-kr .bk-bar i{background:var(--bad)}
+/* konta i ustawienia */
+table.fin-ust{min-width:460px}
+.fin-opts{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.fin-od{display:flex;align-items:center;gap:12px}
+.fin-od input{font-family:var(--f-mono);font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);height:38px}
+.fin-chk{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--muted);cursor:pointer}
+.fin-chk input{width:17px;height:17px;margin-top:2px;accent-color:var(--ok);flex:none}
+@media (max-width:1100px){ .bk-two .fin-kat-l{max-width:520px} }
+@media (max-width:560px){
+  form.fin-add input[name=a]{flex:1 1 100px} form.fin-add input[name=kat],form.fin-add select{flex:1 1 140px} form.fin-add input[name=n]{flex:1 1 100%} form.fin-add input[type=date]{flex:1 1 140px} form.fin-add button{flex:1 1 100%}
+  .fin-typ{flex:1 1 100%} .fin-typ label{flex:1;text-align:center}
+  .fin-avgcells{grid-template-columns:minmax(0,1fr)!important}
+  table.fin-t .fin-kc{display:none} table.fin-t input.fin-katin{width:96px}
+  .fin-mnav b{min-width:120px}
+  .fin-cells .big{font-size:24px!important} .fin-cells .big small{font-size:10px} .fin-hbar .bk-chips{flex-wrap:nowrap;overflow-x:auto;max-width:100%}
+}

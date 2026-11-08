@@ -190,6 +190,11 @@ function arkuszDb(url, klucz){
     let bkF3=true;
     gdb.collection('bukCfg').onSnapshot(s=>{ if(bkF3&&s.empty&&wyslijLokalne()&&bkLimit){ bkF3=false; saveLimit(); return ok(); }
       bkF3=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.bk) return; const d=s.docs.find(x=>x.id==='limit'); bkLimit=d?Math.max(0,+(d.data()||{}).v||0):0; store.set('bukLimit',String(bkLimit)); ok(); }, fail);
+    let fnF1=true, fnF2=true;   /* Pieniądze → Finanse */
+    gdb.collection('finOps').onSnapshot(s=>{ if(fnF1&&s.empty&&wyslijLokalne()&&FIN.ops.length){ fnF1=false; FIN.ops.forEach(finPushO); return ok(); }
+      fnF1=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.fn) return; FIN.ops=s.docs.map(d=>finONorm(d.id,d.data())); saveFin(); ok(); }, fail);
+    gdb.collection('finCfg').onSnapshot(s=>{ if(fnF2&&s.empty&&wyslijLokalne()&&FIN.cfg.u){ fnF2=false; finPushCfg(); return ok(); }
+      fnF2=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.fn) return; const d=s.docs.find(x=>x.id==='cfg'); if(d) FIN.cfg=finCfgNorm(d.data()); saveFin(); ok(); }, fail);
     let plF=true;
     gdb.collection('plany').onSnapshot(s=>{ if(plF&&s.empty&&wyslijLokalne()&&PL.length){ plF=false; PL.forEach(plPush); return ok(); }
       plF=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.pk) return; PL=s.docs.map(d=>plNorm(d.id,d.data())); savePlans(); ok(); }, fail);

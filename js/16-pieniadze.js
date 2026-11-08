@@ -177,7 +177,7 @@ function bkRender(){
 }
 function bkCard(){ const S=bkSum('all'), akt=BK.konta.filter(k=>k.st==='akt').length, LM=bkLim();
   return `<span class="bk-cbil ${bkCls(S.bil)}">${bkSign(S.bil)} zł</span>${bkLimit?`<span class="bk-clim ${LM.cls}">Limit: ${fmt(LM.wp,2)} / ${fmt(bkLimit,bkLimit%1?2:0)} zł<span class="bk-bar"><i style="width:${Math.min(100,LM.p*100).toFixed(1)}%"></i></span></span>`:''}<span class="calc-count">${S.ops.length} ${S.ops.length===1?'operacja':S.ops.length%10>=2&&S.ops.length%10<=4&&(S.ops.length%100<10||S.ops.length%100>=20)?'operacje':'operacji'} · ${akt} ${akt===1?'aktywne konto':'aktywne konta'}</span>`; }
-function bkRefresh(){ const c=$('#bkCard'); if(c) c.innerHTML=bkCard(); if(bkM) bkRender(); }
+function bkRefresh(){ const c=$('#bkCard'); if(c) c.innerHTML=bkCard(); if(bkM) bkRender(); typeof finRefresh==='function' && finRefresh(); }   /* Finanse wliczają Zakłady */
 
 /* ——— strona Pieniądze ——— */
 function pPieniadze(){
@@ -185,8 +185,8 @@ function pPieniadze(){
   <div class="calc-cards" id="bkPage">
     <button type="button" class="calc-card res bk-card" data-bkact="open"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="10" width="36" height="28" rx="3"/><path d="M6 18h36"/><path d="M12 30l6-6 5 4 8-9 5 4"/></svg></div>
       <h2>Zakłady</h2><span id="bkCard" class="bk-cinfo">${bkCard()}</span><span class="calc-open">Otwórz →</span></button>
-    <article class="calc-card"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14h28a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z"/><path d="M8 14l24-6v6"/><path d="M40 24h-8a3 3 0 0 0 0 6h8"/></svg></div>
-      <h2>Finanse</h2><span class="calc-soon">w przygotowaniu</span></article>
+    <button type="button" class="calc-card res mine bk-card" data-finact="open"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14h28a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z"/><path d="M8 14l24-6v6"/><path d="M40 24h-8a3 3 0 0 0 0 6h8"/></svg></div>
+      <h2>Finanse</h2><span id="finCard" class="bk-cinfo">${typeof finCard==='function'?finCard():''}</span><span class="calc-open">Otwórz →</span></button>
   </div>`;
 }
 

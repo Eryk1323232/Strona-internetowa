@@ -55,6 +55,7 @@ function render(){
   if(key!=='kalkulatory' && mxM){ mxM=null; mxRender(); }
   if(key!=='dyski' && dkM){ dkM=null; dkRender(); }
   if(key!=='pieniadze' && bkM){ bkM=false; bkRender(); }
+  if(key!=='pieniadze' && finM){ finM=false; finRender(); }
   window.scrollTo(0,0);
 }
 /* lista 3 ostatnio odwiedzanych podstron (dla kafli na stronie głównej) */
