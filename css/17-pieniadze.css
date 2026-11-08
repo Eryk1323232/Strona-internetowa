@@ -12,6 +12,8 @@
 .bk-cbil{font-family:var(--f-mono);font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
 /* okienko — szersze niż w Siłowni */
 .tr-panel.bk-panel{width:min(1180px,100%)}
+.tr-panel.sb-panel{width:min(1440px,100%)}   /* Subskrypcje: szeroka tabela */
+.sb-cm{font-size:12px;color:var(--muted)}
 .bk-sec{margin-top:26px}
 .bk-sec h3{margin:0 0 12px}
 .bk-two{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:0 28px;align-items:start}

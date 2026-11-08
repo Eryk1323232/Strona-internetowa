@@ -192,7 +192,32 @@ function bkRender(){
 }
 function bkCard(){ const S=bkSum('all'), akt=BK.konta.filter(k=>k.st==='akt').length, LM=bkLim();
   return `<span class="bk-cbil ${bkCls(S.bil)}">${bkSign(S.bil)} zł</span>${bkLimit?`<span class="bk-clim ${LM.cls}">Limit: ${fmt(LM.wp,2)} / ${fmt(bkLimit,bkLimit%1?2:0)} zł<span class="bk-bar"><i style="width:${Math.min(100,LM.p*100).toFixed(1)}%"></i></span></span>`:''}<span class="calc-count">${S.ops.length} ${S.ops.length===1?'operacja':S.ops.length%10>=2&&S.ops.length%10<=4&&(S.ops.length%100<10||S.ops.length%100>=20)?'operacje':'operacji'} · ${akt} ${akt===1?'aktywne konto':'aktywne konta'}</span>`; }
-function bkRefresh(){ const c=$('#bkCard'); if(c) c.innerHTML=bkCard(); if(bkM) bkRender(); typeof finRefresh==='function' && finRefresh(); }   /* Finanse wliczają Zakłady */
+function bkRefresh(){ const c=$('#bkCard'); if(c) c.innerHTML=bkCard(); if(bkM) bkRender(); typeof finRefresh==='function' && finRefresh(); sbCardRefresh(); }   /* Finanse wliczają Zakłady */
+
+/* ——— SUBSKRYPCJE w okienku ———
+   Cała zawartość (kafle, Nadchodzące, tabela) to dalej subHtml() z js/15-subskrypcje.js — bez zmian;
+   tu jest tylko okienko i kafelek. Stary adres #subskrypcje otwiera Pieniądze z tym okienkiem (js/13-router.js). */
+let sbM = false;
+function sbCard(){
+  if(typeof SUB!=='object'||!SUB.length) return '<span class="calc-count">brak subskrypcji</span>';
+  const L=SUB.map(s=>({s, c:subCalc(s)})), akt=L.filter(x=>x.c.aktywna), mies=akt.reduce((a,x)=>a+x.c.mies,0);
+  const n=akt.filter(x=>x.c.nast).sort((a,b)=>a.c.nast-b.c.nast)[0];
+  return `<span class="bk-cbil">${fmt(mies,2)} zł <small class="sb-cm">/ mies.</small></span><span class="calc-count">${akt.length} ${akt.length===1?'aktywna':akt.length%10>=2&&akt.length%10<=4&&(akt.length%100<10||akt.length%100>=20)?'aktywne':'aktywnych'}${n?` · najbliższa: ${esc(n.s.n)} ${subDniTxt(n.c.dni)}`:''}</span>`;
+}
+function sbCardRefresh(){ const c=$('#sbCard'); if(c) c.innerHTML=sbCard(); }
+function sbRender(){
+  let sc=$('#sbScrim'), md=$('#sbModal');
+  if(!sbM || !$('#bkPage')){ sc&&sc.remove(); md&&md.remove(); sbM=false; if(!bkM && !(typeof finM!=='undefined'&&finM)) document.body.classList.remove('tr-lock'); sbCardRefresh(); typeof finRefresh==='function' && finRefresh(); return; }
+  if(!md){ sc=document.createElement('div'); sc.id='sbScrim'; sc.className='tr-scrim'; document.body.appendChild(sc);
+    md=document.createElement('div'); md.id='sbModal'; md.className='tr-modal'; md.setAttribute('role','dialog'); md.setAttribute('aria-modal','true'); md.setAttribute('aria-label','Subskrypcje'); document.body.appendChild(md);
+    md.innerHTML=`<div class="tr-panel bk-panel sb-panel"><div class="tr-top"><div><span class="label">Pieniądze</span><h2>Subskrypcje</h2></div><button type="button" class="tr-x" data-sbact="close" aria-label="Zamknij">✕</button></div><div id="subApp">${subHtml()}</div></div>`; md.scrollTop=0; }
+  document.body.classList.add('tr-lock');
+}
+document.addEventListener('click', e=>{
+  if(e.target.id==='sbScrim' || e.target.id==='sbModal'){ sbM=false; return sbRender(); }
+  const a=e.target.closest('[data-sbact]'); if(a){ sbM=a.dataset.sbact==='open'; sbRender(); }
+});
+document.addEventListener('keydown', e=>{ if(sbM && e.key==='Escape'){ e.stopPropagation(); sbM=false; sbRender(); } }, true);
 
 /* ——— strona Pieniądze ——— */
 function pPieniadze(){
@@ -202,6 +227,8 @@ function pPieniadze(){
       <h2>Zakłady</h2><span id="bkCard" class="bk-cinfo">${bkCard()}</span><span class="calc-open">Otwórz →</span></button>
     <button type="button" class="calc-card res mine bk-card" data-finact="open"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14h28a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z"/><path d="M8 14l24-6v6"/><path d="M40 24h-8a3 3 0 0 0 0 6h8"/></svg></div>
       <h2>Finanse</h2><span id="finCard" class="bk-cinfo">${typeof finCard==='function'?finCard():''}</span><span class="calc-open">Otwórz →</span></button>
+    <button type="button" class="calc-card res bk-card" data-sbact="open"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="10" width="36" height="28" rx="3"/><path d="M6 19h36M13 30h9"/><path d="M34 26a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="M34 28v2.2l1.6 1"/></svg></div>
+      <h2>Subskrypcje</h2><span id="sbCard" class="bk-cinfo">${sbCard()}</span><span class="calc-open">Otwórz →</span></button>
   </div>`;
 }
 

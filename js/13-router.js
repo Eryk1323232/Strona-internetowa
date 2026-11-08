@@ -18,7 +18,6 @@ const ROUTES = {
   'fs25':    {title:'Farming Simulator 25', parent:'gry', render:pFs},
   'silownia':{title:'Siłownia', parent:'inne', render:pGym},
   'posiadowki':{title:'Posiadówki', parent:'inne', render:pPos},
-  'subskrypcje':{title:'Subskrypcje', parent:'inne', render:pSub},
   'pieniadze':{title:'Pieniądze', parent:'inne', render:pPieniadze},
   'todo':    {title:'To-Do', parent:'studia', render:pTodo},
   'notatki': {title:'Notatki', parent:'studia', render:pNotes},
@@ -30,7 +29,9 @@ const ROUTES = {
 let wotTab = store.get('wotTab','przep');
 function render(){
   let key=(location.hash||'#start').slice(1);
-  const RD0={'o-mnie':1,'studia':1,'gry':1,'inne':1};
+  const RD0={'o-mnie':1,'studia':1,'gry':1,'inne':1,'subskrypcje':1};
+  /* Subskrypcje są teraz okienkiem w Pieniądzach — stary adres otwiera to okienko */
+  if(key==='subskrypcje'){ history.replaceState(null,'','#pieniadze'); key='pieniadze'; setTimeout(()=>{ sbM=true; sbRender(); },0); }
   if(!ROUTES[key] && !RD0[key]) key='start';
   /* stare adresy działów (#gry itd.) przekierowują na pierwszą podstronę */
   const RD={'o-mnie':'cv','studia':'todo','gry':'wot','inne':'silownia'}; if(RD[key]){ history.replaceState(null,'','#'+RD[key]); key=RD[key]; }
@@ -56,6 +57,7 @@ function render(){
   if(key!=='dyski' && dkM){ dkM=null; dkRender(); }
   if(key!=='pieniadze' && bkM){ bkM=false; bkRender(); }
   if(key!=='pieniadze' && finM){ finM=false; finRender(); }
+  if(key!=='pieniadze' && sbM){ sbM=false; sbRender(); }
   window.scrollTo(0,0);
 }
 /* lista 3 ostatnio odwiedzanych podstron (dla kafli na stronie głównej) */

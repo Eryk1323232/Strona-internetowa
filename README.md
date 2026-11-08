@@ -48,7 +48,7 @@ js/
   11-pasek-dolny.js         dolny pasek: zrzuty ekranu, pogoda, data i godzina
   12-synchronizacja.js      synchronizacja z chmurą (działa tylko na claude.ai)
   13-router.js              lista podstron, przełączanie stron, motyw, menu
-  15-subskrypcje.js         Subskrypcje: koszty, odnowienia, ile wydano (ładuje się przed routerem)
+  15-subskrypcje.js         Subskrypcje: koszty, odnowienia, ile wydano — treść okienka w Pieniądzach (ładuje się przed routerem)
   16-pieniadze.js           Pieniądze: karty paneli + okienko Zakłady (bukmacherka) (wpłaty, wypłaty, bilans w czasie)
   17-finanse.js             Finanse: konto główne + oszczędnościowe, wydatki/wpływy, stałe wpływy i opłaty, średnie, wlicza Zakłady i Subskrypcje
   14-szkice-formularzy.js   niezapisany tekst w formularzach przeżywa odświeżenie (localStorage) — ładuje się ostatni
