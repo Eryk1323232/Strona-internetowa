@@ -215,6 +215,10 @@ function arkuszDb(url, klucz){
     let ntF2=true;   /* puste foldery notatek */
     gdb.collection('notatkiCfg').onSnapshot(s=>{ if(ntF2&&s.empty&&wyslijLokalne()&&NT_FOLD.length){ ntF2=false; ntSaveFold(); return ok(); }
       ntF2=false; const d=s.docs.find(x=>x.id==='foldery'); if(d){ const L=(d.data()||{}).L; if(Array.isArray(L)){ NT_FOLD=L.map(String); store.set('ntFoldery',JSON.stringify(NT_FOLD)); } } ok(); }, fail);
+    let cvF=true;   /* CV (O mnie) */
+    gdb.collection('cv').onSnapshot(s=>{ if(cvF&&s.empty&&wyslijLokalne()&&store.get('cvDane','')){ cvF=false; cvPush(); return ok(); }
+      cvF=false; const d=s.docs.find(x=>x.id==='dane'); const a=document.activeElement; if(!d || (a&&a.dataset&&a.dataset.cvf)) return ok();
+      CV=cvNorm(d.data()); cvSaveLocal(); ok(); }, fail);
     let tdF1=true, tdF2=true;
     gdb.collection('todoListy').onSnapshot(s=>{ if(tdF1&&s.empty&&wyslijLokalne()&&T.lists.length){ tdF1=false; T.lists.forEach(l=>cloud(db=>db.collection('todoListy').doc(l.id).set({n:l.n,o:l.o}))); return ok(); }
       tdF1=false; T.lists=s.docs.map(d=>{const v=d.data()||{}; return {id:d.id, n:String(v.n||'Lista'), o:+v.o||0};}); saveTodo(); ok(); }, fail);

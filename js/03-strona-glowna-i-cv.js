@@ -6,7 +6,7 @@
               • ostatnio odwiedzane zapisuje router (js/13-router.js → zapamiętajWizytę),
               • pogodę pobiera js/11-pasek-dolny.js (wspólna dla widżetu i paska),
               • ikony kafli i nazwy działów: stałe HOME_ICONS / HOME_SECTION niżej.
-   pCV()    – podstrona O mnie → CV.
+   pCV()    – podstrona O mnie → CV: w js/18-cv.js.
    Każda funkcja pXxx() zwraca HTML strony jako tekst; router wstawia go do <div id="page">.
    ════════════════════════════════════════════════════════════════════════ */
 
@@ -99,35 +99,4 @@ document.addEventListener('input', e=>{ if(e.target.id!=='qnText') return;
 function quickNoteFromCloud(t){ if(typeof t!=='string' || t===store.get('quickNote','')) return; store.set('quickNote',t);
   const el=$('#qnText'); if(el && document.activeElement!==el) el.value=t; }
 
-/* ——— CV ——— */
-function pCV(){
-  const f = t => `<span class="fill">${t}</span>`;
-  return `<h1>Curriculum<br><span class="acc">vitae</span></h1>
-  <div class="cv">
-    <div>
-      <div class="photo">ZDJĘCIE<br>3 × 4</div>
-      <dl>
-        <div><dt>Imię i nazwisko</dt><dd>Eryk ${f('nazwisko')}</dd></div>
-        <div><dt>Kierunek</dt><dd>Budownictwo</dd></div>
-        <div><dt>Uczelnia</dt><dd>Politechnika Białostocka</dd></div>
-        <div><dt>Telefon</dt><dd>${f('+48 ___ ___ ___')}</dd></div>
-        <div><dt>E-mail</dt><dd>${f('adres e-mail')}</dd></div>
-        <div><dt>Miejscowość</dt><dd>${f('miasto')}</dd></div>
-        <div><dt>Prawo jazdy</dt><dd>${f('kat.')}</dd></div>
-      </dl>
-    </div>
-    <div>
-      <div class="cv-sec"><h2>Wykształcenie</h2><div class="tl">
-        <div class="tl-item"><div class="when">${f('rrrr')} – obecnie</div><div><h3>Politechnika Białostocka</h3><p>Wydział Budownictwa i Nauk o Środowisku · Budownictwo, studia I stopnia (inż.)</p><p>Praca inżynierska: ${f('temat')}</p></div></div>
-        <div class="tl-item"><div class="when">${f('rrrr – rrrr')}</div><div><h3>${f('Szkoła średnia')}</h3><p>${f('profil')}</p></div></div>
-      </div></div>
-      <div class="cv-sec"><h2>Doświadczenie</h2><div class="tl">
-        <div class="tl-item"><div class="when">${f('mm.rrrr')}</div><div><h3>${f('Praktyki / praca')}</h3><p>${f('firma, zakres obowiązków')}</p></div></div>
-      </div></div>
-      <div class="cv-sec"><h2>Umiejętności</h2>
-        <div class="ph"><b>Do uzupełnienia:</b> programy (np. AutoCAD, Revit, Robot, Excel), języki obce z poziomem, uprawnienia i kursy.</div>
-      </div>
-      <div class="cv-sec"><h2>Zainteresowania</h2><p style="margin:0;color:var(--muted)">Trening siłowy, gry strategiczne i symulatory.</p></div>
-    </div>
-  </div>`;
-}
+/* ——— CV: przeniesione do js/18-cv.js (podgląd, edycja, eksport PDF) ——— */
