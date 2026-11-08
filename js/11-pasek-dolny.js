@@ -113,7 +113,7 @@ document.body.insertAdjacentHTML('beforeend', `<footer id="sbar" class="sbar" ar
 function sbSyncRefresh(){ const b=$('#sbSync'); if(!b) return;
   const L={cloud:'Zapisano', wait:'Łączenie…', err:'Błąd zapisu', local:'Tylko lokalnie'};
   b.dataset.s=syncState; b.querySelector('span').textContent=L[syncState]||''; b.title=syncText(); b.setAttribute('aria-label','Stan zapisu: '+syncText()); }
-document.addEventListener('click', e=>{ if(e.target.closest('#sbSync')) snipToast(syncText()+(syncState==='err'&&window.arkuszBlad?' Szczegóły: '+window.arkuszBlad:'')+' [v8]'); });   /* na telefonie: dotknij kropki */
+document.addEventListener('click', e=>{ if(e.target.closest('#sbSync')) snipToast(syncText()+(syncState==='err'&&window.arkuszBlad?' Szczegóły: '+window.arkuszBlad:'')+' [v9]'); });   /* na telefonie: dotknij kropki */
 sbSyncRefresh(); setInterval(sbSyncRefresh, 2000);
 tickClock(); setInterval(tickClock, 1000);
 wxRefreshUI(); wxLoad(); setInterval(()=>wxLoad(), 30*60e3);

@@ -126,7 +126,7 @@ function wotPanel(k){
           <td class="n">${xok(r,'cz','czOk','potrzebne XP')}</td>
           <td class="n"><span class="pctw">${xin(r,'zn','zniżka w procentach',' max="100" step="any"')}<em>%</em></span></td>
           <td class="n">${xin(r,'pos','posiadane XP')}</td>
-          <td class="n left">${has(r.n)?`<s class="struck">${fmt(expRaw(r))}</s> <b>0</b>`:`<b>${fmt(expRaw(r))}</b>`}</td>
+          <td class="n left">${has(r.n)?`<s class="struck">${fmt(expRaw(r))}</s> <b>0</b>`:`<b>${fmt(expRaw(r))}</b>`}${!has(r.n)&&expZPopr(r)?`<small class="xp-carry">−${fmt(expZPopr(r))} z poprzednika</small>`:''}</td>
           <td class="n"><button type="button" class="del" data-delexp="${esc(r.id)}" aria-label="Usuń ${esc(r.n)}">×</button></td></tr>`).join('')}
         </tbody></table></div>
         <form class="addrow addexp" data-nac="${esc(nc)}" data-br="${b}"><input name="n" id="addexp-${b}" placeholder="+ Dodaj czołg do tej gałęzi" aria-label="Nazwa nowego czołgu" required><button type="submit">Dodaj</button></form></div>`;
@@ -213,8 +213,30 @@ function fixExp(){
 }
 fixExp();
 if(!Array.isArray(S.bast)) S.bast=DEF_BAST;
-/* do zdobycia = moduły (jeśli niezbadane) + potrzebne XP po zniżce (jeśli niezbadane) − posiadane */
-const expRaw = r => Math.max(0, Math.round((r.modOk?0:(+r.mod||0)) + (r.czOk?0:(+r.cz||0)*(1-Math.min(100,+r.zn||0)/100)) - (+r.pos||0)));
+/* ——— ile XP zostało do zdobycia — liczone po kolei w gałęzi, jak w grze ———
+   Potrzebne XP = koszt tego czołgu, Moduły = jego moduły, Posiadane = XP zebrane NA TYM czołgu.
+   XP z czołgu idzie najpierw na jego moduły, a reszta na koszt NASTĘPNEGO czołgu w gałęzi
+   (np. 6 000 XP na FV304 → Crusader za 30 000 kosztuje już tylko 24 000).
+   Pierwszy czołg gałęzi nie ma poprzednika w tabeli, więc jego Posiadane odlicza się też od jego kosztu.
+   Zbadane (✓) moduły / czołg liczą się jako 0. */
+let _expSrc=null, _expMap=new Map();
+function expCalcAll(){
+  if(_expSrc===S.exp) return _expMap;
+  const m=new Map(), gal={};
+  S.exp.forEach(r=>{ (gal[r.br]=gal[r.br]||[]).push(r); });
+  Object.values(gal).forEach(rows=>{ rows.sort((a,b)=>a.o-b.o); let zPopr=0;
+    rows.forEach((r,i)=>{
+      const czP=r.czOk?0:(+r.cz||0)*(1-Math.min(100,+r.zn||0)/100), modP=r.modOk?0:(+r.mod||0);
+      let pos=Math.max(0,+r.pos||0), czL, zPoprzed=0;
+      if(i===0){ const u=Math.min(czP,pos); czL=czP-u; pos-=u; }
+      else { zPoprzed=Math.min(czP,zPopr); czL=czP-zPoprzed; }
+      const um=Math.min(modP,pos); pos-=um; zPopr=pos;               /* reszta XP przechodzi na następny czołg */
+      m.set(r.id,{left:Math.max(0,Math.round(czL+modP-um)), zPopr:Math.round(zPoprzed)});
+    }); });
+  _expSrc=S.exp; _expMap=m; return m;
+}
+const expRaw = r => (expCalcAll().get(r.id)||{left:0}).left;
+const expZPopr = r => (expCalcAll().get(r.id)||{zPopr:0}).zPopr;
 const expLeft = r => has(r.n) ? 0 : expRaw(r);
 const expAll = () => S.exp.reduce((a,r)=>a+expLeft(r),0);
 const expOpen = () => { try{ return JSON.parse(store.get('expOpen','[]'))||[]; }catch(e){ return []; } };

@@ -140,3 +140,4 @@ s.struck{color:var(--muted);text-decoration-thickness:1.5px;font-weight:400}
 .ph{border:1px dashed var(--muted);padding:18px;color:var(--muted);background:repeating-linear-gradient(135deg,transparent 0 9px,var(--line-soft) 9px 10px)}
 .ph b{color:var(--ink);font-weight:600}
 .fill{background:var(--line-soft);color:var(--muted);padding:0 6px;font-family:var(--f-mono);font-size:.88em}
+table.exp-t small.xp-carry{display:block;font-family:var(--f-body);font-size:11.5px;color:var(--ok);margin-top:2px;white-space:nowrap}
