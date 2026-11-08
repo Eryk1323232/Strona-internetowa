@@ -15,15 +15,17 @@
   --f-display:"Montserrat","DM Sans",Arial,sans-serif;
   --shadow:none; color-scheme:dark;
 }
-/* ——— kolory: jasny (przycisk słońca) ——— */
+/* ——— kolory: jasny (przycisk słońca) ———
+   Przygaszony „papier” zamiast bieli: ciepła szarość tła, karty tylko trochę jaśniejsze, grafitowy tekst
+   zamiast czystej czerni — mniej razi w oczy, kontrast dalej wysoki (tekst/tło ≈ 11:1). */
 :root[data-theme="light"]{
-  --bg:#F3F2EF; --surface:#FFFFFF; --ink:#0D0D0E; --muted:#6E6B66; --line:#DAD8D3; --line-soft:#E8E6E2;
-  --accent:#C8252B; --accent-ink:#FFFFFF; --mark:#C8252B; --ok:#2F7D4F; --bad:#C0392F;
-  --band:#E9E8E4; --band-2:#F3F2EF; --soft:#EEEDE9; --shadow:none; color-scheme:light;
+  --bg:#E4E1DB; --surface:#ECEAE5; --ink:#262521; --muted:#6B6760; --line:#CBC7BF; --line-soft:#D8D4CD;
+  --accent:#B3302D; --accent-ink:#FFFFFF; --mark:#B3302D; --ok:#2E7350; --bad:#B23A30;
+  --band:#DAD6CF; --band-2:#E4E1DB; --soft:#DEDAD3; --shadow:none; color-scheme:light;
 }
 @media (prefers-color-scheme:light){:root:not([data-theme]){
-  --bg:#F3F2EF; --surface:#FFFFFF; --ink:#0D0D0E; --muted:#6E6B66; --line:#DAD8D3; --line-soft:#E8E6E2;
-  --accent:#C8252B; --mark:#C8252B; --ok:#2F7D4F; --bad:#C0392F; --band:#E9E8E4; --band-2:#F3F2EF; --soft:#EEEDE9; color-scheme:light}}
+  --bg:#E4E1DB; --surface:#ECEAE5; --ink:#262521; --muted:#6B6760; --line:#CBC7BF; --line-soft:#D8D4CD;
+  --accent:#B3302D; --mark:#B3302D; --ok:#2E7350; --bad:#B23A30; --band:#DAD6CF; --band-2:#E4E1DB; --soft:#DEDAD3; color-scheme:light}}
 
 body{background:var(--bg);color:var(--ink);letter-spacing:.005em}
 ::selection{background:color-mix(in srgb,var(--accent) 45%,transparent);color:#fff}
@@ -119,6 +121,31 @@ details.nation[open]{border-color:var(--ink)}
 .home-tile:hover{transform:none;border-color:var(--ink);box-shadow:none}
 .home-tile b{font-weight:300;font-size:24px;letter-spacing:.08em;text-transform:uppercase}
 .hero{margin-bottom:56px;border-bottom:1px solid var(--line)}
+/* strona główna — jasna wersja powitania (bez czarnego prostokąta): te same smugi i promienie w tonacji papieru */
+:root[data-theme="light"] .hero{background:var(--band);color:var(--ink)}
+:root[data-theme="light"] .hero-bg{filter:invert(1) contrast(.55) brightness(1.04);opacity:.75}
+:root[data-theme="light"] .hero-grain{mix-blend-mode:multiply;opacity:.12}
+:root[data-theme="light"] .hero::before{background:radial-gradient(ellipse 60% 55% at 50% 50%,transparent,color-mix(in srgb,var(--bg) 70%,transparent) 100%),linear-gradient(180deg,color-mix(in srgb,var(--bg) 60%,transparent),transparent 22%,transparent 70%,color-mix(in srgb,var(--bg) 85%,transparent))}
+:root[data-theme="light"] .hero::after{background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--ink) 18%,transparent) 30%,color-mix(in srgb,var(--ink) 18%,transparent) 70%,transparent)}
+:root[data-theme="light"] .hero-rays line{stroke:color-mix(in srgb,var(--ink) 75%,transparent)}
+:root[data-theme="light"] .hero-diag{stroke:color-mix(in srgb,var(--ink) 60%,transparent)}
+:root[data-theme="light"] .hero-red{stroke:var(--accent)}
+:root[data-theme="light"] .hero-small{color:color-mix(in srgb,var(--ink) 80%,transparent)}
+:root[data-theme="light"] h1.hero-title{color:var(--ink)}
+:root[data-theme="light"] .hero-foot{color:var(--muted)}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme]) .hero{background:var(--band);color:var(--ink)}
+  :root:not([data-theme]) .hero-bg{filter:invert(1) contrast(.55) brightness(1.04);opacity:.75}
+  :root:not([data-theme]) .hero-grain{mix-blend-mode:multiply;opacity:.12}
+  :root:not([data-theme]) .hero::before{background:radial-gradient(ellipse 60% 55% at 50% 50%,transparent,color-mix(in srgb,var(--bg) 70%,transparent) 100%),linear-gradient(180deg,color-mix(in srgb,var(--bg) 60%,transparent),transparent 22%,transparent 70%,color-mix(in srgb,var(--bg) 85%,transparent))}
+  :root:not([data-theme]) .hero::after{background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--ink) 18%,transparent) 30%,color-mix(in srgb,var(--ink) 18%,transparent) 70%,transparent)}
+  :root:not([data-theme]) .hero-rays line{stroke:color-mix(in srgb,var(--ink) 75%,transparent)}
+  :root:not([data-theme]) .hero-diag{stroke:color-mix(in srgb,var(--ink) 60%,transparent)}
+  :root:not([data-theme]) .hero-red{stroke:var(--accent)}
+  :root:not([data-theme]) .hero-small{color:color-mix(in srgb,var(--ink) 80%,transparent)}
+  :root:not([data-theme]) h1.hero-title{color:var(--ink)}
+  :root:not([data-theme]) .hero-foot{color:var(--muted)}
+}
 
 /* ——— dolny pasek ——— */
 .sbar{background:color-mix(in srgb,var(--bg) 90%,transparent);border-top:1px solid var(--line)}
