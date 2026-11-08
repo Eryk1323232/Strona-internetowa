@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════════════════
    KALKULATORY (STUDIA)
    ════════════════════════════════════════════════════════════════════════
-   pCalcs() – karty: Liczenie MMA (do zrobienia), Wyniki Pawła, Wyniki moje.
+   pCalcs() – karty: Liczenie MMA (kalkulator MASA Web w okienku), Wyniki Pawła, Wyniki moje.
    MXC      – ustawienia obu list wyników (nazwy, domyślne składniki, podpowiedzi).
    MXS      – zapisane mieszanki: {pawel: [...], moje: [...]}.
    Nowy kalkulator = nowa karta w pCalcs() + własny kod pod spodem.
@@ -10,8 +10,8 @@
 function pCalcs(){
   return `<h1>Kalkula<span class="acc">tory</span></h1>
   <div class="calc-cards" id="calcPage">
-    <article class="calc-card"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 36h40"/><path d="M4 30h40" stroke-dasharray="3 4"/><circle cx="12" cy="24" r="2.2" fill="currentColor" stroke="none"/><circle cx="20" cy="21" r="1.6" fill="currentColor" stroke="none"/><circle cx="28" cy="25" r="2.6" fill="currentColor" stroke="none"/><circle cx="36" cy="22" r="1.8" fill="currentColor" stroke="none"/><path d="M4 42h40"/></svg></div>
-      <h2>Liczenie MMA</h2><span class="calc-soon">w przygotowaniu</span></article>
+    <button type="button" class="calc-card res" data-mmaact="open"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 36h40"/><path d="M4 30h40" stroke-dasharray="3 4"/><circle cx="12" cy="24" r="2.2" fill="currentColor" stroke="none"/><circle cx="20" cy="21" r="1.6" fill="currentColor" stroke="none"/><circle cx="28" cy="25" r="2.6" fill="currentColor" stroke="none"/><circle cx="36" cy="22" r="1.8" fill="currentColor" stroke="none"/><path d="M4 42h40"/></svg></div>
+      <h2>Liczenie MMA</h2><span class="calc-count">kalkulator MASA Web · skład, lepiszcze, receptura</span><span class="calc-open">Otwórz →</span></button>
     <button type="button" class="calc-card res" data-mxact="open" data-set="pawel"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6h12M20 6v12L9 38a3 3 0 0 0 2.6 4.5h24.8A3 3 0 0 0 39 38L28 18V6"/><path d="M13.5 30h21"/><circle cx="21" cy="35" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="37" r="1.2" fill="currentColor" stroke="none"/></svg></div>
       <h2>Wyniki Pawła</h2><span class="calc-count" id="mxCount-pawel">${mxCnt(MXS.pawel.length)}</span><span class="calc-open">Otwórz →</span></button>
     <button type="button" class="calc-card res mine" data-mxact="open" data-set="moje"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6h12M20 6v12L9 38a3 3 0 0 0 2.6 4.5h24.8A3 3 0 0 0 39 38L28 18V6"/><path d="M13.5 30h21"/><circle cx="21" cy="35" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="37" r="1.2" fill="currentColor" stroke="none"/></svg></div>
@@ -119,3 +119,33 @@ document.addEventListener('submit', e=>{
   mxM={set:k, mode:'list'}; mxRender(); mxRefresh();
 });
 document.addEventListener('keydown', e=>{ if(mxM && e.key==='Escape'){ e.stopPropagation(); mxM=null; mxRender(); } }, true);
+
+/* ——— LICZENIE MMA: kalkulator MASA Web (plik kalkulatory/masa.html) w okienku ———
+   Kalkulator to osobna strona wczytana w ramce (iframe), więc jego kod nie miesza się z kodem strony.
+   Motyw (jasny/ciemny) przekazywany do ramki na bieżąco. Dane kalkulatora zapisuje on sam w przeglądarce. */
+const MMA_URL = 'kalkulatory/masa.html';
+let mmaM = false, mmaObs = null;
+function mmaTheme(){ const f=$('#mmaFrame'); try{ const d=f&&f.contentDocument&&f.contentDocument.documentElement; if(!d) return;
+  const t=document.documentElement.getAttribute('data-theme'); t?d.setAttribute('data-theme',t):d.removeAttribute('data-theme'); }catch(e){} }
+function mmaRender(){
+  let sc=$('#mmaScrim'), md=$('#mmaModal');
+  if(!mmaM){ sc&&sc.remove(); md&&md.remove(); if(mmaObs){ mmaObs.disconnect(); mmaObs=null; } document.body.classList.remove('tr-lock'); return; }
+  if(md) return;
+  sc=document.createElement('div'); sc.id='mmaScrim'; sc.className='tr-scrim'; document.body.appendChild(sc);
+  md=document.createElement('div'); md.id='mmaModal'; md.className='mma-modal'; md.setAttribute('role','dialog'); md.setAttribute('aria-modal','true'); md.setAttribute('aria-label','Liczenie MMA');
+  md.innerHTML=`<div class="mma-panel"><div class="mma-top"><div><span class="label">Kalkulatory</span><h2>Liczenie MMA</h2></div>
+      <div class="mma-acts"><a class="mma-tab" href="${MMA_URL}" target="_blank" rel="noopener" title="Otwórz w nowej karcie">↗<span> Nowa karta</span></a><button type="button" class="tr-x" data-mmaact="close" aria-label="Zamknij">✕</button></div></div>
+    <div class="mma-load" id="mmaLoad">Wczytywanie kalkulatora…</div>
+    <iframe id="mmaFrame" class="mma-frame" src="${MMA_URL}" title="Kalkulator MASA Web"></iframe></div>`;
+  document.body.appendChild(md); document.body.classList.add('tr-lock');
+  const f=$('#mmaFrame');
+  f.addEventListener('load', ()=>{ mmaTheme(); const l=$('#mmaLoad'); if(l) l.remove();
+    try{ f.contentWindow.addEventListener('keydown', e=>{ if(e.key==='Escape' && !e.target.closest('input,select,textarea')){ mmaM=false; mmaRender(); } }); }catch(e){} });
+  mmaObs=new MutationObserver(mmaTheme); mmaObs.observe(document.documentElement,{attributes:true, attributeFilter:['data-theme']});
+}
+document.addEventListener('click', e=>{
+  if(e.target.id==='mmaScrim' || e.target.id==='mmaModal'){ mmaM=false; return mmaRender(); }
+  const a=e.target.closest('[data-mmaact]'); if(!a) return;
+  mmaM=a.dataset.mmaact==='open'; mmaRender();
+});
+document.addEventListener('keydown', e=>{ if(mmaM && e.key==='Escape'){ e.stopPropagation(); mmaM=false; mmaRender(); } }, true);

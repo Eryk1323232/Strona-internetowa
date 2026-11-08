@@ -55,6 +55,10 @@ js/
   18-cv.js                  CV: podgląd, edycja całego CV, eksport do PDF (dane kontaktowe tylko w Arkuszu)
   17-finanse.js             Finanse: konto główne + oszczędnościowe, wydatki/wpływy, stałe wpływy i opłaty, średnie, wlicza Zakłady i Subskrypcje
   14-szkice-formularzy.js   niezapisany tekst w formularzach przeżywa odświeżenie (localStorage) — ładuje się ostatni
+kalkulatory/
+  masa.html                 kalkulator MASA Web (Studia → Kalkulatory → Liczenie MMA), otwierany w okienku;
+                            zmieniony tylko wygląd — kod obliczeń jak w oryginale
+
 apps-script/
   Kod.gs                    kod do wklejenia w Arkusz Google → Rozszerzenia → Apps Script
 ```

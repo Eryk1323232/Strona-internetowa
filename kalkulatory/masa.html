@@ -1,0 +1,1401 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>/* Pracownia: motyw jak na stronie (w okienku strona i tak ustawia go sama) */try{var t=localStorage.getItem("motyw")||"ciemny";if(t==="jasny")document.documentElement.setAttribute("data-theme","light");else if(t==="ciemny")document.documentElement.setAttribute("data-theme","dark");}catch(e){}</script></head><body><title>MASA Web</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=DM+Mono:wght@400;500&family=Montserrat:wght@200;300;400;500&display=swap">
+<style>/* ═══ WYGLĄD „PRACOWNIA” (strona Eryka) ═══
+   Zmienione tylko kolory, czcionki i kształty — kod obliczeń MASA Web bez zmian.
+   Motyw (jasny/ciemny) ustawia strona przez data-theme na <html>; otwarte osobno — jak w systemie. */
+/* Layout: sticky header with project name + step rail; each step is a working sheet like a lab form */
+:root{
+  --bg:#E4E1DB; --sheet:#ECEAE5; --ink:#262521; --muted:#6B6760; --line:#CBC7BF; --line-strong:#A39E95;
+  --accent:#B3302D; --accent-ink:#ffffff; --accent-soft:rgba(179,48,45,.10);
+  --band:#A8812C; --band-soft:rgba(168,129,44,.16); --curve:#262521; --target:#3F6E8C;
+  --ok:#2E7350; --ok-soft:rgba(46,115,80,.13); --bad:#B23A30; --bad-soft:rgba(178,58,48,.12); --warn:#946A12; --warn-soft:rgba(168,129,44,.16);
+  --f-display:"Montserrat","DM Sans",Arial,sans-serif;
+  --f-body:"DM Sans",system-ui,sans-serif;
+  --f-mono:"DM Mono",ui-monospace,Consolas,monospace;
+  --r:4px; color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B0B0C; --sheet:#141416; --ink:#F2F0EC; --muted:#8F8C86; --line:#2A2A2E; --line-strong:#4A4A50;
+  --accent:#D0302F; --accent-ink:#ffffff; --accent-soft:rgba(208,48,47,.14);
+  --band:#C9A24A; --band-soft:rgba(201,162,74,.13); --curve:#F2F0EC; --target:#7FA9C4;
+  --ok:#6FB287; --ok-soft:rgba(111,178,135,.14); --bad:#E5605C; --bad-soft:rgba(229,96,92,.14); --warn:#D9A441; --warn-soft:rgba(217,164,65,.14); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B0B0C; --sheet:#141416; --ink:#F2F0EC; --muted:#8F8C86; --line:#2A2A2E; --line-strong:#4A4A50;
+  --accent:#D0302F; --accent-ink:#ffffff; --accent-soft:rgba(208,48,47,.14);
+  --band:#C9A24A; --band-soft:rgba(201,162,74,.13); --curve:#F2F0EC; --target:#7FA9C4;
+  --ok:#6FB287; --ok-soft:rgba(111,178,135,.14); --bad:#E5605C; --bad-soft:rgba(229,96,92,.14); --warn:#D9A441; --warn-soft:rgba(217,164,65,.14); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--f-body);margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;text-wrap:balance;margin:0}
+h2{font-size:1.75rem;line-height:1.1}
+h3{font-size:1.2rem;line-height:1.2}
+.num,td.n,th.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--sheet)}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--sheet);border-bottom:1px solid var(--line)}
+.top-in{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand b{font-family:var(--f-display);font-size:1.6rem;letter-spacing:.06em}
+.brand span{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+.top-actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+nav.steps{display:flex;gap:2px;overflow-x:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));scrollbar-width:thin}
+nav.steps button{border:0;background:none;padding:8px 12px 10px;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap;display:flex;gap:7px;align-items:baseline}
+nav.steps button i{font-style:normal;font-family:var(--f-mono);font-size:.8rem}
+nav.steps button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--band);font-weight:600}
+nav.steps button .dot{width:7px;height:7px;border-radius:50%;background:var(--line-strong);align-self:center}
+nav.steps button .dot.done{background:var(--ok)}
+nav.steps button .dot.warn{background:var(--bad)}
+
+main{max-width:1180px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;display:grid;gap:14px;min-width:0}
+.sheet-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between}
+.sheet-head p{margin:0;color:var(--muted);max-width:70ch}
+.lede{color:var(--muted);margin:0;max-width:75ch}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px 14px}
+label.f{display:grid;gap:3px;font-size:.82rem;color:var(--muted)}
+label.f input,label.f select,label.f textarea{font-size:.95rem;color:var(--ink)}
+input[type=text],input[type=number],input:not([type]),select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:6px 8px;min-width:0;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{border:1px solid var(--line-strong);background:var(--sheet);border-radius:4px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.small{padding:3px 8px;font-size:.85rem}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.btn.ghost:hover{color:var(--bad)}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:var(--sheet);padding:7px 12px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-weight:600;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;background:var(--bg);white-space:nowrap}
+td.n,th.n{text-align:right}
+tr:last-child td{border-bottom:0}
+td input{padding:3px 5px;font-family:var(--f-mono);font-size:.85rem;text-align:right;width:4.6rem}
+td input.name{text-align:left;width:11rem;font-family:var(--f-body)}
+td select{padding:3px 4px;width:auto}
+tr.sum td{font-weight:600;background:var(--bg)}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.info{background:var(--accent-soft);color:var(--accent)}
+td.out{color:var(--bad);font-weight:600}
+.note{border-left:3px solid var(--band);background:var(--band-soft);padding:8px 12px;border-radius:0 4px 4px 0;margin:0}
+.note.bad{border-color:var(--bad);background:var(--bad-soft)}
+.muted{color:var(--muted)}
+.big{font-family:var(--f-display);font-size:2.2rem;line-height:1;font-weight:600}
+.kv{display:grid;align-content:start;margin:0;grid-template-columns:auto auto;gap:4px 14px;font-size:.9rem;justify-content:start}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-family:var(--f-mono)}
+
+.chart-box{position:relative;border:1px solid var(--line);border-radius:4px;background:var(--sheet);overflow-x:auto}
+.chart-box svg{display:block;width:100%;min-width:560px;height:auto;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.82rem;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.legend svg{width:26px;height:10px}
+
+.method{border:1px solid var(--line);border-radius:4px;padding:12px;display:grid;gap:8px;align-content:start;cursor:pointer}
+.method[aria-checked="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
+.method .formula{font-family:var(--f-mono);font-size:.82rem;color:var(--muted)}
+.method .res{font-family:var(--f-display);font-size:1.5rem;font-weight:600}
+.lib-list{max-height:420px;overflow:auto}
+.drop{border:1.5px dashed var(--line-strong);border-radius:4px;padding:14px;text-align:center;color:var(--muted)}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--sheet);padding:8px 16px;border-radius:4px;z-index:20;font-size:.9rem}
+.report{background:#fff;color:#111;padding:24px;border:1px solid var(--line);border-radius:4px;overflow-x:auto}
+.report h1{font-size:1.6rem}.report h2{font-size:1.25rem;margin:18px 0 6px}
+.report table{font-size:.8rem}.report th{background:#f1f1ee;color:#333}.report th,.report td{border:1px solid #ccc}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+details summary{cursor:pointer;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:in .18s ease-out}@keyframes in{from{transform:translateY(4px)}to{transform:none}}}
+.method .res .sub{display:block;font-size:.85rem;font-family:var(--f-body);font-weight:400}
+nav.steps button{font-size:.8rem;letter-spacing:.03em}
+.sheet h2{letter-spacing:.02em}
+nav.steps{flex-wrap:wrap}
+.seg.seg-col{flex-direction:column}
+.seg.seg-col button{border-right:0;border-bottom:1px solid var(--line);text-align:left}
+.seg.seg-col button:last-child{border-bottom:0}
+.sheet>*{min-width:0}
+h2{overflow-wrap:anywhere}
+details{min-width:0}
+.khint{font-size:.8rem;display:grid;gap:4px}
+.khint table{font-size:.8rem}.khint td{padding:2px 6px}
+.khint tr.cur td{background:var(--band-soft);font-weight:600}
+.khint td.n{white-space:nowrap}
+td input{min-width:3.9rem}
+.dirbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--accent-soft)}
+.dirbar.warn{background:var(--warn-soft)}
+.pass-row td{font-size:.78rem;padding-top:0;border-bottom:1px solid var(--line)}
+tr:has(+ .pass-row) td{border-bottom:0}
+.tbl-wrap table{width:max-content;min-width:100%}
+td input{min-width:4.2rem}
+table td input:not(.name):not([type=checkbox]):not([type=radio]){width:4.8rem;min-width:4.8rem}
+table td input.name{width:11rem}
+
+/* ═══ „PRACOWNIA”: typografia i detale jak na stronie ═══ */
+body{font:14.5px/1.55 var(--f-body);letter-spacing:.005em}
+h1,h2,h3{font-family:var(--f-display);font-weight:300;letter-spacing:.14em;text-transform:uppercase}
+h2{font-size:1.05rem;line-height:1.35}
+.sheet h2{letter-spacing:.16em}
+h3{font-size:.82rem;font-weight:400;letter-spacing:.16em;color:var(--muted)}
+.brand b{font-family:var(--f-display);font-weight:300;font-size:1rem;letter-spacing:.32em;text-transform:uppercase}
+.brand span{font-size:.82rem}
+header.top{background:var(--sheet);border-bottom:1px solid var(--line)}
+nav.steps button{font-family:var(--f-display);font-size:.68rem;letter-spacing:.14em;font-weight:400;padding:10px 12px 11px}
+nav.steps button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:500}
+nav.steps button .dot.warn{background:var(--bad)}
+.sheet{border-radius:var(--r);padding:20px 22px;border-color:var(--line)}
+.sheet-head{border-bottom:1px solid var(--line);padding-bottom:10px}
+.sheet-head p,.lede{font-size:.86rem}
+input[type=text],input[type=number],input:not([type]),select,textarea{border-radius:3px;background:var(--bg)}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:1px solid var(--accent);outline-offset:0}
+.btn{border-radius:999px;padding:6px 14px;border-color:var(--line);background:var(--sheet);font-weight:500}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:3px 10px}
+.seg{border-radius:3px;border-color:var(--line)}
+.seg button{font-size:.82rem}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+th{font-family:var(--f-display);font-weight:400;font-size:.66rem;letter-spacing:.14em;background:color-mix(in srgb,var(--ink) 4%,var(--sheet))}
+.tbl-wrap{border-radius:3px}
+.big{font-family:var(--f-display);font-weight:300;letter-spacing:.02em}
+.method{border-radius:var(--r)}
+.method h3{color:var(--ink);font-size:.74rem}
+.method[aria-checked="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
+.method .res{font-family:var(--f-display);font-weight:300}
+.pill{border-radius:999px;font-weight:500}
+.note{border-left-color:var(--band)}
+.chart-box{border-radius:3px}
+.dirbar{border-radius:var(--r);background:color-mix(in srgb,var(--ink) 5%,var(--sheet))}
+.dirbar.warn{background:var(--warn-soft)}
+.toast{border-radius:999px;background:var(--ink);color:var(--bg)}
+.report{background:#F7F5F1;border-radius:3px}
+:root[data-theme="dark"] .report{background:#EDEAE4}
+::selection{background:var(--accent);color:var(--accent-ink)}
+@media (max-width:640px){ .sheet{padding:16px 14px} main{padding-top:14px} nav.steps{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none} nav.steps::-webkit-scrollbar{display:none} .top-actions .btn{font-size:.82rem;padding:5px 11px} }
+</style>
+<header class="top"><div class="top-in"><div class="brand"><b>MASA Web</b><span id="pname"></span></div>
+<div class="top-actions"><button class="btn" data-act="dir" id="dirbtn">Katalog roboczy</button><button class="btn" data-act="db-save" title="ZAPIS DO BAZY NA DYSKU">Zapis do bazy</button>
+<input type="file" id="open-file" accept=".json,application/json" hidden></div></div>
+<nav class="steps" id="steps" role="tablist" aria-label="Etapy projektowania"></nav></header>
+<main id="main"></main>
+<script>/* ===== MASA-W engine: optimisation, binder, trial mix, plant recipe ===== */
+const SIEVES = [0.063, 0.125, 0.25, 0.5, 1, 2, 4, 5.6, 8, 11.2, 16, 22.4, 31.5, 45, 63];
+
+/* ---------- dense linear algebra ---------- */
+function solveLin(M, r) {
+  const n = r.length, A = M.map((row, i) => row.slice().concat([r[i]]));
+  for (let c = 0; c < n; c++) {
+    let p = c;
+    for (let i = c + 1; i < n; i++) if (Math.abs(A[i][c]) > Math.abs(A[p][c])) p = i;
+    if (Math.abs(A[p][c]) < 1e-300) A[p][c] = 1e-300;
+    [A[c], A[p]] = [A[p], A[c]];
+    for (let i = c + 1; i < n; i++) {
+      const f = A[i][c] / A[c][c];
+      if (f) for (let k = c; k <= n; k++) A[i][k] -= f * A[c][k];
+    }
+  }
+  const x = new Array(n).fill(0);
+  for (let i = n - 1; i >= 0; i--) {
+    let s = A[i][n];
+    for (let k = i + 1; k < n; k++) s -= A[i][k] * x[k];
+    x[i] = s / A[i][i];
+  }
+  return x;
+}
+
+/* ---------- convex QP, primal-dual interior point (Mehrotra) ----------
+   min 1/2 x'Hx + c'x   s.t.  Aeq x = beq,  G x <= h                    */
+function qp(H, c, Aeq, beq, G, h, opt = {}) {
+  const n = c.length, p = Aeq.length, m = G.length;
+  const reg = opt.reg ?? 1e-9;
+  let x = opt.x0 ? opt.x0.slice() : new Array(n).fill(0);
+  let y = new Array(p).fill(0);
+  let s = G.map((g, i) => Math.max(h[i] - dot(g, x), 1));
+  let z = new Array(m).fill(1);
+  const mv = (M, v) => M.map(r => dot(r, v));
+  const mtv = (M, v, n) => { const o = new Array(n).fill(0); M.forEach((r, i) => r.forEach((a, j) => o[j] += a * v[i])); return o; };
+  let it, converged = false;
+  for (it = 0; it < 200; it++) {
+    const Hx = mv(H, x);
+    const rd = Hx.map((v, j) => v + c[j]);
+    mtv(Aeq, y, n).forEach((v, j) => rd[j] += v);
+    mtv(G, z, n).forEach((v, j) => rd[j] += v);
+    const rp = Aeq.map((a, i) => dot(a, x) - beq[i]);
+    const rg = G.map((g, i) => dot(g, x) + s[i] - h[i]);
+    const mu = m ? dot(s, z) / m : 0;
+    const res = Math.max(norm(rd), norm(rp), norm(rg));
+    if (res < 1e-8 && mu < 1e-10) { converged = true; break; }
+    // reduced KKT matrix
+    const W = z.map((zi, i) => zi / s[i]);
+    const K = H.map((r, i) => r.map((v, j) => v + (i === j ? reg : 0)));
+    for (let k = 0; k < m; k++) { const g = G[k], w = W[k]; for (let i = 0; i < n; i++) if (g[i]) for (let j = 0; j < n; j++) K[i][j] += w * g[i] * g[j]; }
+    const N = n + p;
+    const KKT = [];
+    for (let i = 0; i < n; i++) KKT.push(K[i].concat(Aeq.map(a => a[i])));
+    for (let i = 0; i < p; i++) KKT.push(Aeq[i].concat(new Array(p).fill(0)));
+    const step = (rc) => {
+      const t = rc.map((v, i) => (v + z[i] * rg[i]) / s[i]);
+      const r1 = mtv(G, t, n).map((v, j) => -rd[j] - v);
+      const sol = solveLin(KKT, r1.concat(rp.map(v => -v)));
+      const dx = sol.slice(0, n), dy = sol.slice(n);
+      const ds = G.map((g, i) => -rg[i] - dot(g, dx));
+      const dz = z.map((zi, i) => (rc[i] - zi * ds[i]) / s[i]);
+      return { dx, dy, ds, dz };
+    };
+    const maxStep = (v, dv) => { let a = 1; for (let i = 0; i < v.length; i++) if (dv[i] < 0) a = Math.min(a, -v[i] / dv[i]); return a; };
+    // predictor
+    const aff = step(s.map((si, i) => -si * z[i]));
+    const aP = Math.min(maxStep(s, aff.ds), maxStep(z, aff.dz));
+    const muAff = m ? s.reduce((acc, si, i) => acc + (si + aP * aff.ds[i]) * (z[i] + aP * aff.dz[i]), 0) / m : 0;
+    const sigma = mu > 0 ? Math.pow(muAff / mu, 3) : 0;
+    // corrector
+    const d = step(s.map((si, i) => -si * z[i] - aff.ds[i] * aff.dz[i] + sigma * mu));
+    const a = Math.min(1, 0.99 * Math.min(maxStep(s, d.ds), maxStep(z, d.dz)));
+    for (let j = 0; j < n; j++) x[j] += a * d.dx[j];
+    for (let j = 0; j < p; j++) y[j] += a * d.dy[j];
+    for (let j = 0; j < m; j++) { s[j] += a * d.ds[j]; z[j] += a * d.dz[j]; }
+  }
+  return { x, converged, iterations: it };
+}
+const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
+const norm = v => v.reduce((m, a) => Math.max(m, Math.abs(a)), 0);
+
+/* ---------- mix design ----------
+   mats: [{passing:[...SIEVES.length], min, max, price}]
+   spec: {lower, upper, target, active:[bool], weight:[num]}
+   mode: 'grading' | 'cost' | 'free' (no limits)                        */
+function combine(mats, x) {
+  return SIEVES.map((_, j) => mats.reduce((s, m, i) => s + x[i] * m.passing[j] / 100, 0));
+}
+function designMix(mats, spec, mode) {
+  const n = mats.length;
+  const lo = mats.map(m => +m.min || 0), hi = mats.map(m => (m.max === '' || m.max == null) ? 100 : +m.max);
+  if (lo.reduce((a, b) => a + b, 0) > 100 + 1e-9 || hi.reduce((a, b) => a + b, 0) < 100 - 1e-9)
+    return { ok: false, error: 'Udziały graniczne materiałów wykluczają sumę 100 %. Popraw minima lub maksima.' };
+  const J = SIEVES.map((_, j) => j).filter(j => spec.upper[j] != null && spec.lower[j] != null);
+  const act = J.filter(j => spec.active[j] !== false);
+  const a = j => mats.map(m => m.passing[j] / 100);
+  // quadratic objective: sum w (Y - T)^2
+  const H = Array.from({ length: n }, () => new Array(n).fill(0)), cq = new Array(n).fill(0);
+  J.forEach(j => {
+    const w = spec.weight?.[j] ?? 1, aj = a(j), T = spec.target[j];
+    if (T == null || !w) return;
+    for (let i = 0; i < n; i++) { cq[i] += -2 * w * T * aj[i]; for (let k = 0; k < n; k++) H[i][k] += 2 * w * aj[i] * aj[k]; }
+  });
+  const bounds = [], bh = [];
+  for (let i = 0; i < n; i++) {
+    const e = new Array(n).fill(0); e[i] = 1; bounds.push(e); bh.push(hi[i]);
+    const f = new Array(n).fill(0); f[i] = -1; bounds.push(f); bh.push(-lo[i]);
+  }
+  const Aeq = [new Array(n).fill(1)], beq = [100];
+  const x0 = lo.map((l, i) => l + (100 - lo.reduce((s, v) => s + v, 0)) * (hi[i] - l) / Math.max(1e-9, hi.reduce((s, v, k) => s + v - lo[k], 0)));
+
+  if (mode === 'free') {
+    const r = qp(H, cq, Aeq, beq, bounds, bh, { x0 });
+    return finish(r.x, false, []);
+  }
+  // phase I: minimal total violation of grading limits
+  const N = n + act.length;
+  const G1 = [], h1 = [];
+  bounds.forEach((b, k) => { G1.push(b.concat(new Array(act.length).fill(0))); h1.push(bh[k]); });
+  act.forEach((j, t) => {
+    const aj = a(j), e = new Array(act.length).fill(0); e[t] = -1;
+    G1.push(aj.concat(e)); h1.push(spec.upper[j]);
+    G1.push(aj.map(v => -v).concat(e)); h1.push(-spec.lower[j]);
+    const f = new Array(N).fill(0); f[n + t] = -1; G1.push(f); h1.push(0);
+  });
+  const H1 = Array.from({ length: N }, (_, i) => Array.from({ length: N }, (_, k) => i === k ? 1e-7 : 0));
+  const c1 = new Array(n).fill(0).concat(new Array(act.length).fill(1));
+  const r1 = qp(H1, c1, [new Array(n).fill(1).concat(new Array(act.length).fill(0))], [100], G1, h1, { x0: x0.concat(new Array(act.length).fill(5)) });
+  const viol = r1.x.slice(n);
+  const totalViol = viol.reduce((s, v) => s + Math.max(0, v), 0);
+  const feasible = totalViol < 1e-4;
+  const slack = act.map((_, t) => feasible ? 0 : Math.max(0, viol[t]) + 1e-6);
+  const G = bounds.slice(), h = bh.slice();
+  act.forEach((j, t) => {
+    const aj = a(j);
+    G.push(aj); h.push(spec.upper[j] + slack[t] + 1e-9);
+    G.push(aj.map(v => -v)); h.push(-spec.lower[j] + slack[t] + 1e-9);
+  });
+  let r;
+  if (mode === 'cost' && feasible) {
+    const price = mats.map(m => +m.price || 0);
+    const scale = 1e-4 * Math.max(1, ...price);
+    const Hc = H.map(row => row.map(v => v * scale)), cc = price.map((p, i) => p + cq[i] * scale);
+    r = qp(Hc, cc, Aeq, beq, G, h, { x0 });
+    if (r.x.some(v => !isFinite(v))) r = qp(H, cq, Aeq, beq, G, h, { x0 });
+  } else {
+    r = qp(H, cq, Aeq, beq, G, h, { x0 });
+  }
+  return finish(r.x, !feasible, act.filter((_, t) => viol[t] > 1e-4));
+
+  function finish(xraw, infeasible, violated) {
+    let x = xraw.map((v, i) => Math.min(hi[i], Math.max(lo[i], v)));
+    const sum = x.reduce((s, v) => s + v, 0); x = x.map(v => v * 100 / sum);
+    const Y = combine(mats, x);
+    const sse = J.reduce((s, j) => spec.target[j] == null ? s : s + (Y[j] - spec.target[j]) ** 2, 0);
+    const cost = mats.reduce((s, m, i) => s + x[i] / 100 * (+m.price || 0), 0);
+    return { ok: true, x, Y, infeasible, violated, rms: Math.sqrt(sse / Math.max(1, J.length)), cost, mode };
+  }
+}
+
+/* ---------- interpolation on sieve curve (log size) ---------- */
+function passingAt(Y, d) {
+  if (d <= SIEVES[0]) return Y[0];
+  for (let j = 1; j < SIEVES.length; j++) if (d <= SIEVES[j]) {
+    const t = (Math.log(d) - Math.log(SIEVES[j - 1])) / (Math.log(SIEVES[j]) - Math.log(SIEVES[j - 1]));
+    return Y[j - 1] + t * (Y[j] - Y[j - 1]);
+  }
+  return Y[Y.length - 1];
+}
+
+/* ---------- densities & volumetrics ---------- */
+function aggDensity(mats, x) { return 100 / mats.reduce((s, m, i) => s + x[i] / m.density, 0); }
+function maxDensity(rhoAgg, B, rhoB) { return 100 / ((100 - B) / rhoAgg + B / rhoB); }
+function volumetrics(rhoMax, rhoBulk, B, rhoB) {
+  if (!rhoBulk) return null;
+  const Vm = (rhoMax - rhoBulk) / rhoMax * 100;
+  const VMA = Vm + B * rhoBulk / rhoB;
+  return { Vm, VMA, VFB: (VMA - Vm) / VMA * 100 };
+}
+const akToB = ak => 100 * ak / (100 + ak);   // % on aggregate -> % in mix
+const bToAk = b => 100 * b / (100 - b);
+
+/* ---------- binder content methods ---------- */
+const HVEEM = [ // size [mm], surface factor [m2/kg] per % passing  (ft2/lb * 0.2048)
+  { d: 'max', f: 2 }, { d: 4, f: 2 }, { d: 2, f: 4 }, { d: 1, f: 8 }, { d: 0.5, f: 14 },
+  { d: 0.25, f: 30 }, { d: 0.125, f: 60 }, { d: 0.063, f: 160 }];
+function surfaceHveem(Y, factors = HVEEM) {
+  const sft = factors.reduce((s, r) => s + r.f * (r.d === 'max' ? 100 : passingAt(Y, r.d)) / 100, 0);
+  return sft * 0.2048; // m2/kg
+}
+function surfaceDuriez(Y) {
+  const p63 = passingAt(Y, 6.3), p025 = passingAt(Y, 0.25), p0063 = Y[0];
+  const G = 100 - p63, S = p63 - p025, s = p025 - p0063, f = p0063;
+  return { sigma: (0.25 * G + 2.3 * S + 12 * s + 150 * f) / 100, G, S, s, f };
+}
+const binderMethods = {
+  voids: p => ({ ak: (p.P + p.n) * p.rhoB / p.rhoAggBulk }),
+  film: (p, ctx) => { const F = surfaceHveem(ctx.Y); return { ak: F * p.b * p.rhoB / 10, F }; },
+  duriez: (p, ctx) => { const d = surfaceDuriez(ctx.Y); const alpha = p.useAlpha ? 2.65 / ctx.rhoAgg : 1; return { ak: p.K * alpha * Math.pow(d.sigma, 0.2), F: d.sigma, alpha }; },
+  empirical: (p, ctx) => {
+    const c = ctx.Y[0], b = passingAt(ctx.Y, 2) - c, a = 100 - passingAt(ctx.Y, 2);
+    const B = p.x * a + p.y * b + p.z * c + p.F;
+    return { ak: bToAk(B), a, b, c };
+  },
+  manual: p => ({ ak: p.basis === 'mix' ? bToAk(p.value) : p.value })
+};
+function defaultEmpiricalZ(c) { return c > 10 ? 0.15 : c > 5 ? 0.18 : 0.20; }
+
+/* ---------- trial mix (Marshall series) ---------- */
+function trialMix(mats, x, Bopt, mass, stepB, nSer = 5) {
+  const half = Math.floor(nSer / 2), rows = [];
+  for (let k = -half; k <= half; k++) {
+    const B = Bopt + k * stepB, mb = mass * B / 100, ma = mass - mb;
+    let cum = 0;
+    const comps = mats.map((m, i) => { const g = ma * x[i] / 100; cum += g; return { g, cum }; });
+    rows.push({ B, mb, ma, comps, total: mass });
+  }
+  return rows;
+}
+
+/* ---------- plant (batch) recipe ---------- */
+function plantRecipe(mats, x, B, cfg) {
+  const Q = cfg.batch, mb = Q * B / 100, ma = Q - mb;
+  const isFiller = mats.map(m => cfg.fillerSeparate && m.group === 1);
+  const xF = x.reduce((s, v, i) => s + (isFiller[i] ? v : 0), 0);
+  const xD = 100 - xF;
+  // grading of material going through the dryer
+  const Yd = SIEVES.map((_, j) => xD > 0 ? mats.reduce((s, m, i) => s + (isFiller[i] ? 0 : x[i] * m.passing[j]), 0) / xD : 0);
+  const cut = cfg.binSieves.slice().sort((a, b) => a - b);
+  const pAt = d => SIEVES.includes(d) ? Yd[SIEVES.indexOf(d)] : passingAt(Yd, d);
+  const bins = [];
+  let prev = 0, prevD = 0;
+  cut.forEach(d => { const p = Math.max(prev, pAt(d)); bins.push({ from: prevD, to: d, share: p - prev }); prev = p; prevD = d; });
+  bins.push({ from: prevD, to: null, share: Math.max(0, 100 - prev) });
+  const aggDryer = ma * xD / 100;
+  // weighing order: coarse bins first, cumulative
+  let cum = 0;
+  const weigh = (cfg.ascending ? bins.slice() : bins.slice().reverse()).map(b => { const kg = aggDryer * b.share / 100; cum += kg; return { ...b, kg, cum }; });
+  const filler = ma * xF / 100;
+  const rhoT = cfg.rhoB * (1 - 0.0006 * (cfg.tBinder - 25));
+  const feeders = mats.map((m, i) => ({ name: m.name, pct: x[i], tph: cfg.rate ? cfg.rate * (1 - B / 100) * x[i] / 100 : null, filler: isFiller[i] }));
+  return { Q, mb, ma, xF, Yd, bins: weigh, filler, rhoT, binderL: mb / rhoT, feeders };
+}
+
+/* ---------- MASA .DAT import (CP852 text) ---------- */
+const CP852 = "\u00c7\u00fc\u00e9\u00e2\u00e4\u016f\u0107\u00e7\u0142\u00eb\u0150\u0151\u00ee\u0179\u00c4\u0106\u00c9\u0139\u013a\u00f4\u00f6\u013d\u013e\u015a\u015b\u00d6\u00dc\u0164\u0165\u0141\u00d7\u010d\u00e1\u00ed\u00f3\u00fa\u0104\u0105\u017d\u017e\u0118\u0119\u00ac\u017a\u010c\u015f\u00ab\u00bb\u2591\u2592\u2593\u2502\u2524\u00c1\u00c2\u011a\u015e\u2563\u2551\u2557\u255d\u017b\u017c\u2510\u2514\u2534\u252c\u251c\u2500\u253c\u0102\u0103\u255a\u2554\u2569\u2566\u2560\u2550\u256c\u00a4\u0111\u0110\u010e\u00cb\u010f\u0147\u00cd\u00ce\u011b\u2518\u250c\u2588\u2584\u0162\u016e\u2580\u00d3\u00df\u00d4\u0143\u0144\u0148\u0160\u0161\u0154\u00da\u0155\u0170\u00fd\u00dd\u0163\u00b4\u00ad\u02dd\u02db\u02c7\u02d8\u00a7\u00f7\u00b8\u00b0\u00a8\u02d9\u0171\u0158\u0159\u25a0\u00a0";
+function decodeCP852(buf) {
+  const u = new Uint8Array(buf); let s = '';
+  for (const b of u) s += b < 128 ? String.fromCharCode(b) : CP852[b - 128];
+  return s;
+}
+function parseMasaDat(text, fileName) {
+  const lines = text.split(/\r\n/);
+  let sieves = null, grp = 0; const out = [];
+  for (let k = 0; k < lines.length; k++) {
+    let s = lines[k];
+    if (s.includes('G R U P A')) { grp++; continue; }
+    if (s.includes('S i t a')) { sieves = s.split(':')[1].trim().split(/\s+/).map(Number); continue; }
+    if (s.length > 60 && s.length < 161 && s[0] !== ' ' && s[0] !== '|' && k + 1 < lines.length) {
+      // a binary field contained CR/LF -> rejoin
+      while (s.length < 161 && k + 1 < lines.length) { s += '\r\n' + lines[++k]; }
+    }
+    if (s.length >= 150 && s[0] !== ' ' && s[0] !== '|') {
+      const tail = s.slice(-85), vals = [];
+      for (let q = 0; q < 17; q++) vals.push(parseInt(tail.slice(q * 5, q * 5 + 5), 10) || 0);
+      out.push({ grp, name: s.slice(0, 20).trim(), prod: s.slice(20, 26).trim(), density: (parseInt(s.slice(28, 32), 10) || 0) / 1000, cert: s.slice(34, 51).trim(), vals });
+    }
+  }
+  if (!sieves) sieves = [0, 0.063, 0.125, 0.25, 0.5, 1, 2, 4, 5.6, 8, 11.2, 16, 22.4, 31.5, 45, 45, 45];
+  // sieves[0] = pan; vals = mass retained on each sieve (pan first)
+  return out.map((r, idx) => ({ id: 'm' + Date.now().toString(36) + idx, name: r.name, group: Math.min(4, Math.max(1, r.grp)), density: r.density || 2.65, producer: r.prod, cert: r.cert, source: fileName || '', price: 0, passing: retToPassing(sieves, r.vals), grams: retToGrams(sieves, r.vals) }));
+}
+/* masy/udziały pozostające na sitach (dno pierwsze) -> % przechodzący przez SIEVES */
+function curveToSieves(pts) {
+  return SIEVES.map(d => {
+    const hit = pts.find(t => Math.abs(t.d - d) < 1e-6);
+    if (hit) return round1(hit.p);
+    if (d > pts[pts.length - 1].d) return 100;
+    const Yp = pts.map(t => t.p), arr = pts.map(t => t.d);
+    for (let j = 1; j < arr.length; j++) if (d < arr[j]) {
+      const t = (Math.log(d) - Math.log(arr[j - 1])) / (Math.log(arr[j]) - Math.log(arr[j - 1]));
+      return round1(Yp[j - 1] + t * (Yp[j] - Yp[j - 1]));
+    }
+    return round1(Yp[0]);
+  });
+}
+/* masy pozostające na sitach -> {m0, r:{dno, j}} w układzie SIEVES (null gdy sita się nie zgadzają) */
+function retToGrams(sieves, vals) {
+  const r = { dno: vals[0] || 0 };
+  for (let q = 1; q < sieves.length; q++) {
+    const v = vals[q] || 0, j = SIEVES.findIndex(d => Math.abs(d - sieves[q]) < 1e-6);
+    if (j < 0) { if (v) return null; continue; }
+    r[j] = (r[j] || 0) + v;
+  }
+  SIEVES.forEach((_, j) => { if (r[j] == null) r[j] = 0; });
+  return { m0: null, r };
+}
+function gramsToPassing(g) {
+  const sum = (g.r.dno || 0) + SIEVES.reduce((s, _, j) => s + (g.r[j] || 0), 0);
+  const tot = g.m0 && g.m0 > sum ? g.m0 : sum; if (!tot) return SIEVES.map(() => 100);
+  let cum = (g.r.dno || 0) + (tot - sum);
+  return SIEVES.map((_, j) => { const p = Math.round(cum / tot * 1000) / 10; cum += g.r[j] || 0; return Math.min(100, p); });
+}
+function retToPassing(sieves, vals) {
+  const tot = vals.reduce((a, b) => a + b, 0) || 1;
+  const pts = []; let cum = 0;
+  for (let q = 1; q < sieves.length; q++) { cum += vals[q - 1]; if (!pts.length || sieves[q] > pts[pts.length - 1].d) pts.push({ d: sieves[q], p: 100 * cum / tot }); }
+  return curveToSieves(pts);
+}
+
+/* ---------- MASA BAZA_MMB.WYN (receptury, rekord 2547 B) ---------- */
+const ZESTAWY_SIT = {
+  1: [0.075, 0.15, 0.18, 0.3, 0.42, 0.85, 2, 4, 6.3, 8, 9.6, 12.8, 16, 20, 25, 31.5], 2: [0.075, 0.15, 0.3, 0.6, 1.18, 2.36, 4.75, 9.5, 12.5, 19, 37.5, 37.5, 37.5, 37.5, 37.5, 37.5],
+  3: [0.075, 0.15, 0.18, 0.3, 0.42, 0.85, 2, 5, 6.3, 8, 9.6, 12.8, 16, 20, 25, 31.5], 4: [0.075, 0.15, 0.18, 0.3, 0.42, 0.85, 2, 5, 8, 11.2, 16, 22.4, 31.5, 38.1, 38.1, 38.1],
+  5: [0.075, 0.15, 0.3, 0.42, 0.85, 2, 4, 6.3, 8, 12.8, 16, 20, 25, 31.5, 63, 80], 11: [0.063, 0.125, 2, 4, 5.6, 8, 11.2, 16, 22.4, 31.5, 45, 45, 45, 45, 45, 45]
+};
+const ZESTAW_EN = [0.063, 0.125, 0.25, 0.5, 1, 2, 4, 5.6, 8, 11.2, 16, 22.4, 31.5, 45, 45, 45];
+function real48(u, o) {
+  const ex = u[o]; if (!ex) return 0;
+  let m = 0; for (let k = 4; k >= 0; k--) m = m * 256 + u[o + 1 + k];
+  const neg = m >= 2 ** 39; if (neg) m -= 2 ** 39;
+  return (neg ? -1 : 1) * (1 + m / 2 ** 39) * 2 ** (ex - 129);
+}
+function parseMasaWyn(buf, zestaw = 12) {
+  const u = new Uint8Array(buf), R = 2547, out = [];
+  const sv = ZESTAWY_SIT[zestaw] || ZESTAW_EN;
+  const sieves = [0, ...sv];
+  const w16 = (o, signed = true) => { const v = u[o] | (u[o + 1] << 8); return signed && v > 32767 ? v - 65536 : v; };
+  const str = (o, max) => { const n = Math.min(u[o], max); let s = ''; for (let k = 0; k < n; k++) { const b = u[o + 1 + k]; s += b < 128 ? String.fromCharCode(b) : CP852[b - 128]; } return s.trim(); };
+  for (let k = 0; k + R <= u.length; k++) {
+    const b = k * R; const name = str(b, 16); const mats = [];
+    for (let s = 0; s < 9; s++) {
+      const m = b + 201 + 206 * s; if (!u[m]) continue;
+      const rr = []; for (let j = 0; j < 17; j++) rr.push(real48(u, m + 85 + 6 * j));
+      const rsum = rr.reduce((a, c) => a + c, 0);
+      const vals = (rr.every(v => v >= 0 && v <= 100.5) && Math.abs(rsum - 100) < 1.5) ? rr : Array.from({ length: 17 }, (_, j) => w16(m + 85 + 2 * j, false));
+      const passing = retToPassing(sieves, vals); const grams = retToGrams(sieves, vals);
+      const grp = passing[0] >= 60 ? 1 : passing[5] >= 85 ? 2 : passing[9] >= 90 ? 3 : 4;
+      out.length; mats.push({ id: 'w' + k + '_' + s, name: str(m, 20), cert: str(m + 21, 16), density: w16(m + 72) / 1000 || 2.65, group: grp, passing,
+        min: round2(real48(u, m + 187)), max: round2(real48(u, m + 193)) || 100, x: real48(u, m + 199), price: 0, source: 'BAZA_MMB.WYN', grams });
+    }
+    if (!mats.length) continue;
+    const tpts = []; sv.forEach((d, j) => { if (!tpts.length || d > tpts[tpts.length - 1].d) tpts.push({ d, p: w16(b + 136 + 2 * j) / 100 }); });
+    out.push({ idx: k, name, mats, target: curveToSieves(tpts), binderName: str(b + 2397, 27), binderDensity: w16(b + 2435) / 1000, B: w16(b + 2437) / 100, binderId: w16(b + 2056) });
+  }
+  return out;
+}
+const round2 = v => Math.round(v * 100) / 100;
+const round1 = v => Math.round(v * 10) / 10;
+
+if (typeof module !== 'undefined' && module.exports) module.exports = { SIEVES, qp, designMix, combine, passingAt, aggDensity, maxDensity, volumetrics, akToB, bToAk, binderMethods, surfaceHveem, surfaceDuriez, trialMix, plantRecipe, parseMasaDat, parseMasaWyn, gramsToPassing, retToGrams, decodeCP852, defaultEmpiricalZ };
+</script>
+<script>/* ===== MASA Web – UI (nazewnictwo zgodne z programem MASA) ===== */
+const MIXLIB = [{"id":"g00","name":"AC 16 P KR 1-2","desc":"Beton asfaltowy do warstwy podbudowy, AC 16 P KR 1-2","norm":1,"bmin":4.4,"upper":[10.0,13.0,22.3,31.5,40.8,50.0,67.5,76.0,85.0,92.0,100.0,100.0,100.0,100.0],"lower":[4.0,5.0,10.0,15.0,20.0,25.0,37.5,43.6,50.0,70.0,90.0,100.0,100.0,100.0],"target":[7.0,9.0,16.1,23.3,30.4,37.5,52.5,59.8,67.5,81.0,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g01","name":"AC 22 P KR 1-2","desc":"Beton asfaltowy do warstwy podbudowy, AC 22 P KR 1-2","norm":1,"bmin":4.2,"upper":[10.0,13.0,21.0,29.0,37.0,45.0,58.5,65.1,72.0,83.0,93.0,100.0,100.0,100.0],"lower":[4.0,5.0,7.5,10.0,12.5,15.0,28.5,35.1,42.0,55.0,65.0,90.0,100.0,100.0],"target":[7.0,9.0,14.3,19.5,24.8,30.0,43.5,50.1,57.0,69.0,79.0,95.0,100.0,100.0],"norm_sieves":[0,0,1,1,1,0,1,1,1,0,1,0,1,1]},{"id":"g02","name":"AC 16 P KR 3-4","desc":"Beton asfaltowy do warstwy podbudowy, AC 16 P KR 3-4","norm":1,"bmin":4.2,"upper":[8.0,12.0,21.5,31.0,40.5,50.0,63.0,69.3,76.0,85.0,100.0,100.0,100.0,100.0],"lower":[4.0,5.0,10.0,15.0,20.0,25.0,37.5,43.6,50.0,65.0,90.0,100.0,100.0,100.0],"target":[6.0,8.5,15.8,23.0,30.3,37.5,50.3,56.4,63.0,75.0,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g03","name":"AC 22 P KR 3-4 ZDW Olsztyn","desc":"Beton asfaltowy do warstwy podbudowy, AC 22 P KR 3-4 ZDW Olsztyn","norm":9,"bmin":4.0,"upper":[8.0,12.0,20.3,28.5,36.8,45.0,55.0,60.0,68.0,78.0,90.0,100.0,100.0,100.0],"lower":[4.0,4.0,6.8,9.5,12.3,15.0,24.0,32.0,42.0,52.0,65.0,90.0,100.0,100.0],"target":[6.0,8.0,13.6,19.0,24.6,30.0,39.5,46.0,55.0,65.0,77.5,95.0,100.0,100.0],"norm_sieves":[0,0,1,1,1,0,1,1,1,0,1,0,1,1]},{"id":"g04","name":"AC 32 P KR 3-4","desc":"Beton asfaltowy do warstwy podbudowy, AC 32 P KR 3-4","norm":1,"bmin":3.8,"upper":[7.0,12.0,19.0,26.0,33.0,40.0,46.5,49.7,53.0,65.1,77.9,90.0,100.0,100.0],"lower":[3.0,4.0,5.5,7.0,8.5,10.0,21.5,27.1,33.0,43.5,54.5,65.0,90.0,100.0],"target":[5.0,8.0,12.3,16.5,20.8,25.0,34.0,38.4,43.0,54.3,66.2,77.5,95.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g05","name":"AC 16 P KR 5-7","desc":"Beton asfaltowy do warstwy podbudowy, AC 16 P KR 5-7","norm":1,"bmin":4.2,"upper":[8.0,12.0,21.5,31.0,40.5,50.0,63.0,69.3,76.0,85.0,100.0,100.0,100.0,100.0],"lower":[4.0,5.0,10.0,15.0,20.0,25.0,37.5,43.6,50.0,65.0,90.0,100.0,100.0,100.0],"target":[6.0,8.5,15.8,23.0,30.3,37.5,50.3,56.4,63.0,75.0,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g06","name":"AC 22 P KR 5-7","desc":"Beton asfaltowy do warstwy podbudowy, AC 22 P KR 5-7","norm":1,"bmin":4.0,"upper":[8.0,12.0,20.3,28.5,36.8,45.0,56.5,62.1,68.0,78.7,90.0,100.0,100.0,100.0],"lower":[4.0,4.0,6.8,9.5,12.3,15.0,28.5,35.1,42.0,53.2,65.0,90.0,100.0,100.0],"target":[6.0,8.0,13.5,19.0,24.5,30.0,42.5,48.6,55.0,65.9,77.5,95.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g07","name":"AC 32 P KR 5-7","desc":"Beton asfaltowy do warstwy podbudowy, AC 32 P KR 5-7","norm":1,"bmin":3.8,"upper":[7.0,12.0,19.0,26.0,33.0,40.0,46.5,49.7,53.0,65.1,77.9,90.0,100.0,100.0],"lower":[3.0,4.0,5.5,7.0,8.5,10.0,21.5,27.1,33.0,43.5,54.5,65.0,90.0,100.0],"target":[5.0,8.0,12.3,16.5,20.8,25.0,34.0,38.4,43.0,54.3,66.2,77.5,95.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g08","name":"AC 11 W KR 1-2","desc":"Beton asfaltowy do warstwy wiążącej i wyrównawczej, AC 11 W KR 1-2","norm":1,"bmin":4.8,"upper":[8.0,24.0,31.8,39.5,47.3,55.0,70.0,77.3,85.0,100.0,100.0,100.0,100.0,100.0],"lower":[3.0,6.0,12.0,18.0,24.0,30.0,45.0,52.3,60.0,90.0,100.0,100.0,100.0,100.0],"target":[5.5,8.0,13.0,20.0,28.0,36.5,50.0,60.0,76.0,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g09","name":"AC 16 W KR 1-2","desc":"Beton asfaltowy do warstwy wiążącej i wyrównawczej, AC 16 W KR 1-2","norm":1,"bmin":4.6,"upper":[8.0,15.0,25.0,35.0,45.0,55.0,65.1,69.9,75.1,80.0,100.0,100.0,100.0,100.0],"lower":[3.0,5.0,10.0,15.0,20.0,25.0,41.1,48.9,57.2,65.0,90.0,100.0,100.0,100.0],"target":[5.5,10.0,17.5,25.0,32.5,40.0,53.1,59.4,66.2,72.5,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g10","name":"AC 16 W KR 3-4 ZDW Olsztyn","desc":"Beton asfaltowy do warstwy wiążącej i wyrównawczej, AC 16 W KR 3-4 ZDW Olsztyn","norm":1,"bmin":4.6,"upper":[10.0,12.0,21.5,31.0,40.5,50.0,62.0,70.0,80.0,90.0,100.0,100.0,100.0,100.0],"lower":[4.0,4.0,9.3,14.5,19.8,25.0,35.0,43.0,55.0,70.0,90.0,100.0,100.0,100.0],"target":[7.0,8.0,15.4,22.8,30.2,37.5,48.5,56.5,67.5,80.0,95.0,100.0,100.0,100.0],"norm_sieves":[0,0,1,1,1,0,1,1,0,1,0,1,1,1]},{"id":"g11","name":"AC 22 W KR 3-4","desc":"Beton asfaltowy do warstwy wiążącej i wyrównawczej, AC 22 W KR 3-4","norm":1,"bmin":4.4,"upper":[10.0,12.0,20.3,28.5,36.8,45.0,57.5,63.6,70.0,79.7,90.0,100.0,100.0,100.0],"lower":[4.0,4.0,8.0,12.0,16.0,20.0,32.5,38.6,45.0,54.7,65.0,90.0,100.0,100.0],"target":[7.0,8.0,14.1,20.3,26.4,32.5,45.0,51.1,57.5,67.2,77.5,95.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g12","name":"AC 16 W KR 5-7","desc":"Beton asfaltowy do warstwy wiążącej i wyrównawczej, AC 16 W KR 5-7","norm":1,"bmin":4.6,"upper":[10.0,12.0,21.5,31.0,40.5,50.0,63.0,71.0,80.0,90.0,100.0,100.0,100.0,100.0],"lower":[4.0,4.0,9.3,14.5,19.8,25.0,40.0,47.0,55.0,70.0,90.0,100.0,100.0,100.0],"target":[7.0,8.0,15.4,22.8,30.2,37.5,51.5,59.0,67.5,80.0,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g13","name":"AC 22 W KR 5-7","desc":"Beton asfaltowy do warstwy wiążącej i wyrównawczej, AC 22 W KR 5-7","norm":1,"bmin":4.4,"upper":[10.0,12.0,20.3,28.5,36.8,45.0,57.5,63.6,70.0,79.7,90.0,100.0,100.0,100.0],"lower":[4.0,4.0,8.0,12.0,16.0,20.0,32.5,38.6,45.0,54.7,65.0,90.0,100.0,100.0],"target":[7.0,8.0,14.1,20.3,26.4,32.5,45.0,51.1,57.5,67.2,77.5,95.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g14","name":"AC 5 S KR 1-2","desc":"Beton asfaltowy do warstwy ścieralnej, AC 5 S KR 1-2","norm":1,"bmin":6.2,"upper":[14.0,22.0,32.8,43.5,54.3,65.0,88.6,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[6.0,8.0,16.0,24.0,32.0,40.0,73.7,90.0,100.0,100.0,100.0,100.0,100.0,100.0],"target":[10.0,15.0,24.4,33.8,43.1,52.5,81.1,95.0,100.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g15","name":"AC 8 S KR 1-2","desc":"Beton asfaltowy do warstwy ścieralnej, AC 8 S KR 1-2","norm":1,"bmin":6.0,"upper":[14.0,22.0,31.5,41.0,50.5,60.0,80.2,90.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[6.0,8.0,17.3,26.5,35.8,45.0,61.8,70.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[10.0,15.0,24.4,33.8,43.1,52.5,71.0,80.0,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g16","name":"AC 11 S KR 1-2","desc":"Beton asfaltowy do warstwy ścieralnej, AC 11 S KR 1-2","norm":1,"bmin":5.8,"upper":[12.0,20.0,28.8,37.5,46.3,55.0,72.5,81.0,90.0,100.0,100.0,100.0,100.0,100.0],"lower":[5.0,8.0,13.5,19.0,24.5,30.0,50.0,59.7,70.0,90.0,100.0,100.0,100.0,100.0],"target":[8.5,14.0,21.1,28.3,35.4,42.5,61.3,70.4,80.0,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g17","name":"AC 8 S KR 3-4","desc":"Beton asfaltowy do warstwy ścieralnej, AC 8 S KR 3-4","norm":1,"bmin":5.8,"upper":[12.0,22.0,30.3,38.5,46.8,55.0,60.0,80.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[5.0,8.0,16.0,24.0,32.0,40.0,48.0,60.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[8.5,15.0,23.2,31.3,39.4,47.5,54.0,70.0,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g18","name":"AC 11 S KR 3-4","desc":"Beton asfaltowy do warstwy ścieralnej, AC 11 S KR 3-4","norm":1,"bmin":5.6,"upper":[12.0,20.0,27.5,35.0,42.5,50.0,60.0,75.0,90.0,100.0,100.0,100.0,100.0,100.0],"lower":[5.0,8.0,14.8,21.5,28.3,35.0,42.0,48.0,60.0,90.0,100.0,100.0,100.0,100.0],"target":[8.0,14.0,21.2,28.3,35.4,42.5,51.0,61.5,75.0,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[0,0,1,1,1,0,1,0,1,0,1,1,1,1]},{"id":"g19","name":"AC 8 S KR 5-6","desc":"Beton asfaltowy do warstwy ścieralnej, AC 8 S KR 5-6","norm":1,"bmin":5.8,"upper":[12.0,22.0,30.3,38.5,46.8,55.0,60.0,80.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[5.0,8.0,16.0,24.0,32.0,40.0,48.0,60.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[8.5,15.0,23.2,31.3,39.4,47.5,54.0,70.0,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g20","name":"AC 11 S KR 3-6 ZDW OLSZTYN","desc":"Beton asfaltowy do warstwy ścieralnej, AC 11 S KR 3-6 ZDW OLSZTYN","norm":1,"bmin":5.8,"upper":[11.0,20.0,27.5,35.0,42.5,50.0,60.0,75.0,90.0,100.0,100.0,100.0,100.0,100.0],"lower":[5.0,8.0,14.7,21.5,28.3,35.0,42.0,48.0,60.0,90.0,100.0,100.0,100.0,100.0],"target":[8.0,14.0,21.1,28.3,35.4,42.5,51.0,61.5,75.0,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[0,0,1,1,1,0,1,0,1,0,1,1,1,1]},{"id":"g21","name":"AC WMS 16 KR 3-7","desc":"Beton asf. o wysokim module sztywności do warstwy podbudowy, AC WMS 16 KR 3-7","norm":1,"bmin":5.0,"upper":[12.0,20.0,27.2,34.8,42.4,50.0,64.1,70.9,78.2,85.0,100.0,100.0,100.0,100.0],"lower":[2.0,4.0,5.2,6.8,8.4,10.0,34.1,45.9,58.3,70.0,90.0,100.0,100.0,100.0],"target":[7.0,12.0,16.2,20.8,25.4,30.0,49.1,58.4,68.3,77.5,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g22","name":"AC WMS 22 KR 3-7","desc":"Beton asf. o wysokim module sztywności do warstwy podbudowy, AC WMS 22 KR 3-7","norm":1,"bmin":5.0,"upper":[11.0,20.0,26.6,34.4,42.2,50.0,60.0,66.0,73.0,80.0,90.0,100.0,100.0,100.0],"lower":[2.0,4.0,5.2,6.8,8.4,10.0,20.0,26.0,33.0,40.0,60.0,90.0,100.0,100.0],"target":[5.0,7.0,8.0,10.0,12.0,18.0,28.0,36.0,44.0,55.0,75.0,95.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g23","name":"AC WMS 16 KR 3-7","desc":"Beton asf. o wysokim module sztywności do warstwy wiążącej, AC WMS 16 KR 3-7","norm":1,"bmin":5.0,"upper":[12.0,20.0,27.2,34.8,42.4,50.0,64.1,70.9,78.2,85.0,100.0,100.0,100.0,100.0],"lower":[2.0,4.0,5.2,6.8,8.4,10.0,34.1,45.9,58.3,70.0,90.0,100.0,100.0,100.0],"target":[7.0,12.0,16.2,20.8,25.4,30.0,49.1,58.4,68.3,77.5,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g24","name":"AC WMS 22 KR 3-7","desc":"Beton asf. o wysokim module sztywności do warstwy wiążącej, AC WMS 22 KR 3-7","norm":1,"bmin":5.0,"upper":[11.0,20.0,26.6,34.4,42.2,50.0,60.0,66.0,73.0,80.0,90.0,100.0,100.0,100.0],"lower":[2.0,4.0,5.2,6.8,8.4,10.0,20.0,26.0,33.0,40.0,60.0,90.0,100.0,100.0],"target":[6.5,12.0,15.9,20.6,25.3,30.0,40.0,46.0,53.0,60.0,75.0,95.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g25","name":"SMA 5 KR 1-2","desc":"Mieszanka SMA do warstwy ścieralnej, SMA 5 KR 1-2","norm":3,"bmin":7.4,"upper":[12.0,19.0,24.3,29.5,34.8,40.0,80.4,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[7.0,10.0,15.0,20.0,25.0,30.0,70.4,90.0,100.0,100.0,100.0,100.0,100.0,100.0],"target":[9.5,14.5,19.6,24.8,29.9,35.0,75.4,95.0,100.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g26","name":"SMA 8 KR 1-2","desc":"Mieszanka SMA do warstwy ścieralnej, SMA 8 KR 1-2","norm":3,"bmin":7.2,"upper":[12.0,17.0,20.3,23.5,26.8,30.0,50.2,60.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[7.0,9.0,11.8,14.5,17.3,20.0,30.1,35.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[9.5,13.0,16.0,19.0,22.0,25.0,40.2,47.5,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g27","name":"SMA 5 KR 3-4","desc":"Mieszanka SMA do warstwy ścieralnej, SMA 5 KR 3-4","norm":3,"bmin":7.4,"upper":[12.0,19.0,24.3,29.5,34.8,40.0,80.4,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[7.0,10.0,15.0,20.0,25.0,30.0,70.4,90.0,100.0,100.0,100.0,100.0,100.0,100.0],"target":[9.5,14.5,19.6,24.8,29.9,35.0,75.4,95.0,100.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g28","name":"SMA 8 KR 3-4","desc":"Mieszanka SMA do warstwy ścieralnej, SMA 8 KR 3-4","norm":3,"bmin":7.2,"upper":[12.0,17.0,20.3,23.5,26.8,30.0,50.2,60.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[7.0,9.0,11.8,14.5,17.3,20.0,30.1,35.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[9.5,13.0,16.0,19.0,22.0,25.0,40.2,47.5,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g29","name":"SMA 11 KR 3-4","desc":"Mieszanka SMA do warstwy ścieralnej, SMA 11 KR 3-4","norm":3,"bmin":6.6,"upper":[12.0,17.0,20.3,23.5,26.8,30.0,40.1,45.0,65.0,100.0,100.0,100.0,100.0,100.0],"lower":[8.0,9.0,11.8,14.5,17.3,20.0,30.1,35.0,50.0,90.0,100.0,100.0,100.0,100.0],"target":[10.0,13.0,16.0,19.0,22.0,25.0,35.1,40.0,57.5,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g30","name":"SMA 8 KR 5-7","desc":"Mieszanka SMA do warstwy ścieralnej, SMA 8 KR 5-7","norm":3,"bmin":7.2,"upper":[12.0,17.0,20.3,23.5,26.8,30.0,50.2,60.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[7.0,9.0,11.8,14.5,17.3,20.0,30.1,35.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[9.5,13.0,16.0,19.0,22.0,25.0,40.2,47.5,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g31","name":"SMA 11 KR 5-7","desc":"Mieszanka SMA do warstwy ścieralnej, SMA 11 KR 5-7","norm":3,"bmin":6.6,"upper":[12.0,17.0,20.3,23.5,26.8,30.0,40.1,45.0,65.0,100.0,100.0,100.0,100.0,100.0],"lower":[8.0,9.0,11.8,14.5,17.3,20.0,30.1,35.0,50.0,90.0,100.0,100.0,100.0,100.0],"target":[10.0,13.0,16.0,19.0,22.0,25.0,35.1,40.0,57.5,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g32","name":"MA 5 KR 1-7","desc":"Asfalt lany do warstwy wiążącej, MA 5 KR 1-7","norm":4,"bmin":7.0,"upper":[40.0,47.0,55.2,63.5,71.7,80.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[24.0,32.0,40.2,48.5,56.7,65.0,90.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"target":[32.0,39.5,47.7,56.0,64.2,72.5,95.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g33","name":"MA 8 KR 1-7","desc":"Asfalt lany do warstwy wiążącej, MA 8 KR 1-7","norm":4,"bmin":7.0,"upper":[36.0,41.0,47.5,54.0,60.5,67.0,81.0,92.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[24.0,26.0,32.5,39.0,45.5,52.0,67.0,77.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[30.0,33.5,40.0,46.5,53.0,59.5,74.0,84.5,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g34","name":"MA 11 KR 1-7","desc":"Asfalt lany do warstwy wiążącej, MA 11 KR 1-7","norm":4,"bmin":6.8,"upper":[28.0,35.0,40.0,45.0,50.0,55.0,70.0,77.3,85.0,100.0,100.0,100.0,100.0,100.0],"lower":[20.0,22.0,27.8,33.5,39.3,45.0,57.5,63.6,70.0,90.0,100.0,100.0,100.0,100.0],"target":[24.0,28.5,33.9,39.3,44.6,50.0,63.8,70.4,77.5,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g35","name":"MA 16 KR 1-7","desc":"Asfalt lany do warstwy wiążącej, MA 16 KR 1-7","norm":4,"bmin":6.5,"upper":[28.0,31.0,35.7,40.5,45.3,50.0,61.0,68.0,78.0,88.0,100.0,100.0,100.0,100.0],"lower":[20.0,20.0,23.7,27.5,31.2,35.0,46.0,53.0,63.0,75.0,90.0,100.0,100.0,100.0],"target":[24.0,25.5,29.7,34.0,38.3,42.5,53.5,60.5,70.5,81.5,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g36","name":"MA 5 KR 1-7","desc":"Asfalt lany do warstwy ścieralnej, MA 5 KR 1-7","norm":4,"bmin":7.0,"upper":[40.0,47.0,55.2,63.5,71.7,80.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[28.0,32.0,40.2,48.5,56.7,65.0,90.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"target":[34.0,39.5,47.7,56.0,64.2,72.5,95.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g37","name":"MA 8 KR 1-7","desc":"Asfalt lany do warstwy ścieralnej, MA 8 KR 1-7","norm":4,"bmin":7.0,"upper":[36.0,41.0,47.5,54.0,60.5,67.0,81.0,92.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[24.0,26.0,32.5,39.0,45.5,52.0,67.0,77.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[30.0,33.5,40.0,46.5,53.0,59.5,74.0,84.5,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g38","name":"MA 11 KR 1-7","desc":"Asfalt lany do warstwy ścieralnej, MA 11 KR 1-7","norm":4,"bmin":6.8,"upper":[28.0,35.0,40.0,45.0,50.0,55.0,70.0,77.3,85.0,100.0,100.0,100.0,100.0,100.0],"lower":[20.0,22.0,27.8,33.5,39.3,45.0,57.5,63.6,70.0,90.0,100.0,100.0,100.0,100.0],"target":[24.0,28.5,33.9,39.3,44.6,50.0,63.8,70.4,77.5,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g39","name":"MA 16 KR 1-7","desc":"Asfalt lany do warstwy ścieralnej, MA 16 KR 1-7","norm":4,"bmin":6.5,"upper":[28.0,31.0,35.7,40.5,45.3,50.0,61.0,68.0,78.0,88.0,100.0,100.0,100.0,100.0],"lower":[20.0,20.0,23.7,27.5,31.2,35.0,46.0,53.0,63.0,75.0,90.0,100.0,100.0,100.0],"target":[24.0,25.5,29.7,34.0,38.3,42.5,53.5,60.5,70.5,81.5,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g40","name":"PA 8 KR 3-7","desc":"Asfalt porowaty do warstwy dolnej, PA 8 KR 3-7","norm":5,"bmin":6.5,"upper":[5.0,6.0,7.0,8.0,9.0,10.0,13.4,15.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[3.0,3.4,3.8,4.2,4.6,5.0,5.0,5.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[4.0,4.7,5.4,6.1,6.8,7.5,9.2,10.0,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g41","name":"PA 11 KR 3-7","desc":"Asfalt porowaty do warstwy dolnej, PA 11 KR 3-7","norm":5,"bmin":6.0,"upper":[5.0,6.0,7.0,8.0,9.0,10.0,12.5,13.7,15.0,100.0,100.0,100.0,100.0,100.0],"lower":[3.0,3.4,3.8,4.2,4.6,5.0,5.0,5.0,5.0,90.0,100.0,100.0,100.0,100.0],"target":[4.0,4.7,5.4,6.1,6.8,7.5,8.8,9.4,10.0,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g42","name":"PA 16 KR 3-7","desc":"Asfalt porowaty do warstwy dolnej, PA 16 KR 3-7","norm":5,"bmin":5.5,"upper":[5.0,6.0,7.0,8.0,9.0,10.0,12.0,13.0,14.0,15.0,100.0,100.0,100.0,100.0],"lower":[3.0,3.4,3.8,4.2,4.6,5.0,5.0,5.0,5.0,5.0,90.0,100.0,100.0,100.0],"target":[4.0,4.7,5.4,6.1,6.8,7.5,8.5,9.0,9.5,10.0,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g43","name":"PA 8 KR 3-7","desc":"Asfalt porowaty do warstwy ścieralnej, PA 8 KR 3-7","norm":5,"bmin":6.5,"upper":[5.0,6.0,7.0,8.0,9.0,10.0,13.4,15.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[3.0,3.4,3.8,4.2,4.6,5.0,5.0,5.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[4.0,4.7,5.4,6.1,6.8,7.5,9.2,10.0,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[0,0,1,1,1,0,0,1,0,1,1,1,1,1]},{"id":"g44","name":"PA 11 KR 3-7","desc":"Asfalt porowaty do warstwy ścieralnej, PA 11 KR 3-7","norm":5,"bmin":6.0,"upper":[5.0,6.0,7.0,8.0,9.0,10.0,12.5,13.7,15.0,100.0,100.0,100.0,100.0,100.0],"lower":[3.0,3.4,3.8,4.2,4.6,5.0,5.0,5.0,5.0,90.0,100.0,100.0,100.0,100.0],"target":[4.0,4.7,5.4,6.1,6.8,7.5,8.8,9.4,10.0,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g45","name":"PA 16 KR 3-7","desc":"Asfalt porowaty do warstwy ścieralnej, PA 16 KR 3-7","norm":5,"bmin":5.5,"upper":[5.0,6.0,7.0,8.0,9.0,10.0,12.0,13.0,14.0,15.0,100.0,100.0,100.0,100.0],"lower":[3.0,3.4,3.8,4.2,4.6,5.0,5.0,5.0,5.0,5.0,90.0,100.0,100.0,100.0],"target":[4.0,4.7,5.4,6.1,6.8,7.5,8.5,9.0,9.5,10.0,95.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g46","name":"BBTM 8 A KR 1-2","desc":"Mieszanka BBTM do warstwy ścieralnej, BBTM 8 A KR 1-2","norm":2,"bmin":6.4,"upper":[9.0,14.2,19.4,24.6,29.8,35.0,67.5,83.3,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[7.0,10.6,14.2,17.8,21.4,25.0,57.5,73.3,90.0,100.0,100.0,100.0,100.0,100.0],"target":[8.0,12.4,16.8,21.2,25.6,30.0,62.5,78.3,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g47","name":"BBTM 8 B KR 1-2","desc":"Mieszanka BBTM do warstwy ścieralnej, BBTM 8 B KR 1-2","norm":2,"bmin":6.0,"upper":[6.0,9.8,13.6,17.4,21.2,25.0,62.5,80.7,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[4.0,6.2,8.4,10.6,12.8,15.0,52.5,70.7,90.0,100.0,100.0,100.0,100.0,100.0],"target":[5.0,8.0,11.0,14.0,17.0,20.0,57.5,75.7,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g48","name":"BBTM 11 A KR 1-2","desc":"Mieszanka BBTM do warstwy ścieralnej, BBTM 11 A KR 1-2","norm":2,"bmin":6.0,"upper":[9.0,14.2,19.4,24.6,29.8,35.0,61.2,73.9,87.3,100.0,100.0,100.0,100.0,100.0],"lower":[7.0,10.6,14.2,17.8,21.4,25.0,51.2,63.9,77.3,90.0,100.0,100.0,100.0,100.0],"target":[8.0,12.4,16.8,21.2,25.6,30.0,56.2,68.9,82.3,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g49","name":"BBTM 11 B KR 1-2","desc":"Mieszanka BBTM do warstwy ścieralnej, BBTM 11 B KR 1-2","norm":2,"bmin":6.0,"upper":[6.0,9.8,13.6,17.4,21.2,25.0,55.2,69.8,85.4,100.0,100.0,100.0,100.0,100.0],"lower":[4.0,6.2,8.4,10.6,12.8,15.0,45.2,59.8,75.4,90.0,100.0,100.0,100.0,100.0],"target":[5.0,8.0,11.0,14.0,17.0,20.0,50.2,64.8,80.4,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g50","name":"BBTM 8 A KR 3-7","desc":"Mieszanka BBTM do warstwy ścieralnej, BBTM 8 A KR 3-7","norm":2,"bmin":6.4,"upper":[9.0,14.2,19.4,24.6,29.8,35.0,67.5,83.3,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[7.0,10.6,14.2,17.8,21.4,25.0,57.5,73.3,90.0,100.0,100.0,100.0,100.0,100.0],"target":[8.0,12.4,16.8,21.2,25.6,30.0,62.5,78.3,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g51","name":"BBTM 8 B KR 3-7","desc":"Mieszanka BBTM do warstwy ścieralnej, BBTM 8 B KR 3-7","norm":2,"bmin":6.0,"upper":[6.0,9.8,13.6,17.4,21.2,25.0,62.5,80.7,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[4.0,6.2,8.4,10.6,12.8,15.0,52.5,70.7,90.0,100.0,100.0,100.0,100.0,100.0],"target":[5.0,8.0,11.0,14.0,17.0,20.0,57.5,75.7,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g52","name":"BBTM 11 A KR 3-7","desc":"Mieszanka BBTM do warstwy ścieralnej, BBTM 11 A KR 3-7","norm":2,"bmin":6.0,"upper":[9.0,14.2,19.4,24.6,29.8,35.0,61.2,73.9,87.3,100.0,100.0,100.0,100.0,100.0],"lower":[7.0,10.6,14.2,17.8,21.4,25.0,51.2,63.9,77.3,90.0,100.0,100.0,100.0,100.0],"target":[8.0,12.4,16.8,21.2,25.6,30.0,56.2,68.9,82.3,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g53","name":"BBTM 11 B KR 3-7","desc":"Mieszanka BBTM do warstwy ścieralnej, BBTM 11 B KR 3-7","norm":2,"bmin":6.0,"upper":[6.0,9.8,13.6,17.4,21.2,25.0,55.2,69.8,85.4,100.0,100.0,100.0,100.0,100.0],"lower":[4.0,6.2,8.4,10.6,12.8,15.0,45.2,59.8,75.4,90.0,100.0,100.0,100.0,100.0],"target":[5.0,8.0,11.0,14.0,17.0,20.0,50.2,64.8,80.4,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g54","name":"AC 16 S TD KR 1-2","desc":"Beton asfaltowy do nawierzchni jednowarstwowej, AC 16 S TD KR 1-2","norm":8,"bmin":5.4,"upper":[11.0,20.0,50.0,63.0,72.0,81.0,90.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[6.0,8.0,30.0,47.0,57.0,68.0,80.0,90.0,100.0,100.0,100.0,100.0,100.0,100.0],"target":[8.5,14.0,40.0,55.0,64.5,74.5,85.0,95.0,100.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]},{"id":"g55","name":"SMA LA 8 KR5-6","desc":"Mieszanka SMA LA do warstwy ścieralnej, SMA LA 8 KR5-6","norm":3,"bmin":6.6,"upper":[10.0,10.0,13.8,17.5,21.3,25.0,29.0,35.0,100.0,100.0,100.0,100.0,100.0,100.0],"lower":[4.0,4.0,6.8,9.5,12.3,15.0,16.0,20.0,90.0,100.0,100.0,100.0,100.0,100.0],"target":[7.0,7.0,10.3,13.5,16.8,20.0,22.5,27.5,95.0,100.0,100.0,100.0,100.0,100.0],"norm_sieves":[0,0,1,1,1,0,0,1,0,1,1,1,1,1]},{"id":"g56","name":"SMA LA 11 KR 5-6","desc":"Mieszanka SMA LA do warstwy ścieralnej, SMA LA 11 KR 5-6","norm":3,"bmin":6.6,"upper":[10.0,10.0,10.0,13.8,17.5,21.3,25.0,29.0,35.0,100.0,100.0,100.0,100.0,100.0],"lower":[4.0,4.0,4.0,6.8,9.5,12.3,15.0,16.0,20.0,90.0,100.0,100.0,100.0,100.0],"target":[7.0,7.0,7.0,10.3,13.5,16.8,20.0,22.5,27.5,95.0,100.0,100.0,100.0,100.0],"norm_sieves":[1,1,1,1,1,1,1,1,1,1,1,1,1,1]}];
+const SAMPLE_DAT = "            G R U P A  I  - WYPELNIACZE                                           Ilosc materialow w grupie -  1@\r\n|       NAZWA       |Poch rP|GST|UB| NR ORZECZENIA rUrRzA|reK|rD CenaDf Dl1@             a n a l i z a    s i t o w a\r\nMączka wapienna     CEMEX 012710  0BEZ ORZ.        000C0000001      08OJ8O5@  850  100   50   00   00   00   00   00   00   00   00   00   00   00   00   00   00\r\n            G R U P A II  - PIASKI, MIALY, KRUSZYWO DROBNE, POSPOLKI DROBNE       Ilosc materialow w grupie -  1@\r\n                                                                  S i t a :  0.0  .063 .125  .25  .50  1.0  2.0  4.0  5.6  8.0 11.2 16.0 22.4 31.5 45.0 45.0 45.0\r\nGabro               CEMEX 012940  0BEZ ORZ.        010C0000001      08OJ8O5@   43   32   62  117  204  374  168   00   00   00   00   00   00   00   00   00   00\r\n            G R U P A III - GRYSY SREDNIE, ZWIRY DROBNE, POSPOLKI GRUBE           Ilosc materialow w grupie -  2@\r\n                                                                  S i t a :  0.0  .063 .125  .25  .50  1.0  2.0  4.0  5.6  8.0 11.2 16.0 22.4 31.5 45.0 45.0 45.0\r\nGabro               CEMEX 012933  0BEZ ORZ.        0C0C0000001      08OJ8O5@   02   06   00   00   00   00   31  255  644   62   00   00   00   00   00   00   00\r\nGabro               CEMEX 012898  0BEZ ORZ.        070C0000002      08OJ8O5@   10   22   00   00   00   69  874   00   25   00   00   00   00   00   00   00   00\r\n            G R U P A IV  - GRYSY GRUBE, KLINCE, ZWIRY GRUBE                      Ilosc materialow w grupie -  7@\r\n                                                                  S i t a :  0.0  .063 .125  .25  .50  1.0  2.0  4.0  5.6  8.0 11.2 16.0 22.4 31.5 45.0 45.0 45.0\r\nSulików             CEMEX 013010  0BEZ ORZ.        0F0C0000001      08OJ8O5@   03   07   00   00   00   00   00   00  156  763   72   00   00   00   00   00   00\r\nLubied              CEMEX 012957  0BEZ ORZ.        0F0C0000002      08OJ8O5@   01   02   00   00   00   00   00   00  104  850   43   00   00   00   00   00   00\r\nGliśno              CEMEX 012642  0BEZ ORZ.        0F0C0000003      08OJ8O5@   02   05   00   00   00   00   00   00  157  803   33   00   00   00   00   00   00\r\nOstrowite           CEMEX 012643  0BEZ ORZ.        0F0C0000004      08OJ8O5@   01   01   00   00   00   00   00   00   77  920   01   00   00   00   00   00   00\r\nKujawy              CEMEX 012638  0BEZ ORZ.        0F0C0000005      08OJ8O5@   02   01   00   00   00   00   00   00   09  980   08   00   00   00   00   00   00\r\nDolomit             CEMEX 012700  0BEZ ORZ.        0I0C0000006      0>Oé>O5@   42   00   00   00   00   00   00   00 2700 400011822 2256   00   00   00   00   00\r\nSztuczne            CEMEX 011670  0BEZ ORZ.        0I0C0000007      0>Oé>O5@   75   20   20   20   20   20   20   51 1279 904325696 3701   95   00   00   00   00\r\n                                                                  S i t a :  0.0  .063 .125  .25  .50  1.0  2.0  4.0  5.6  8.0 11.2 16.0 22.4 31.5 45.0 45.0 45.0\r\n";
+const LEPISZCZA = [{"id": 1, "name": "Asfalt drogowy D-200", "pen": 200, "tpk": null, "density": 1.02}, {"id": 2, "name": "Asfalt drogowy D-100", "pen": 100, "tpk": null, "density": 1.02}, {"id": 3, "name": "Asfalt drogowy D-70", "pen": 70, "tpk": null, "density": 1.03}, {"id": 4, "name": "Asfalt drogowy D-50", "pen": 50, "tpk": null, "density": 1.03}, {"id": 5, "name": "Asfalt drogowy D-35", "pen": 35, "tpk": null, "density": 1.04}, {"id": 6, "name": "Asfalt drogowy D-20", "pen": 20, "tpk": null, "density": 1.04}, {"id": 7, "name": "ELASTOFALT 30  (DE 30 A)", "pen": 30, "tpk": null, "density": 1.04}, {"id": 8, "name": "ELASTOFALT 50  (DE 80 A)", "pen": 50, "tpk": null, "density": 1.03}, {"id": 9, "name": "ELASTOFALT 90  (DE 80 B)", "pen": 90, "tpk": null, "density": 1.03}, {"id": 10, "name": "Asfalt drogowy adh. DA-70", "pen": 70, "tpk": null, "density": 1.03}, {"id": 11, "name": "Asfalt drogowy adh. DA-50", "pen": 50, "tpk": null, "density": 1.03}, {"id": 12, "name": "Elastobit 50 RG", "pen": 50, "tpk": null, "density": 1.03}, {"id": 13, "name": "Asfalt NYNAS D-50", "pen": 50, "tpk": null, "density": 1.03}, {"id": 14, "name": "Asfalt NYNAS D-70", "pen": 70, "tpk": null, "density": 1.0}, {"id": 16, "name": "Emulsja K-1 60", "pen": 200, "tpk": null, "density": 1.0}, {"id": 17, "name": "Asfalt D35/50", "pen": 48, "tpk": null, "density": 1.03}, {"id": 18, "name": "Asfalt 50/70", "pen": 55, "tpk": null, "density": 1.03}, {"id": 19, "name": "ORBITON 30 B", "pen": 30, "tpk": null, "density": 1.04}, {"id": 20, "name": "MODBIT 30B", "pen": 30, "tpk": null, "density": 1.03}, {"id": 21, "name": "MODBIT 80B", "pen": 80, "tpk": null, "density": 1.03}, {"id": 23, "name": "PMB 45/80-80 HIMA", "pen": 73, "tpk": 80, "density": 1.03}, {"id": 25, "name": "PMB 45/80-65", "pen": 80, "tpk": 65, "density": 1.04}, {"id": 26, "name": "PMB 25/55-60", "pen": 35, "tpk": 60, "density": 1.04}, {"id": 27, "name": "160/220", "pen": 186, "tpk": 38, "density": 1.03}, {"id": 28, "name": "2%SBS+10%Gumy", "pen": 30, "tpk": 70, "density": 1.03}, {"id": 29, "name": "PMB 45/80-55", "pen": 64, "tpk": 58, "density": 1.03}];
+const NORMY = { 1: 'PN-EN 13108-1', 2: 'PN-EN 13108-2', 3: 'PN-EN 13108-5', 4: 'PN-EN 13108-6', 5: 'PN-EN 13108-7', 6: 'WT-2 2010', 7: 'WT-2 2014', 9: 'ZDW Olsztyn' };
+const GRUPY = { 1: 'WYPEŁNIACZE', 2: 'PIASKI, MIAŁY', 3: 'GRYSY ŚREDNIE', 4: 'GRYSY GRUBE' };
+const GRUPY_OPIS = { 1: 'G R U P A  I  – WYPEŁNIACZE', 2: 'G R U P A II – PIASKI, MIAŁY, KRUSZYWO DROBNE, POSPÓŁKI DROBNE', 3: 'G R U P A III – GRYSY ŚREDNIE, ŻWIRY DROBNE, POSPÓŁKI GRUBE', 4: 'G R U P A IV – GRYSY GRUBE, KLIŃCE, ŻWIRY GRUBE' };
+const STEPS = [
+  ['zal', 'PRZYJĘCIE ZAŁOŻEŃ PROJEKTU'], ['dob', 'DOBÓR SKŁADNIKÓW MIESZANKI'], ['skl', 'OBLICZENIE SKŁADU MIESZANKI'],
+  ['lep', 'OBLICZENIE ILOŚCI LEPISZCZA'], ['rec', 'RECEPTURA ROBOCZA'], ['wyn', 'ZESTAWIENIE WYNIKÓW OBLICZEŃ'], ['cfg', 'KONFIGURACJA PROGRAMU']];
+const METODY = {
+  voids: ['wypełnienia wolnej przestrzeni', 'wg wzoru: Ak=(P+n)*ga/gkp [%]'],
+  film: ['powierzchni wł. kruszywa i zał. grubości otoczki lepiszcza', 'wg wzoru: Ak=F*b*ga/10 [%]'],
+  duriez: ['powierzchni wł. kruszywa i zał. wsp. zawartości lepiszcza', 'wg wzoru: Am=K*F^(1/5) [%]'],
+  empirical: ['wskaźników doświadczalnych', 'wg wzoru: Ak=x*a+y*b+z*c [%]'],
+  manual: ['podania gotowej wartości', '']
+};
+const SORTOWNIK = [0.5, 1, 2, 4, 5.6, 8, 11.2, 16, 22.4, 31.5];
+const LS_KEY = 'masaweb.v2', LS_DB = 'masaweb.baza.v1', LS_CFG = 'masaweb.cfg.v1', LS_ZB = 'masaweb.zbiory.v1';
+let LIBNAME = '', zbConfirm = '';
+
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = (v, d = 1) => (v == null || !isFinite(v)) ? '–' : v.toLocaleString('pl-PL', { minimumFractionDigits: d, maximumFractionDigits: d, useGrouping: false });
+const fd = v => fmt(v, CFG.dec);              // wg „Ilość miejsc po przecinku”
+const fmtS = d => d === 'dno' ? '0,0' : String(d).replace('.', ',');
+const pnum = s => { if (s === '' || s == null) return null; const v = parseFloat(String(s).replace(',', '.').replace(/\s/g, '')); return isFinite(v) ? v : null; };
+const clone = o => JSON.parse(JSON.stringify(o));
+const today = () => new Date().toISOString().slice(0, 10);
+function toast(msg) { document.querySelectorAll('.toast').forEach(x => x.remove()); const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2800); }
+const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } };
+
+/* ---------- konfiguracja (domyślnie wg Twojego MASA.CFG) ---------- */
+const CFG_DEF = { jednostka: 'gramy', analiza: 'przesiew', ordAnal: 'rosnąco', ordUz: 'rosnąco', ordRec: 'malejąco', dec: 1, matCurves: false };
+let CFG = Object.assign({}, CFG_DEF, lsGet(LS_CFG)?.cfg || {});
+const PARAM_DEF = { zarob: { mass: 8000, step: 0.2, n: 5 }, plant: { batch: 2500, fillerSeparate: true, binderByMass: true, tBinder: 155, tAgg: 175, tMix: 155, tComp: 140, rate: 160 }, sortownik: [4, 8, 11.2, 16, 22.4], binderId: 18 };
+const PARAM = Object.assign({}, PARAM_DEF, lsGet(LS_CFG)?.param || {});
+
+/* ---------- stan ---------- */
+function specFromLib(id) {
+  const l = MIXLIB.find(m => m.id === id) || MIXLIB[0];
+  const [nazwa] = l.desc.split(',');
+  return { libId: l.id, name: l.name, desc: l.desc, przezn: nazwa.replace(/^.*?do /, 'do '), norm: l.norm, bmin: l.bmin,
+    lower: [...l.lower, 100], upper: [...l.upper, 100], target: [...l.target, 100], libTarget: [...l.target, 100], active: SIEVES.map(() => true), maxSito: null };
+}
+function newProject() {
+  return {
+    meta: { name: 'Nowa recepta', author: '', client: '', object: '', date: today(), notes: '' },
+    spec: specFromLib(MIXLIB.find(m => m.name.startsWith('AC 11 S KR 3-4'))?.id),
+    binders: clone(LEPISZCZA), binderId: PARAM.binderId,
+    mats: [], design: null,
+    binder: { method: 'duriez', p: { voids: { P: 17, n: -4, gkp: 2.40 }, film: { b: 7 }, duriez: { K: 3.6, useAlpha: false }, empirical: { x: 0.035, y: 0.045, z: null, F: 0 }, manual: { value: 5.8, basis: 'mix' } } },
+    trial: { ...clone(PARAM.zarob), bulk: [] },
+    plant: { ...clone(PARAM.plant), binSieves: clone(PARAM.sortownik) }
+  };
+}
+function sampleProject() {
+  const p = newProject();
+  p.meta.name = 'Przykład: AC 11 S z kruszyw GEOPOL';
+  const lib = parseMasaDat(SAMPLE_DAT, 'GEOPOL.DAT');
+  p.mats = [0, 1, 3, 2, 4].map(i => ({ ...lib[i], min: 0, max: 100, price: 0, ub: 0, src: '' }));
+  p.mats[1].name = 'Gabro 0/2'; p.mats[2].name = 'Gabro 2/5'; p.mats[3].name = 'Gabro 5/8'; p.mats[4].name = 'Sulików 8/11';
+  return { project: p, library: lib };
+}
+let S, LIB, tab = 'zal', designDirty = false, krzywaTryb = 'tekst', krzywaObj = 'target';
+let podglad = { wykres: true, mm: true, mma: true, zarob: true, rec: true };
+
+function load() {
+  const saved = lsGet(LS_KEY);
+  if (saved && saved.project) { S = saved.project; LIB = saved.library || []; LIBNAME = saved.libName || ''; tab = saved.tab || 'zal'; }
+  else { const sp = sampleProject(); S = sp.project; LIB = sp.library; LIBNAME = 'GEOPOL'; runDesign('grading', true); tab = 'skl'; }
+  if (!STEPS.some(s => s[0] === tab)) tab = 'zal';
+}
+function persist() { lsSet(LS_KEY, { project: S, library: LIB, libName: LIBNAME, tab }); }
+function zbList() { return lsGet(LS_ZB) || []; }
+
+/* ---------- wartości pochodne ---------- */
+function binder() { return S.binders.find(b => b.id === S.binderId) || S.binders[0]; }
+function currentX() { if (S.design?.x?.length !== S.mats.length) return null; const s = S.design.x.reduce((p, q) => p + (+q || 0), 0); return s > 0 ? S.design.x.map(v => (+v || 0) * 100 / s) : null; }
+function rawSum() { return S.design?.x ? S.design.x.reduce((p, q) => p + (+q || 0), 0) : 0; }
+function currentY() { const x = currentX(); return x ? combine(S.mats, x) : null; }
+function binderResults() {
+  const Y = currentY(); if (!Y) return null;
+  const x = currentX(), rhoAgg = aggDensity(S.mats, x), rhoB = binder().density;
+  const ctx = { Y, rhoAgg }, p = S.binder.p, out = {};
+  const emp = { ...p.empirical, z: p.empirical.z ?? defaultEmpiricalZ(Y[0]) };
+  out.voids = binderMethods.voids({ P: p.voids.P, n: p.voids.n, rhoB, rhoAggBulk: p.voids.gkp }, ctx);
+  out.film = binderMethods.film({ ...p.film, rhoB }, ctx);
+  out.duriez = binderMethods.duriez(p.duriez, ctx);
+  out.empirical = { ...binderMethods.empirical(emp, ctx), zUsed: emp.z };
+  out.manual = binderMethods.manual(p.manual, ctx);
+  for (const k in out) out[k].B = akToB(out[k].ak);
+  const ch = out[S.binder.method];
+  return { out, rhoAgg, rhoB, B: ch.B, ak: ch.ak, rhoMax: maxDensity(rhoAgg, ch.B, rhoB) };
+}
+
+/* ---------- obliczenie składu ---------- */
+function runDesign(mode, silent) {
+  if (S.mats.length < 2 || S.mats.length > 9) { if (!silent) toast('Mieszanka mineralna może się składać z 2 ÷ 9 materiałów.'); return; }
+  if (matsWithErr().length) { toast(gErrMsg(matsWithErr()[0])); return; }
+  if (mode === 'cost' && !S.mats.some(m => +m.price > 0)) { if (!silent) toast('Wprowadź CENY MATERIAŁÓW SKŁADOWYCH.'); return; }
+  const r = designMix(S.mats, S.spec, mode);
+  if (!r.ok) { toast(r.error); return; }
+  if (r.x.some(v => !isFinite(v))) { toast('Obliczenia nie zbiegły się. Sprawdź dane materiałów.'); return; }
+  S.design = { mode, x: r.x.map(v => Math.round(v * 100) / 100), infeasible: r.infeasible, violated: r.violated, manual: false };
+  const diff = 100 - S.design.x.reduce((a, b) => a + b, 0); const k = S.design.x.indexOf(Math.max(...S.design.x)); S.design.x[k] = Math.round((S.design.x[k] + diff) * 100) / 100;
+  designDirty = false;
+  if (!silent) toast(r.infeasible ? 'Brak rozwiązania w krzywych granicznych – pokazano mieszankę najbliższą granicom.' : 'Obliczono skład mieszanki.');
+}
+
+/* ---------- sita ---------- */
+function sieveStatus(Y) {
+  return SIEVES.map((_, j) => { const lo = S.spec.lower[j], up = S.spec.upper[j]; if (lo == null || up == null) return 'na'; if (Y[j] < lo - 0.05) return 'low'; if (Y[j] > up + 0.05) return 'high'; return 'ok'; });
+}
+function autoMaxSito() { let j = SIEVES.findIndex((_, k) => S.spec.lower[k] >= 100); return j < 0 ? SIEVES.length - 1 : j; }
+function visibleSieves() { const jm = S.spec.maxSito != null ? SIEVES.indexOf(S.spec.maxSito) : autoMaxSito(); return SIEVES.map((_, j) => j).filter(j => j <= (jm < 0 ? autoMaxSito() : jm)); }
+const ordered = (arr, ord) => ord === 'malejąco' ? arr.slice().reverse() : arr;
+
+/* analiza sitowa: przesiew (przechodzi) / odsiew (pozostaje na sicie) */
+function analizaCols() { const c = CFG.analiza === 'odsiew' ? ['dno', ...SIEVES.map((_, j) => j)] : SIEVES.map((_, j) => j); return ordered(c, CFG.ordAnal); }
+function analizaVal(m, c) {
+  if (CFG.analiza === 'przesiew') return m.passing[c];
+  if (c === 'dno') return m.passing[0];
+  return (c + 1 < SIEVES.length ? m.passing[c + 1] : 100) - m.passing[c];
+}
+function ensureGrams(m) {
+  if (m.grams && m.grams.r) return m.grams;
+  const r = { dno: Math.round(m.passing[0] * 10) / 10 };
+  SIEVES.forEach((_, j) => r[j] = Math.round(((j + 1 < SIEVES.length ? m.passing[j + 1] : 100) - m.passing[j]) * 10) / 10);
+  m.grams = { m0: null, r }; return m.grams;
+}
+const gramCols = () => ordered(['dno', ...SIEVES.map((_, j) => j)], CFG.ordAnal);
+const gSum = g => (g.r.dno || 0) + SIEVES.reduce((s, _, j) => s + (g.r[j] || 0), 0);
+const gErr = g => g.m0 && Math.abs(g.m0 - gSum(g)) > 0.05 ? { sum: gSum(g), m0: g.m0, diff: gSum(g) - g.m0 } : null;
+function gramsSet(m, c, v) {
+  const g = ensureGrams(m); if (c === 'm0') g.m0 = v > 0 ? v : null; else g.r[c] = Math.max(0, v);
+  m.gerr = gErr(g);
+  if (!m.gerr) m.passing = gramsToPassing({ m0: null, r: g.r });
+}
+const gErrMsg = m => `Materiał „${m.name}”: suma mas ${fmt(m.gerr.sum)} g ≠ masa próbki ${fmt(m.gerr.m0)} g (różnica ${m.gerr.diff > 0 ? '+' : ''}${fmt(m.gerr.diff)} g). Nie można policzyć uziarnienia – popraw masy.`;
+const matsWithErr = () => S.mats.filter(m => CFG.jednostka === 'gramy' && m.gerr);
+function analizaSet(m, c, v) {
+  m.grams = null;
+  if (CFG.analiza === 'przesiew') { m.passing[c] = Math.max(0, Math.min(100, v)); return; }
+  const r = { dno: m.passing[0] }; SIEVES.forEach((_, j) => r[j] = (j + 1 < SIEVES.length ? m.passing[j + 1] : 100) - m.passing[j]);
+  r[c] = Math.max(0, v);
+  const tot = r.dno + SIEVES.reduce((s, _, j) => s + r[j], 0) || 1;
+  let cum = r.dno; SIEVES.forEach((_, j) => { m.passing[j] = Math.round(cum / tot * 1000) / 10; cum += r[j]; });
+}
+
+/* ---------- wykres ---------- */
+function chartSVG(opt) {
+  const W = 760, H = 400, L = 48, R = 18, T = 16, B = 46;
+  const js = opt.sieves, dmin = SIEVES[js[0]], dmax = SIEVES[js[js.length - 1]];
+  const xs = d => L + (Math.log(d) - Math.log(dmin)) / (Math.log(dmax) - Math.log(dmin)) * (W - L - R);
+  const ys = v => T + (1 - v / 100) * (H - T - B);
+  const pts = arr => js.filter(j => arr[j] != null).map(j => `${xs(SIEVES[j]).toFixed(1)},${ys(arr[j]).toFixed(1)}`).join(' ');
+  let g = '';
+  for (let v = 0; v <= 100; v += 10) g += `<line x1="${L}" x2="${W - R}" y1="${ys(v)}" y2="${ys(v)}" stroke="var(--line)" stroke-width="${v % 50 ? .6 : 1}"/><text x="${L - 8}" y="${ys(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${v}</text>`;
+  js.forEach(j => { const x = xs(SIEVES[j]); g += `<line x1="${x}" x2="${x}" y1="${T}" y2="${H - B}" stroke="var(--line)" stroke-width=".6"/><text x="${x}" y="${H - B + 16}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${fmtS(SIEVES[j])}</text>`; });
+  g += `<text x="${(L + W - R) / 2}" y="${H - 8}" text-anchor="middle" font-size="12" fill="var(--muted)">wymiar boku oczka sita [mm]</text>`;
+  g += `<text transform="translate(13 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="var(--muted)">przechodzi przez sito [%]</text>`;
+  if (opt.mats) opt.mats.forEach(m => { g += `<polyline points="${pts(m.passing)}" fill="none" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="1 3.5" stroke-linecap="round"><title>${esc(m.name)}</title></polyline>`; });
+  const band = js.map(j => `${xs(SIEVES[j]).toFixed(1)},${ys(S.spec.upper[j]).toFixed(1)}`).concat(js.slice().reverse().map(j => `${xs(SIEVES[j]).toFixed(1)},${ys(S.spec.lower[j]).toFixed(1)}`)).join(' ');
+  g += `<polygon points="${band}" fill="var(--band-soft)" stroke="none"/>`;
+  g += `<polyline class="pl-upper" points="${pts(S.spec.upper)}" fill="none" stroke="var(--band)" stroke-width="2.4" stroke-dasharray="1.5 3.5" stroke-linecap="round"/><polyline class="pl-lower" points="${pts(S.spec.lower)}" fill="none" stroke="var(--band)" stroke-width="2.4" stroke-dasharray="1.5 3.5" stroke-linecap="round"/>`;
+  g += `<polyline class="pl-target" points="${pts(S.spec.target)}" fill="none" stroke="var(--target)" stroke-width="1.6" stroke-dasharray="7 4"/>`;
+  if (opt.Y) {
+    g += `<polyline points="${pts(opt.Y)}" fill="none" stroke="var(--curve)" stroke-width="2.6" stroke-linejoin="round"/>`;
+    const st = sieveStatus(opt.Y);
+    js.forEach(j => g += `<circle cx="${xs(SIEVES[j])}" cy="${ys(opt.Y[j])}" r="3.6" fill="${st[j] === 'ok' || st[j] === 'na' ? 'var(--curve)' : 'var(--bad)'}"/>`);
+  }
+  if (opt.edit) { const k = opt.edit; js.forEach(j => g += `<circle class="th" data-j="${j}" cx="${xs(SIEVES[j])}" cy="${ys(S.spec[k][j])}" r="7" fill="var(--sheet)" stroke="${k === 'target' ? 'var(--target)' : 'var(--band)'}" stroke-width="2.2" style="cursor:ns-resize"><title>Sito ${fmtS(SIEVES[j])} mm: ${fmt(S.spec[k][j])} %</title></circle>`); }
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wykres krzywej uziarnienia" data-t="${T}" data-h="${H - T - B}">${g}</svg>`;
+}
+const LEGEND_MAT = `<span><svg viewBox="0 0 26 10"><line x1="1" x2="26" y1="5" y2="5" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="1 3.5" stroke-linecap="round"/></svg>szare kropki – krzywe uziarnienia materiałów składowych</span>`;
+const LEGEND = `<div class="legend">
+ <span><svg viewBox="0 0 26 10"><line x1="0" x2="26" y1="5" y2="5" stroke="var(--curve)" stroke-width="2.6"/></svg>linia ciągła – projektowana krzywa optymalna</span>
+ <span><svg viewBox="0 0 26 10"><line x1="0" x2="26" y1="5" y2="5" stroke="var(--target)" stroke-width="1.6" stroke-dasharray="7 4"/></svg>linia przerywana – krzywa wzorcowa</span>
+ <span><svg viewBox="0 0 26 10"><line x1="1" x2="26" y1="5" y2="5" stroke="var(--band)" stroke-width="2.4" stroke-dasharray="1.5 3.5" stroke-linecap="round"/></svg>linie kropkowane – krzywe graniczne</span></div>`;
+
+function bindChartDrag(box, key) {
+  const svg = box.querySelector('svg'); if (!svg) return;
+  let drag = null;
+  svg.addEventListener('pointerdown', e => { const c = e.target.closest('.th'); if (!c) return; drag = +c.dataset.j; svg.setPointerCapture(e.pointerId); e.preventDefault(); });
+  svg.addEventListener('pointermove', e => {
+    if (drag == null) return;
+    const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const T = +svg.dataset.t, Hh = +svg.dataset.h;
+    let v = Math.round((1 - (p.y - T) / Hh) * 1000) / 10;
+    const sp = S.spec;
+    if (key === 'target') v = Math.max(sp.lower[drag], Math.min(sp.upper[drag], v));
+    else if (key === 'lower') v = Math.max(0, Math.min(sp.upper[drag], v));
+    else v = Math.max(sp.lower[drag], Math.min(100, v));
+    sp[key][drag] = v;
+    const c = svg.querySelector(`.th[data-j="${drag}"]`); c.setAttribute('cy', (T + (1 - v / 100) * Hh).toFixed(1));
+    c.querySelector('title').textContent = `Sito ${fmtS(SIEVES[drag])} mm: ${fmt(v)} %`;
+    svg.querySelector('.pl-' + key).setAttribute('points', [...svg.querySelectorAll('.th')].map(q => q.getAttribute('cx') + ',' + q.getAttribute('cy')).join(' '));
+  });
+  const end = () => { if (drag == null) return; drag = null; targetToBounds(); if (S.design && !S.design.manual) runDesign(S.design.mode, true); persist(); render(); };
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+}
+function targetToBounds() { const sp = S.spec; sp.target = sp.target.map((t, j) => Math.max(sp.lower[j], Math.min(sp.upper[j], t))); }
+
+/* ===================== 1. PRZYJĘCIE ZAŁOŻEŃ PROJEKTU ===================== */
+function vZal() {
+  const sp = S.spec, js = visibleSieves(), jo = ordered(js, CFG.ordUz);
+  const groups = {};
+  MIXLIB.forEach(m => { const k = m.desc.split(',')[0]; (groups[k] = groups[k] || []).push(m); });
+  const b = binder();
+  return `<section class="sheet"><div class="sheet-head"><h2>Dane recepty</h2><p>Opis trafia do nagłówka wydruku.</p></div>
+  <div class="fields">
+    <label class="f">Nazwa recepty<input id="m-name" value="${esc(S.meta.name)}"></label>
+    <label class="f">Data<input id="m-date" type="date" value="${esc(S.meta.date)}"></label>
+  </div>
+</section>
+
+  <section class="sheet"><div class="sheet-head"><h2>OKREŚLENIE RODZAJU M M A</h2><p>Rodzaje M.M.A. i krzywe z Twojego zbioru GRANICE (ZESTAW12).</p></div>
+  <div class="fields">
+   <label class="f">Rodzaj M.M.A.<select id="mix-sel">${Object.entries(groups).map(([k, arr]) => `<optgroup label="${esc(k)}">${arr.map(m => `<option value="${m.id}" ${m.id === sp.libId ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}</optgroup>`).join('')}<option value="custom" ${sp.libId === 'custom' ? 'selected' : ''}>[F4] Dopisanie nowego rodzaju M.M.A.</option></select></label>
+   <label class="f">Symbol normy<select id="sp-norm">${Object.entries(NORMY).map(([k, v]) => `<option value="${k}" ${+k === sp.norm ? 'selected' : ''}>${v}</option>`).join('')}<option value="" ${!NORMY[sp.norm] ? 'selected' : ''}>—</option></select></label>
+   <label class="f">Zaw. asfaltu [%]<input id="sp-bmin" value="${sp.bmin ?? ''}"></label>
+   <label class="f">Przeznaczenie<input id="sp-przezn" value="${esc(sp.przezn || '')}"></label>
+  </div>
+  <label class="f">Nazwa rodzaju M M A<input id="sp-name" value="${esc(sp.desc)}"></label>
+  <h3>Normowe krzywe uziarnienia</h3>
+  <div class="row"><div class="seg" role="group" aria-label="Sposób korekty">
+    <button data-kt="tekst" aria-pressed="${krzywaTryb === 'tekst'}">KOREKTA METODĄ TEKSTOWĄ</button>
+    <button data-kt="graf" aria-pressed="${krzywaTryb === 'graf'}">KOREKTA METODĄ GRAFICZNĄ</button></div>
+    <button class="btn small" data-act="tg-mid" title="Ustawienie wzorcowej w środku pomiędzy krzywymi granicznymi">WZ-ŚRODEK</button>
+    <button class="btn small" data-act="tg-lib">Wzorcowa z normy</button></div>
+  ${krzywaTryb === 'graf' ? `<div class="row"><span class="muted">OBIEKT:</span><div class="seg" role="group">${[['lower', 'KRZYWA DOLNA'], ['upper', 'KRZYWA GÓRNA'], ['target', 'KRZYWA WZORCOWA']].map(([k, l]) => `<button data-ko="${k}" aria-pressed="${krzywaObj === k}">${l}</button>`).join('')}</div><span class="muted">przeciągnij punkty w górę lub w dół</span></div>
+   <div class="chart-box" id="chart-zal">${chartSVG({ sieves: js, edit: krzywaObj })}</div>${LEGEND}` :
+   `<div class="tbl-wrap"><table><thead><tr><th>Sito [mm]</th>${jo.map(j => `<th class="n">${fmtS(SIEVES[j])}</th>`).join('')}</tr></thead><tbody>
+   ${[['upper', 'Krzywa górna'], ['target', 'Krzywa wzorcowa'], ['lower', 'Krzywa dolna']].map(([k, lab]) => `<tr><td>${lab}</td>${jo.map(j => `<td class="n"><input data-spec="${k}" data-j="${j}" value="${fmt(sp[k][j])}" aria-label="${lab} ${SIEVES[j]}"></td>`).join('')}</tr>`).join('')}
+   <tr><td class="muted">Ograniczenie w obliczeniach</td>${jo.map(j => `<td class="n"><input type="checkbox" data-act-on="${j}" ${sp.active[j] !== false ? 'checked' : ''} aria-label="ograniczenie na sicie ${SIEVES[j]}" style="width:auto"></td>`).join('')}</tr>
+  </tbody></table></div>`}
+  </section>
+
+  <section class="sheet"><div class="sheet-head"><h2>Sita</h2></div>
+   <div class="fields">
+    <label class="f">Max. sito określające nadz.<select id="sp-max"><option value="">auto (${fmtS(SIEVES[autoMaxSito()])} mm)</option>${SIEVES.map(d => `<option value="${d}" ${sp.maxSito === d ? 'selected' : ''}>${fmtS(d)} mm</option>`).join('')}</select></label>
+   </div>
+   <div class="row"><span class="muted">Sita na sortowniku [mm]:</span>${SORTOWNIK.map(d => `<label class="row" style="gap:4px"><input type="checkbox" data-bin="${d}" ${S.plant.binSieves.includes(d) ? 'checked' : ''} style="width:auto">${fmtS(d)}</label>`).join('')}</div>
+  </section>
+
+  <section class="sheet"><div class="sheet-head"><h2>OKREŚLENIE RODZAJU LEPISZCZA</h2><p>Lista ze zbioru LEPISZCZ (Twoja instalacja MASA). Wybrane: <b>${esc(b.name)}</b>.</p></div>
+  <div class="tbl-wrap lib-list"><table><thead><tr><th></th><th>Nazwa rodzaju lepiszcza</th><th class="n">Gęstość lepiszcza [g/cm³]</th><th></th></tr></thead><tbody>
+   ${S.binders.map(bb => `<tr><td><input type="radio" name="bnd" data-bnd="${bb.id}" ${bb.id === S.binderId ? 'checked' : ''} style="width:auto" aria-label="wybór ${esc(bb.name)}"></td><td><input class="name" style="width:15rem" data-bf="name" data-id="${bb.id}" value="${esc(bb.name)}"></td><td class="n"><input data-bf="density" data-id="${bb.id}" value="${fmt(bb.density, 3)}"></td><td><button class="btn ghost small" data-bdel="${bb.id}">[F8] kasuj</button></td></tr>`).join('')}
+  </tbody></table></div><div class="row"><button class="btn small" data-act="b-add">[F4] Dopisanie nowego rodzaju lepiszcza</button></div></section>
+
+  <section class="sheet"><div class="sheet-head"><h2>ZAPIS USTAWIENIA NA DYSKU</h2><p>Zapisuje parametry (zarób próbny, receptura robocza, sita na sortowniku, lepiszcze) jako domyślne dla nowych recept.</p></div>
+   <div class="row"><button class="btn" data-act="cfg-save">ZAPIS USTAWIENIA NA DYSKU</button><button class="btn ghost small" data-act="new">Nowa recepta</button></div></section>`;
+}
+
+/* ===================== 2. DOBÓR SKŁADNIKÓW MIESZANKI ===================== */
+function vDob() {
+  const cols = analizaCols();
+  const libByG = g => LIB.map((m, i) => ({ m, i })).filter(o => o.m.group === g);
+  return `<section class="sheet"><div class="sheet-head"><h2>Składniki mieszanki</h2><p>Mieszanka mineralna może się składać z 2 ÷ 9 materiałów.</p></div>
+   <div class="tbl-wrap"><table><thead><tr><th>Nazwa materiału</th><th>Grupa</th><th class="n">Gęstość wł. [g/cm³]</th><th class="n">Ubytek fr. pyl. [%]</th><th></th></tr></thead>
+   <tbody>${S.mats.map((m, i) => `<tr><td><input class="name" data-mf="name" data-i="${i}" value="${esc(m.name)}"></td>
+    <td><select data-mf="group" data-i="${i}">${Object.entries(GRUPY).map(([k, v]) => `<option value="${k}" ${+k === m.group ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
+    <td class="n"><input data-mf="density" data-i="${i}" value="${fmt(m.density, 3)}"></td>
+    <td class="n"><input data-mf="ub" data-i="${i}" value="${fmt(+m.ub || 0)}"></td>
+    <td class="row"><button class="btn small" data-mtolib="${i}" title="Dopisanie materiału do zbioru w pamięci">→ do zbioru</button><button class="btn ghost small" data-mdel="${i}">[F8] usuń</button></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Brak materiałów. Wybierz je ze zbioru poniżej.</td></tr>'}</tbody></table></div>
+   <div class="row"><button class="btn small" data-act="m-new" ${S.mats.length >= 9 ? 'disabled' : ''}>[F4] Dopisanie nowego materiału</button></div>
+   ${CFG.jednostka === 'gramy' ? vGramy() : `<h3>Analiza sitowa – ${CFG.analiza === 'odsiew' ? 'odsiew: pozostaje na sicie [%]' : 'przesiew: przechodzi przez sito [%]'}</h3>
+   <p class="lede">Jednostkę (gramy / procenty), typ opisu i kolejność sit zmienisz w KONFIGURACJI PROGRAMU. Cały wiersz można wkleić z Excela do pierwszej komórki.</p>
+   <div class="tbl-wrap"><table><thead><tr><th>Materiał</th>${cols.map(c => `<th class="n">${fmtS(c === 'dno' ? 'dno' : SIEVES[c])}</th>`).join('')}${CFG.analiza === 'odsiew' ? '<th class="n">Suma</th>' : ''}</tr></thead><tbody>
+   ${S.mats.map((m, i) => `<tr><td>${esc(m.name)}</td>${cols.map(c => `<td class="n"><input data-pass="${i}" data-c="${c}" value="${fmt(analizaVal(m, c))}" aria-label="${esc(m.name)} ${c}"></td>`).join('')}${CFG.analiza === 'odsiew' ? `<td class="n muted">${fmt(cols.reduce((s, c) => s + analizaVal(m, c), 0))}</td>` : ''}</tr>`).join('')}
+   </tbody></table></div>`}</section>
+
+   ${vDirBar()}
+   <section class="sheet"><div class="sheet-head"><h2>ODCZYT ZBIORU MATERIAŁÓW Z DYSKU</h2><p>${DIR ? `Zbiory w katalogu <b>${esc(DIR.name)}</b>. „Odczyt” zastępuje zbiór w pamięci (jak w MASA), „Dołącz” dokłada materiały.` : 'Wybierz katalog roboczy (np. ZESTAW12), aby widzieć tu jego zbiory .DAT – albo wskaż pliki ręcznie.'}</p></div>
+   ${DIR ? `<div class="tbl-wrap lib-list"><table><thead><tr><th>Zbiór</th><th>Rodzaj</th><th></th></tr></thead><tbody>
+    ${DIRLIST.zb.map(f => `<tr><td>${esc(f.label)}${f.label === LIBNAME ? ' <span class="pill info">w pamięci</span>' : ''}</td><td class="muted">${f.kind === 'dat' ? 'MASA (.DAT)' : 'MASA Web'}</td><td class="row"><button class="btn small" data-fzload="${esc(f.name)}">Odczyt</button><button class="btn small" data-fzadd="${esc(f.name)}">Dołącz</button>${f.kind === 'json' ? `<button class="btn ghost small" data-fzdel="${esc(f.name)}">${zbConfirm === 'fdel' + f.name ? 'na pewno usunąć?' : 'Usuń'}</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">Brak zbiorów w katalogu.</td></tr>'}
+   </tbody></table></div>` : ''}
+   <label class="drop" id="drop">Upuść tu zbiory .DAT / .json albo <input type="file" id="dat-file" accept=".dat,.DAT,.da,.DA,.json" multiple style="width:auto"></label></section>
+
+   <section class="sheet"><div class="sheet-head"><h2>ZAPIS ZBIORU NA DYSK</h2><p>${DIR ? `Zbiór zapisze się w katalogu <b>${esc(DIR.name)}</b> jako plik „nazwa.zbior.json”. Zapis pod tą samą nazwą nadpisuje plik.` : 'Bez katalogu roboczego zbiór zapisuje się w tej przeglądarce; „Zapis zbioru do pliku” pobiera go jako plik.'}</p></div>
+   <div class="row"><label class="f" style="min-width:220px;flex:1">Nazwa zbioru<input id="zb-name" value="${esc(LIBNAME)}" placeholder="np. CEMEX 2026"></label>
+    <button class="btn primary" data-act="zb-save" ${LIB.length ? '' : 'disabled'}>ZAPIS ZBIORU</button>
+    ${DIR ? '' : `<button class="btn" data-act="zb-file" ${LIB.length ? '' : 'disabled'}>Zapis zbioru do pliku</button>`}</div>
+   ${zbList().length ? `<details ${DIR ? '' : 'open'}><summary>Zbiory zapisane w przeglądarce (${zbList().length})</summary><div class="tbl-wrap"><table><thead><tr><th>Zbiór</th><th class="n">Materiałów</th><th>Zapisano</th><th></th></tr></thead><tbody>
+   ${zbList().map((z, i) => `<tr><td>${esc(z.name)}${z.name === LIBNAME ? ' <span class="pill info">w pamięci</span>' : ''}</td><td class="n">${z.mats.length}</td><td class="n">${esc(z.saved)}</td><td class="row"><button class="btn small" data-zbload="${i}">Odczyt</button><button class="btn small" data-zbadd="${i}">Dołącz</button><button class="btn ghost small" data-zbdel="${i}">${zbConfirm === 'del' + i ? 'na pewno usunąć?' : 'Usuń'}</button></td></tr>`).join('')}
+   </tbody></table></div></details>` : ''}
+   <div class="row"><button class="btn small" data-act="lib-clear">${zbConfirm === 'clear' ? 'Na pewno? Niezapisane zmiany zbioru przepadną' : 'TWORZENIE NOWEGO ZBIORU'}</button><span class="muted">(czyści zbiór w pamięci roboczej; zapisane zbiory zostają)</span></div></section>
+
+   <section class="sheet"><div class="sheet-head"><h2>ZBIÓR ZNAJDUJĄCY SIĘ W PAMIĘCI</h2><p>${LIB.length ? `${LIBNAME ? '<b>' + esc(LIBNAME) + '</b> · ' : ''}${LIB.length} materiałów` : 'Zbiór jest pusty. Odczytaj zbiór albo dopisz materiały ze składników mieszanki (przycisk „→ do zbioru”).'}</p></div>
+   ${[1, 2, 3, 4].map(g => { const arr = libByG(g); return `<details ${arr.length ? 'open' : ''}><summary><b>${GRUPY_OPIS[g]}</b> · Ilość materiałów w grupie – ${arr.length}</summary>
+     ${arr.length ? `<div class="tbl-wrap"><table><thead><tr><th>Nazwa</th><th>Orzeczenie</th><th class="n">GST</th><th class="n">&lt;0,063</th><th class="n">2 mm</th><th class="n">8 mm</th><th>Pochodzenie</th><th></th></tr></thead><tbody>
+     ${arr.map(({ m, i }) => `<tr><td>${esc(m.name)}</td><td>${esc(m.cert)}</td><td class="n">${fmt(m.density, 3)}</td><td class="n">${fmt(m.passing[0])}</td><td class="n">${fmt(m.passing[5])}</td><td class="n">${fmt(m.passing[8])}</td><td class="muted">${esc(m.producer)} · ${esc(m.source)}</td><td><button class="btn small" data-ladd="${i}" ${S.mats.length >= 9 ? 'disabled' : ''}>[Enter] wybór</button> <button class="btn ghost small" data-ldel="${i}">[F8] kasuj</button></td></tr>`).join('')}
+     </tbody></table></div>` : ''}</details>`; }).join('')}
+   <p class="muted">DODATKI SPECJALNE DO MIESZ. MINERALNEJ – dodaj jako materiał w odpowiedniej grupie (np. granulat gumowy).</p>
+   </section>`;
+}
+
+function vGramy() {
+  const cols = gramCols(), jcols = cols.filter(c => c !== 'dno');
+  return `<h3>Analiza sitowa – pozostaje na sicie [g]</h3>
+   <p class="lede">Wpisz masę próbki i masy pozostałe na poszczególnych sitach oraz na dnie. Suma mas musi być równa masie próbki – inaczej uziarnienie nie zostanie policzone. Bez masy próbki program liczy od sumy pozostałości. Cały wiersz można wkleić z Excela.</p>
+   ${matsWithErr().map(m => `<p class="note bad">${esc(gErrMsg(m))}</p>`).join('')}
+   <div class="tbl-wrap"><table><thead><tr><th>Materiał</th><th class="n">Masa próbki [g]</th>${cols.map(c => `<th class="n">${c === 'dno' ? 'dno' : fmtS(SIEVES[c])}</th>`).join('')}<th class="n">Suma [g]</th><th class="n">Różnica [g]</th></tr></thead><tbody>
+   ${S.mats.map((m, i) => { const g = ensureGrams(m), sum = gSum(g), ub = g.m0 ? sum - g.m0 : null; m.gerr = gErr(g); return `<tr><td>${esc(m.name)}</td><td class="n"><input data-g="${i}" data-c="m0" value="${g.m0 ? fmt(g.m0) : ''}" placeholder="–" aria-label="${esc(m.name)} masa próbki"></td>${cols.map(c => `<td class="n"><input data-g="${i}" data-c="${c}" value="${fmt(g.r[c] || 0)}" aria-label="${esc(m.name)} ${c}"></td>`).join('')}<td class="n ${m.gerr ? 'out' : ''}">${fmt(sum)}</td><td class="n ${m.gerr ? 'out' : 'muted'}">${ub == null ? '–' : (ub > 0 ? '+' : '') + fmt(ub)}</td></tr>
+    <tr class="pass-row"><td class="muted">przechodzi [%]</td><td></td>${m.gerr ? `<td colspan="${cols.length + 2}" class="out">błąd – suma mas nie zgadza się z masą próbki, nie można policzyć</td>` : cols.map(c => `<td class="n muted">${c === 'dno' ? '' : fmt(m.passing[c])}</td>`).join('') + '<td></td><td></td>'}</tr>`; }).join('')}
+   </tbody></table></div>`;
+}
+
+/* ===================== 3. OBLICZENIE SKŁADU MIESZANKI ===================== */
+function vSkl() {
+  const x = currentX(), Y = currentY(), js = visibleSieves(), jo = ordered(js, CFG.ordUz);
+  const d = S.design, mode = d?.mode || 'grading';
+  let status = '';
+  if (d && Y) { const st = sieveStatus(Y); const bad = js.filter(j => st[j] === 'low' || st[j] === 'high'); status = bad.length ? `<span class="pill bad">poza polem dobrego uziarnienia na ${bad.length} ${bad.length === 1 ? 'sicie' : 'sitach'}</span>` : `<span class="pill ok">w polu dobrego uziarnienia</span>`; }
+  const cost = x ? S.mats.reduce((s, m, i) => s + x[i] / 100 * (+m.price || 0), 0) : null;
+  const anyPrice = false;
+  return `<section class="sheet"><div class="sheet-head"><h2>GRANICZNE UDZIAŁY MATERIAŁÓW</h2><p>Standardowo udział zawiera się w przedziale 0 ÷ 100 %.</p></div>
+   <div class="tbl-wrap"><table><thead><tr><th>Materiał</th><th class="n">Min. udział [%]</th><th class="n">Max. udział [%]</th></tr></thead><tbody>
+    ${S.mats.map((m, i) => `<tr><td>${esc(m.name)}</td><td class="n"><input data-mf="min" data-i="${i}" value="${fmt(+m.min || 0)}"></td><td class="n"><input data-mf="max" data-i="${i}" value="${fmt(m.max === '' || m.max == null ? 100 : +m.max)}"></td></tr>`).join('') || '<tr><td colspan="3" class="muted">Najpierw DOBÓR SKŁADNIKÓW MIESZANKI.</td></tr>'}
+   </tbody></table></div>
+   ${(() => { const sMin = S.mats.reduce((s, q) => s + (+q.min || 0), 0), sMax = S.mats.reduce((s, q) => s + (q.max == null || q.max === '' ? 100 : +q.max), 0); return sMin > 100 ? `<p class="note bad">Suma minimalnych udziałów (${fmt(sMin)} %) przekracza 100 % – obliczenie składu jest niemożliwe. Zmniejsz minima.</p>` : sMax < 100 && S.mats.length ? `<p class="note bad">Suma maksymalnych udziałów (${fmt(sMax)} %) jest mniejsza niż 100 % – obliczenie składu jest niemożliwe. Zwiększ maksima.</p>` : ''; })()}</section>
+
+   <section class="sheet"><div class="sheet-head"><h2>OBLICZENIE SKŁADU MIESZANKI</h2>${status}</div>
+   <div class="row"><div class="seg seg-col" role="group" aria-label="Optymalizacja">
+    <button data-run="grading" aria-pressed="${mode === 'grading' && !d?.manual}">OPTYMALIZACJA UZIARNIENIA MIESZANKI (z uwzg. krzywych gr.)</button>
+    <button data-run="free" aria-pressed="${mode === 'free' && !d?.manual}">OPTYMALIZACJA UZIARNIENIA MIESZANKI (bez uwzg. krzywych gr.)</button></div></div>
+   ${d?.infeasible ? `<p class="note bad">Brak rozwiązania w krzywych granicznych (sita: ${d.violated.map(j => fmtS(SIEVES[j])).join(', ')} mm). Pokazano mieszankę najbliższą granicom. Zmień materiały lub użyj OPTYMALIZACJI UZIARNIENIA MIESZANKI (bez uwzg. krzywych gr.).</p>` : ''}
+   ${designDirty ? '<p class="note">Zmieniono dane – ponów obliczenie składu.</p>' : ''}
+   ${matsWithErr().map(m => `<p class="note bad">${esc(gErrMsg(m))} (DOBÓR SKŁADNIKÓW MIESZANKI → Analiza sitowa)</p>`).join('')}
+   <label class="row" style="gap:6px"><input type="checkbox" id="mat-curves" ${CFG.matCurves ? 'checked' : ''} style="width:auto">pokaż krzywe materiałów</label>
+   <div class="chart-box" id="chart">${chartSVG({ sieves: js, Y, mats: CFG.matCurves ? S.mats : null })}</div>${CFG.matCurves ? LEGEND.replace('</div>', LEGEND_MAT + '</div>') : LEGEND}
+   <div class="grid2">
+    <div class="tbl-wrap"><table><thead><tr><th>Składnik</th><th class="n">Udział [%]</th>${anyPrice ? '<th class="n">Cena</th>' : ''}</tr></thead><tbody>
+     ${S.mats.map((m, i) => `<tr><td>${esc(m.name)}</td><td class="n"><input data-x="${i}" value="${x ? fmt(S.design.x[i], CFG.dec === 0 ? 0 : 2) : ''}" aria-label="udział ${esc(m.name)}"></td>${anyPrice ? `<td class="n">${fmt(+m.price || 0, 2)}</td>` : ''}</tr>`).join('')}
+     <tr class="sum"><td>Razem${x && Math.abs(rawSum() - 100) > 0.005 ? ' <span class="pill warn">przeliczane do 100 %</span> <button class="btn small" data-act="norm">Normalizuj</button>' : ''}</td><td class="n">${x ? fmt(rawSum(), 2) : '–'}</td>${anyPrice ? `<td class="n">${fmt(cost, 2)} zł/t</td>` : ''}</tr></tbody></table></div>
+    <dl class="kv">
+     <dt>Gęstość mieszanki mineralnej</dt><dd>${x ? fmt(aggDensity(S.mats, x), 3) + ' g/cm³' : '–'}</dd>
+     <dt>Odchylenie od krzywej wzorcowej</dt><dd>${Y ? fmt(Math.sqrt(js.reduce((s, j) => s + (Y[j] - S.spec.target[j]) ** 2, 0) / js.length), 2) + ' %' : '–'}</dd>
+     ${anyPrice && x ? `<dt>Cena mieszanki</dt><dd>${fmt(cost, 2)} zł/t</dd>` : ''}
+    </dl></div>
+   <h3>Tabela uziarnienia</h3>
+   <div class="tbl-wrap"><table><thead><tr><th>Sito [mm]</th>${jo.map(j => `<th class="n">${fmtS(SIEVES[j])}</th>`).join('')}</tr></thead><tbody>
+    ${S.mats.map((m, i) => `<tr><td class="muted">${esc(m.name)}${x ? ` · ${fd(x[i])} %` : ''}</td>${jo.map(j => `<td class="n muted">${x ? fd(x[i] * m.passing[j] / 100) : fd(m.passing[j])}</td>`).join('')}</tr>`).join('')}
+    ${Y ? (() => { const st = sieveStatus(Y); return `<tr class="sum"><td>Mieszanka mineralna</td>${jo.map(j => `<td class="n ${st[j] === 'low' || st[j] === 'high' ? 'out' : ''}">${fd(Y[j])}</td>`).join('')}</tr>`; })() : ''}
+    <tr><td class="muted">Krzywe graniczne</td>${jo.map(j => `<td class="n muted">${fmt(S.spec.lower[j], 0)}–${fmt(S.spec.upper[j], 0)}</td>`).join('')}</tr>
+    <tr><td class="muted">Krzywa wzorcowa</td>${jo.map(j => `<td class="n muted">${fd(S.spec.target[j])}</td>`).join('')}</tr>
+   </tbody></table></div></section>`;
+}
+
+/* ===================== 4. OBLICZENIE ILOŚCI LEPISZCZA ===================== */
+const K_ORIENT = [
+  ['podb', 'AC P – podbudowa', '2,8 – 3,2'], ['wiaz', 'AC W – warstwa wiążąca', '3,2 – 3,5'], ['scier', 'AC S – warstwa ścieralna', '3,5 – 3,8'],
+  ['wms', 'AC WMS', '3,4 – 3,7'], ['bbtm', 'BBTM', '3,4 – 3,8'], ['sma', 'SMA', '3,8 – 4,2'], ['pa', 'PA – asfalt porowaty', '3,0 – 3,4']];
+function kRowFor(name) {
+  const n = name || '';
+  if (/SMA/.test(n)) return 'sma'; if (/BBTM/.test(n)) return 'bbtm'; if (/WMS/.test(n)) return 'wms'; if (/^PA /.test(n)) return 'pa';
+  if (/AC \d+ P/.test(n)) return 'podb'; if (/AC \d+ W/.test(n)) return 'wiaz'; if (/AC \d+ S/.test(n)) return 'scier'; return null;
+}
+function kHint() {
+  const cur = kRowFor(S.spec.name);
+  return `<div class="khint"><div class="muted">K orientacyjnie (praktyka francuska, do sprawdzenia serią próbek):</div><table>${K_ORIENT.map(([k, l, v]) => `<tr class="${k === cur ? 'cur' : ''}"><td>${l}</td><td class="n">${v}</td></tr>`).join('')}</table>${/^MA /.test(S.spec.name) ? '<div class="muted">Asfalt lany (MA): metoda nieodpowiednia – mieszanka bezporowa.</div>' : ''}</div>`;
+}
+function vLep() {
+  const r = binderResults();
+  const bsel = `<label class="f" style="max-width:420px">Rodzaj lepiszcza<select id="bsel">${S.binders.map(b => `<option value="${b.id}" ${b.id === S.binderId ? 'selected' : ''}>${esc(b.name)} · ${fmt(b.density, 3)} g/cm³</option>`).join('')}</select></label>`;
+  if (!r) return `<section class="sheet"><h2>OKREŚLENIE RODZAJU LEPISZCZA</h2>${bsel}<p class="note">Najpierw OBLICZENIE SKŁADU MIESZANKI.</p></section>`;
+  const p = S.binder.p, m = S.binder.method, o = r.out;
+  const inp = (meth, key, label, v, d = 2) => `<label class="f">${label}<input data-bp="${meth}.${key}" value="${v == null ? '' : fmt(v, d)}"></label>`;
+  const card = (k, inputs, extra) => `<div class="method" role="radio" tabindex="0" aria-checked="${m === k}" data-meth="${k}">
+     <h3>${METODY[k][0]}</h3>${METODY[k][1] ? `<div class="formula">${METODY[k][1]}</div>` : ''}<div class="fields">${inputs}</div>
+     <div class="res">${fmt(o[k].B, 2)} %<span class="muted sub">w MMA · Ak = ${fmt(o[k].ak, 2)} % (na kruszywo)</span></div>${extra || ''}</div>`;
+  const bminA = S.spec.bmin ? S.spec.bmin * 2.65 / r.rhoAgg : null;
+  const t = S.trial, x = currentX(), rows = trialMix(S.mats, x, r.B, t.mass, t.step, t.n);
+  return `<section class="sheet"><h2>OKREŚLENIE RODZAJU LEPISZCZA</h2>${bsel}</section>
+  <section class="sheet"><div class="sheet-head"><h2>OBLICZENIE OPTYMALNEJ ILOŚCI LEPISZCZA</h2><p>Do obliczeń przyjęta będzie ostatnio wybrana metoda (kliknij kartę).</p></div>
+   <div class="grid3">
+    ${card('voids', inp('voids', 'P', 'P – wolna przestrzeń w mieszance min. [%]', p.voids.P, 1) + inp('voids', 'n', 'n – poprawka [%]', p.voids.n, 1) + inp('voids', 'gkp', 'gkp – gęstość objęt. mieszanki min. [g/cm³]', p.voids.gkp, 3), `<div class="muted">ga = ${fmt(r.rhoB, 3)} g/cm³</div>`)}
+    ${card('film', inp('film', 'b', 'b – grubość otoczki lepiszcza [µm]', p.film.b, 1), `<div class="muted">F = ${fmt(o.film.F, 2)} m²/kg · ga = ${fmt(r.rhoB, 3)}</div>`)}
+    ${card('duriez', inp('duriez', 'K', 'K – wsp. zawartości lepiszcza', p.duriez.K) + kHint() + `<label class="row" style="gap:6px;font-size:.82rem;color:var(--muted)"><input type="checkbox" data-bp="duriez.useAlpha" ${p.duriez.useAlpha ? 'checked' : ''} style="width:auto">korekta α = 2,65/ρ (${fmt(2.65 / r.rhoAgg, 3)})</label>`, `<div class="muted">F = ${fmt(o.duriez.F, 2)} m²/kg</div>`)}
+    ${card('empirical', inp('empirical', 'x', 'x', p.empirical.x, 3) + inp('empirical', 'y', 'y', p.empirical.y, 3) + inp('empirical', 'z', `z (puste = ${fmt(o.empirical.zUsed, 2)})`, p.empirical.z, 3), `<div class="muted">a (&gt;2 mm) = ${fmt(o.empirical.a)} %, b (0,063–2) = ${fmt(o.empirical.b)} %, c (&lt;0,063) = ${fmt(o.empirical.c)} %</div>`)}
+    ${card('manual', inp('manual', 'value', 'Ilość lepiszcza [%]', p.manual.value) + `<label class="f">Odniesienie<select data-bp="manual.basis"><option value="mix" ${p.manual.basis === 'mix' ? 'selected' : ''}>w MMA</option><option value="agg" ${p.manual.basis === 'agg' ? 'selected' : ''}>na kruszywo (Ak)</option></select></label>`)}
+   </div>
+   <details><summary>Powierzchnia właściwa F</summary><p class="lede">Ak=F*b*ga/10: F wg współczynników powierzchni Hveema przeliczonych na m²/kg. Am=K*F^(1/5): F = (0,25G + 2,3S + 12s + 150f)/100, G &gt;6,3 mm, S 0,25–6,3, s 0,063–0,25, f &lt;0,063 mm.</p></details>
+   <div class="grid3" style="align-items:end">
+    <div><div class="muted">Przyjęta ilość lepiszcza w MMA</div><div class="big">${fmt(r.B, 2)} %</div></div>
+    <div><div class="muted">Ak – na kruszywo</div><div class="big">${fmt(r.ak, 2)} %</div></div>
+    <div><div class="muted">Gęstość MMA (teoretyczna)</div><div class="big">${fmt(r.rhoMax, 3)}</div><div class="muted">g/cm³ · mieszanka min. ${fmt(r.rhoAgg, 3)}</div></div>
+   </div>
+   ${bminA ? (r.B + 1e-9 >= bminA ? `<p class="note">Ilość lepiszcza mieści się w wymaganiach normy: B ≥ B<sub>min</sub>·α = ${fmt(bminA, 2)} % (B<sub>min</sub> = ${fmt(S.spec.bmin)} %, α = ${fmt(2.65 / r.rhoAgg, 3)}).</p>` : `<p class="note bad">Ilość lepiszcza nie mieści się w wymaganiach normy: B &lt; B<sub>min</sub>·α = ${fmt(bminA, 2)} % (B<sub>min</sub> = ${fmt(S.spec.bmin)} %, α = ${fmt(2.65 / r.rhoAgg, 3)}).</p>`) : ''}
+  </section>
+
+  <section class="sheet"><div class="sheet-head"><h2>OBLICZENIE ZAROBU PRÓBNEGO DO MARSHALLA</h2><p>Masy poszczególnych składników w gramach.</p></div>
+   <div class="fields">
+    <label class="f">Masa zarobu [g]<input id="t-mass" value="${fmt(t.mass, 0)}"></label>
+    <label class="f">Skok procentowy ilości lepiszcza [%]<input id="t-step" value="${fmt(t.step, 2)}" ${t.n ? '' : 'disabled'}></label>
+    <label class="f">Ilość serii próbek<select id="t-n">${[0, 3, 5, 7].map(n => `<option value="${n}" ${n === t.n ? 'selected' : ''}>${n === 0 ? '0 (jeden zarób, bez serii)' : n}</option>`).join('')}</select></label>
+   </div>
+   <div class="tbl-wrap"><table><thead><tr><th>Składnik [g]</th>${rows.map((rw, k) => `<th class="n">${t.n ? 'Seria ' + (k + 1) : 'Zarób'}<br>${fmt(rw.B, 2)} %</th>`).join('')}</tr></thead><tbody>
+    ${S.mats.map((mm, i) => `<tr><td>${esc(mm.name)} <span class="muted">(${fd(x[i])} %)</span></td>${rows.map(rw => `<td class="n">${fd(rw.comps[i].g)}</td>`).join('')}</tr>`).join('')}
+    <tr class="sum"><td>Mieszanka mineralna</td>${rows.map(rw => `<td class="n">${fd(rw.ma)}</td>`).join('')}</tr>
+    <tr class="sum"><td>Lepiszcze ${esc(binder().name)}</td>${rows.map(rw => `<td class="n">${fd(rw.mb)}</td>`).join('')}</tr>
+    <tr><td>Masa zarobu</td>${rows.map(rw => `<td class="n">${fmt(rw.total, 0)}</td>`).join('')}</tr>
+   </tbody></table></div>
+   <h3>Wyniki badań próbek (opcjonalnie)</h3>
+   <div class="tbl-wrap"><table><thead><tr><th></th>${rows.map(rw => `<th class="n">${fmt(rw.B, 2)} %</th>`).join('')}</tr></thead><tbody>
+    <tr><td>Gęstość MMA (teoretyczna) [g/cm³]</td>${rows.map(rw => `<td class="n">${fmt(maxDensity(r.rhoAgg, rw.B, r.rhoB), 3)}</td>`).join('')}</tr>
+    <tr><td>Gęstość objętościowa próbek [g/cm³]</td>${rows.map((rw, k) => `<td class="n"><input data-bulk="${k}" value="${t.bulk[k] ? fmt(t.bulk[k], 3) : ''}" aria-label="gęstość objętościowa seria ${k + 1}"></td>`).join('')}</tr>
+    ${['Vm', 'VMA', 'VFB'].map(q => `<tr><td>${{ Vm: 'Wolna przestrzeń Vm [%]', VMA: 'VMA [%]', VFB: 'VFB [%]' }[q]}</td>${rows.map((rw, k) => { const v = volumetrics(maxDensity(r.rhoAgg, rw.B, r.rhoB), t.bulk[k], rw.B, r.rhoB); return `<td class="n">${v ? fmt(v[q], 1) : '–'}</td>`; }).join('')}</tr>`).join('')}
+   </tbody></table></div>
+   <p class="muted">DODATKI SPECJALNE DO LEPISZCZA – w tej wersji nie są obliczane.</p></section>`;
+}
+
+/* ===================== 5. RECEPTURA ROBOCZA ===================== */
+function plantCalc(r) { return plantRecipe(S.mats, currentX(), r.B, { ...S.plant, rhoB: r.rhoB, ascending: CFG.ordRec === 'rosnąco' }); }
+function vRec() {
+  const r = binderResults();
+  if (!r) return `<section class="sheet"><h2>RECEPTURA ROBOCZA</h2><p class="note">Najpierw OBLICZENIE SKŁADU MIESZANKI i OBLICZENIE ILOŚCI LEPISZCZA.</p></section>`;
+  const c = S.plant, rec = plantCalc(r);
+  return `<section class="sheet"><div class="sheet-head"><h2>PRZYJĘCIE PARAMETRÓW ROBOCZYCH</h2><p>Sita na sortowniku: ${c.binSieves.slice().sort((a, b) => a - b).map(fmtS).join('; ')} mm (zmiana w PRZYJĘCIU ZAŁOŻEŃ PROJEKTU).</p></div>
+   <div class="fields">
+    <label class="f">Rodzaj mieszanki<select id="p-fill"><option value="0" ${!c.fillerSeparate ? 'selected' : ''}>z wypełniaczem (wypełniacz razem z kruszywem)</option><option value="1" ${c.fillerSeparate ? 'selected' : ''}>bez wypełniacza (wypełniacz dozowany oddzielnie)</option></select></label>
+    <label class="f">Sposób dozowania lepiszcza<select id="p-bmode"><option value="1" ${c.binderByMass ? 'selected' : ''}>wagowo</option><option value="0" ${!c.binderByMass ? 'selected' : ''}>objętościowo</option></select></label>
+    <label class="f">Wielkość robocza mieszalnika [kg]<input id="p-batch" value="${fmt(c.batch, 0)}"></label>
+    <label class="f">Temperatura robocza lepiszcza [°C]<input id="p-tb" value="${c.tBinder}"></label>
+    <label class="f">Temperatura robocza kruszywa [°C]<input id="p-ta" value="${c.tAgg}"></label>
+    <label class="f">Temperatura gotowej MMA [°C]<input id="p-tm" value="${c.tMix}"></label>
+    <label class="f">Optymalna temp. zagęszczania MMA [°C]<input id="p-tc" value="${c.tComp}"></label>
+    <label class="f">Wydajność otaczarki [t/h]<input id="p-rate" value="${fmt(c.rate, 0)}"></label>
+   </div></section>
+
+  <section class="sheet"><div class="sheet-head"><h2>OPRACOWANIE RECEPTY ROBOCZEJ</h2><span class="pill info">zarób ${fmt(c.batch, 0)} kg · lepiszcze ${fmt(r.B, 2)} %</span></div>
+   <div class="grid2">
+    <div class="tbl-wrap"><table><thead><tr><th>Komora zasobnika</th><th class="n">Udział [%]</th><th class="n">Masa [kg]</th><th class="n">Narastająco [kg]</th></tr></thead><tbody>
+     ${rec.bins.map(b => `<tr><td>${b.to == null ? `&gt; ${fmtS(b.from)} mm` : `${fmtS(b.from)} – ${fmtS(b.to)} mm`}</td><td class="n">${fd(b.share)}</td><td class="n">${fd(b.kg)}</td><td class="n">${fd(b.cum)}</td></tr>`).join('')}
+     ${c.fillerSeparate ? `<tr><td>Wypełniacz (oddzielnie)</td><td class="n">${fd(rec.xF)}</td><td class="n">${fd(rec.filler)}</td><td class="n muted">osobna waga</td></tr>` : ''}
+     <tr class="sum"><td>Mieszanka mineralna</td><td class="n">${fd(100)}</td><td class="n">${fd(rec.ma)}</td><td></td></tr>
+     <tr class="sum"><td>Lepiszcze ${esc(binder().name)}</td><td class="n">${fmt(r.B, 2)}</td><td class="n">${fd(rec.mb)} kg</td><td class="n">${c.binderByMass ? '' : fd(rec.binderL) + ' l'}</td></tr>
+    </tbody></table></div>
+    <dl class="kv">
+     <dt>Gęstość lepiszcza w ${c.tBinder} °C</dt><dd>${fmt(rec.rhoT, 3)} g/cm³</dd>
+     <dt>Objętość lepiszcza</dt><dd>${fd(rec.binderL)} l</dd>
+     <dt>Temp. lepiszcza / kruszywa</dt><dd>${c.tBinder} / ${c.tAgg} °C</dd>
+     <dt>Temp. gotowej MMA / zagęszczania</dt><dd>${c.tMix} / ${c.tComp} °C</dd>
+    </dl></div>
+   <p class="lede">Udziały komór liczone z krzywej kruszywa przechodzącego przez suszarkę${c.fillerSeparate ? ' (bez wypełniacza dozowanego oddzielnie)' : ''}, bez odciągu pyłów. Gęstość lepiszcza w temperaturze roboczej: ρ<sub>T</sub> = ρ<sub>25</sub>·[1 − 0,0006·(T − 25)].</p>
+   <h3>Dozowniki wstępne</h3>
+   <div class="tbl-wrap"><table><thead><tr><th>Materiał</th><th class="n">Udział [%]</th><th class="n">Wydatek [t/h]</th></tr></thead><tbody>
+    ${rec.feeders.map(f => `<tr><td>${esc(f.name)}${f.filler ? ' <span class="muted">(silos wypełniacza)</span>' : ''}</td><td class="n">${fd(f.pct)}</td><td class="n">${f.tph == null ? '–' : fmt(f.tph, 1)}</td></tr>`).join('')}
+   </tbody></table></div></section>`;
+}
+
+/* ===================== 6. ZESTAWIENIE WYNIKÓW OBLICZEŃ ===================== */
+function reportHTML(sel = podglad) {
+  const x = currentX(), Y = currentY(), r = binderResults(), js = ordered(visibleSieves(), CFG.ordUz);
+  const tr = cells => `<tr>${cells.join('')}</tr>`;
+  const th = (a, b) => `<tr><th style="text-align:left">${a}</th><td>${b}</td></tr>`;
+  let h = `<h1>${esc(S.meta.name)}</h1><table><tbody>${[['Rodzaj M.M.A.', S.spec.desc], ['Symbol normy', NORMY[S.spec.norm] || ''], ['Data', S.meta.date], ['Rodzaj lepiszcza', binder().name + ' (' + fmt(binder().density, 3) + ' g/cm³)']].filter(a => a[1]).map(a => th(a[0], esc(a[1]))).join('')}</tbody></table>`;
+  if (!x) return h + '<p>Brak obliczonego składu mieszanki.</p>';
+  if (sel.mm) {
+    h += `<h2>MIESZANKA MINERALNA</h2><table><thead><tr><th>Materiał</th><th>Gęstość [g/cm³]</th><th>Udział [%]</th></tr></thead><tbody>
+     ${S.mats.map((m, i) => tr([`<td>${esc(m.name)}</td>`, `<td class="n">${fmt(m.density, 3)}</td>`, `<td class="n">${fd(x[i])}</td>`])).join('')}
+     ${tr(['<td><b>Razem</b></td>', `<td class="n">${fmt(aggDensity(S.mats, x), 3)}</td>`, `<td class="n">${fd(100)}</td>`])}</tbody></table>
+     <table><thead><tr><th>Sito [mm]</th>${js.map(j => `<th>${fmtS(SIEVES[j])}</th>`).join('')}</tr></thead><tbody>
+     ${tr(['<td>Mieszanka mineralna [%]</td>', ...js.map(j => `<td class="n">${fd(Y[j])}</td>`)])}
+     ${tr(['<td>Krzywe graniczne [%]</td>', ...js.map(j => `<td class="n">${fmt(S.spec.lower[j], 0)}–${fmt(S.spec.upper[j], 0)}</td>`)])}
+     ${tr(['<td>Krzywa wzorcowa [%]</td>', ...js.map(j => `<td class="n">${fd(S.spec.target[j])}</td>`)])}</tbody></table>`;
+  }
+  if (sel.wykres) h += `<h2>WYKRES KRZYWEJ UZIARNIENIA</h2><div style="max-width:720px">${chartSVG({ sieves: visibleSieves(), Y }).replace(/var\(--line-strong\)/g, '#999').replace(/var\(--line\)/g, '#ddd').replace(/var\(--muted\)/g, '#555').replace(/var\(--band-soft\)/g, 'rgba(233,196,106,.25)').replace(/var\(--band\)/g, '#b8862a').replace(/var\(--target\)/g, '#2c5468').replace(/var\(--curve\)/g, '#111').replace(/var\(--bad\)/g, '#b03a2e').replace(/var\(--sheet\)/g, '#fff')}</div><p style="font-size:.85em">linia ciągła – projektowana krzywa optymalna; linia przerywana – krzywa wzorcowa; linie kropkowane – krzywe graniczne</p>`;
+  if (r && sel.mma) {
+    h += `<h2>MIESZANKA MINERALNO-ASFALTOWA</h2><table><thead><tr><th>Składnik</th><th>Udział w MMA [%]</th></tr></thead><tbody>
+      ${S.mats.map((m, i) => tr([`<td>${esc(m.name)}</td>`, `<td class="n">${fd(x[i] * (100 - r.B) / 100)}</td>`])).join('')}
+      ${tr([`<td>Lepiszcze ${esc(binder().name)}</td>`, `<td class="n">${fmt(r.B, 2)}</td>`])}</tbody></table>
+      <table><tbody>${th('Metoda obliczenia ilości lepiszcza', METODY[S.binder.method][0] + (METODY[S.binder.method][1] ? ', ' + METODY[S.binder.method][1] : ''))}
+      ${th('Ilość lepiszcza w MMA', fmt(r.B, 2) + ' %')}${th('Ak – na kruszywo', fmt(r.ak, 2) + ' %')}
+      ${S.spec.bmin ? th('B<sub>min</sub>·α', fmt(S.spec.bmin * 2.65 / r.rhoAgg, 2) + ' %') : ''}
+      ${th('Gęstość mieszanki mineralnej', fmt(r.rhoAgg, 3) + ' g/cm³')}${th('Gęstość MMA (teoretyczna)', fmt(r.rhoMax, 3) + ' g/cm³')}</tbody></table>`;
+  }
+  if (r && sel.zarob) {
+    const t = S.trial, rows = trialMix(S.mats, x, r.B, t.mass, t.step, t.n);
+    h += `<h2>ZARÓB PRÓBNY (${fmt(t.mass, 0)} g)</h2><table><thead><tr><th>Składnik [g]</th>${rows.map(rw => `<th>${fmt(rw.B, 2)} %</th>`).join('')}</tr></thead><tbody>
+      ${S.mats.map((m, i) => tr([`<td>${esc(m.name)}</td>`, ...rows.map(rw => `<td class="n">${fd(rw.comps[i].g)}</td>`)])).join('')}
+      ${tr(['<td>Lepiszcze</td>', ...rows.map(rw => `<td class="n">${fd(rw.mb)}</td>`)])}
+      ${t.bulk.some(v => v) ? ['Vm', 'VMA', 'VFB'].map(q => tr([`<td>${q} [%]</td>`, ...rows.map((rw, k) => { const v = volumetrics(maxDensity(r.rhoAgg, rw.B, r.rhoB), t.bulk[k], rw.B, r.rhoB); return `<td class="n">${v ? fmt(v[q], 1) : '–'}</td>`; })])).join('') : ''}</tbody></table>`;
+  }
+  if (r && sel.rec) {
+    const c = S.plant, rec = plantCalc(r);
+    h += `<h2>RECEPTURA ROBOCZA (zarób ${fmt(c.batch, 0)} kg)</h2><table><thead><tr><th>Składnik</th><th>Udział [%]</th><th>Masa [kg]</th><th>Narastająco [kg]</th></tr></thead><tbody>
+      ${rec.bins.map(b => tr([`<td>Komora ${b.to == null ? '&gt; ' + fmtS(b.from) : fmtS(b.from) + '–' + fmtS(b.to)} mm</td>`, `<td class="n">${fd(b.share)}</td>`, `<td class="n">${fd(b.kg)}</td>`, `<td class="n">${fd(b.cum)}</td>`])).join('')}
+      ${c.fillerSeparate ? tr(['<td>Wypełniacz</td>', `<td class="n">${fd(rec.xF)}</td>`, `<td class="n">${fd(rec.filler)}</td>`, '<td></td>']) : ''}
+      ${tr([`<td>Lepiszcze (${c.binderByMass ? 'wagowo' : 'objętościowo'})</td>`, `<td class="n">${fmt(r.B, 2)}</td>`, `<td class="n">${fd(rec.mb)}</td>`, `<td class="n">${c.binderByMass ? '' : fd(rec.binderL) + ' l'}</td>`])}</tbody></table>
+      <p>Temperatura robocza lepiszcza ${c.tBinder} °C, kruszywa ${c.tAgg} °C, gotowej MMA ${c.tMix} °C, optymalna temp. zagęszczania ${c.tComp} °C.</p>`;
+  }
+  h += `<p style="color:#777;font-size:.8em;margin-top:24px">MASA Web · ${new Date().toLocaleDateString('pl-PL')}</p>`;
+  return h;
+}
+function dbList() { return lsGet(LS_DB) || []; }
+function vWyn() {
+  const items = [['wykres', 'WYKRES KRZYWEJ UZIARNIENIA'], ['mm', 'MIESZANKA MINERALNA'], ['mma', 'MIESZANKA MINERALNO-ASFALTOWA'], ['zarob', 'ZARÓB PRÓBNY'], ['rec', 'RECEPTURA ROBOCZA']];
+  return `${vDirBar()}
+  <section class="sheet"><div class="sheet-head"><h2>ZAPIS DO BAZY NA DYSKU</h2><p>${DIR ? `Recepta zapisze się w katalogu <b>${esc(DIR.name)}</b> jako „${esc(fileSafe(S.meta.name))}.recepta.json”. Zapis pod tą samą nazwą nadpisuje poprzednią wersję.` : 'Bez katalogu roboczego recepta zapisuje się w tej przeglądarce.'}</p></div>
+   <div class="row"><button class="btn primary" data-act="db-save">ZAPIS DO BAZY NA DYSKU</button><button class="btn" data-act="save">Zapis recepty do pliku</button><button class="btn" data-act="open">Odczyt recepty z pliku</button></div></section>
+
+  <section class="sheet"><div class="sheet-head"><h2>ODCZYT Z BAZY NA DYSKU</h2><p>Otwarcie recepty wczytuje materiały, udziały, krzywe i lepiszcze – możesz od razu wprowadzić korektę.</p></div>
+   ${DIR ? `<h3>Recepty MASA Web w katalogu ${esc(DIR.name)}</h3><div class="tbl-wrap lib-list"><table><thead><tr><th>Recepta</th><th>Plik</th><th></th></tr></thead><tbody>
+    ${DIRLIST.rec.map(f => `<tr><td>${esc(f.label)}</td><td class="muted">${esc(f.name)}</td><td class="row"><button class="btn small" data-frload="${esc(f.name)}">ODCZYT</button><button class="btn ghost small" data-frdel="${esc(f.name)}">${zbConfirm === 'rdel' + f.name ? 'na pewno usunąć?' : 'USUNIĘCIE ZBIORU Z BAZY'}</button></td></tr>`).join('') || '<tr><td colspan="3" class="muted">Brak zapisanych recept w katalogu.</td></tr>'}
+   </tbody></table></div>` : ''}
+   <h3>Receptury z programu MASA (BAZA_MMB.WYN)</h3>
+   ${WYN ? `<p class="lede">${esc(WYN.file)} · ${WYN.list.length} recept · zestaw sit ${WYN.zestaw}. Odczytane receptury otwierają się jako nowe – oryginalny plik MASA nie jest zmieniany.</p>
+    <div class="row"><label class="f" style="flex:1;min-width:200px">Szukaj<input id="wyn-q" value="${esc(wynQ)}" placeholder="nazwa recepty, lepiszcze…"></label></div>
+    <div class="tbl-wrap lib-list"><table><thead><tr><th class="n">Nr</th><th>Recepta</th><th>Materiały</th><th>Lepiszcze</th><th class="n">B [%]</th><th></th></tr></thead><tbody>
+    ${WYN.list.map((q, i) => ({ q, i })).filter(({ q }) => !wynQ || (q.name + ' ' + q.binderName + ' ' + q.mats.map(m => m.name).join(' ')).toLowerCase().includes(wynQ.toLowerCase())).reverse().map(({ q, i }) => `<tr><td class="n">${i + 1}</td><td><b>${esc(q.name)}</b></td><td class="muted">${esc(q.mats.map(m => m.name).join(', '))}</td><td>${esc(q.binderName)}</td><td class="n">${fmt(q.B, 2)}</td><td><button class="btn small" data-wynload="${i}">ODCZYT</button></td></tr>`).join('')}
+    </tbody></table></div>` : `<p class="lede">${DIR ? 'W katalogu nie ma pliku BAZA_MMB.WYN.' : 'Wskaż plik BAZA_MMB.WYN z katalogu MASA (np. ZESTAW12).'}</p>`}
+   <div class="row"><label class="btn small" style="cursor:pointer">Odczyt pliku BAZA_MMB.WYN<input type="file" id="wyn-file" accept=".wyn,.WYN" hidden></label>
+    ${WYN ? `<label class="row" style="gap:4px;font-size:.85rem" class="muted">zestaw sit<select id="wyn-z">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(z => `<option ${z === WYN.zestaw ? 'selected' : ''}>${z}</option>`).join('')}</select></label>` : ''}</div>
+   ${dbList().length ? `<details><summary>Recepty zapisane w przeglądarce (${dbList().length})</summary><div class="tbl-wrap"><table><thead><tr><th>Recepta</th><th>Rodzaj M.M.A.</th><th>Zapisano</th><th></th></tr></thead><tbody>
+   ${dbList().map((e, i) => `<tr><td>${esc(e.project.meta.name)}</td><td>${esc(e.project.spec.name)}</td><td class="n">${esc(e.saved)}</td><td class="row"><button class="btn small" data-dbload="${i}">ODCZYT Z BAZY NA DYSKU</button><button class="btn ghost small" data-dbdel="${i}">USUNIĘCIE ZBIORU Z BAZY</button></td></tr>`).join('')}
+   </tbody></table></div></details>` : ''}
+  </section>
+<section class="sheet"><div class="sheet-head"><h2>PODGLĄD WYNIKÓW OBLICZEŃ</h2>
+   <div class="row"><button class="btn primary" data-act="print">WYDRUK WYNIKÓW NA DRUKARCE</button><button class="btn" data-act="csv-save">Uziarnienie do pliku (.csv)</button></div></div>
+   <div class="row">${items.map(([k, l]) => `<label class="row" style="gap:5px"><input type="checkbox" data-pg="${k}" ${podglad[k] ? 'checked' : ''} style="width:auto">${l}</label>`).join('')}</div>
+   <div class="report" id="report">${reportHTML()}</div></section>
+
+`;
+}
+
+/* ===================== 7. KONFIGURACJA PROGRAMU ===================== */
+function vCfg() {
+  const sel = (id, v, opts) => `<select id="${id}">${opts.map(o => `<option ${o === v ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+  return `<section class="sheet"><div class="sheet-head"><h2>K O N F I G U R A C J A   P R O G R A M U</h2><p>Wartości domyślne wzięte z Twojego pliku MASA.CFG.</p></div>
+   <div class="tbl-wrap"><table><tbody>
+    <tr><td>Jednostka analizy sitowej</td><td>${sel('c-jd', CFG.jednostka, ['gramy', 'procenty'])}</td></tr>
+    <tr><td>Typ opisu analizy sitowej (dla procentów)</td><td>${sel('c-an', CFG.analiza, ['odsiew', 'przesiew'])}</td></tr>
+    <tr><td>Kolejność zestawiania sit – dla analizy sitowej</td><td>${sel('c-oa', CFG.ordAnal, ['malejąco', 'rosnąco'])}</td></tr>
+    <tr><td>Kolejność zestawiania sit – dla tabeli uziarnienia</td><td>${sel('c-ou', CFG.ordUz, ['malejąco', 'rosnąco'])}</td></tr>
+    <tr><td>Kolejność zestawiania sit – dla recepty roboczej</td><td>${sel('c-or', CFG.ordRec, ['malejąco', 'rosnąco'])}</td></tr>
+    <tr><td>Ilość miejsc po przecinku</td><td>${sel('c-dec', String(CFG.dec), ['0', '1', '2'])}</td></tr>
+   </tbody></table></div>
+   <div class="row"><button class="btn primary" data-act="cfg-save">ZAPIS USTAWIENIA NA DYSKU</button><button class="btn ghost small" data-act="cfg-reset">Przywróć ustawienia z MASA.CFG</button></div></section>`;
+}
+
+/* ---------- KATALOG ROBOCZY (zapis/odczyt plików jak w MASA) ---------- */
+let DIR = null, DIRPENDING = null, DIRLIST = { zb: [], rec: [], wyn: null }, WYN = null, wynQ = '';
+const fileSafe = s => (s || 'bez_nazwy').replace(/[<>:"/\\|?*\x00-\x1f]+/g, '_').trim().slice(0, 80) || 'bez_nazwy';
+const canDir = () => typeof window.showDirectoryPicker === 'function';
+function idb(op, val) {
+  return new Promise(res => {
+    try {
+      const rq = indexedDB.open('masaweb', 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore('kv');
+      rq.onsuccess = () => { try { const tx = rq.result.transaction('kv', op === 'get' ? 'readonly' : 'readwrite'); const st = tx.objectStore('kv'); const r = op === 'get' ? st.get('dir') : op === 'set' ? st.put(val, 'dir') : st.delete('dir'); r.onsuccess = () => res(r.result); r.onerror = () => res(null); } catch (e) { res(null); } };
+      rq.onerror = () => res(null);
+    } catch (e) { res(null); }
+  });
+}
+function zestawFromName(n) { const m = /ZESTAW\s*0*(\d+)/i.exec(n || ''); return m ? +m[1] : 12; }
+async function useDir(h) {
+  DIR = h; DIRPENDING = null; await idb('set', h); await refreshDir(); toast('Katalog roboczy: ' + h.name);
+}
+async function pickDir() {
+  if (!canDir()) { toast('Ta przeglądarka nie daje dostępu do folderów. Otwórz plik MASA_Web.html w Chrome lub Edge.'); return; }
+  try { const h = await window.showDirectoryPicker({ id: 'masaweb', mode: 'readwrite' }); await useDir(h); }
+  catch (e) { if (e?.name !== 'AbortError') toast('Dostęp do folderu jest zablokowany w tym oknie. Otwórz plik MASA_Web.html z folderu Masbit w Chrome lub Edge.'); }
+}
+async function reconnectDir() {
+  const h = DIRPENDING; if (!h) return pickDir();
+  try { if ((await h.requestPermission({ mode: 'readwrite' })) === 'granted') await useDir(h); else toast('Brak zgody na dostęp do katalogu.'); } catch (e) { pickDir(); }
+}
+async function refreshDir() {
+  if (!DIR) { render(); return; }
+  const zb = [], rec = []; let wyn = null;
+  try {
+    for await (const [name, h] of DIR.entries()) {
+      if (h.kind !== 'file') continue;
+      if (/\.(dat|da)$/i.test(name)) zb.push({ name, label: name.replace(/\.[^.]+$/, ''), kind: 'dat' });
+      else if (/\.zbior\.json$/i.test(name)) zb.push({ name, label: name.replace(/\.zbior\.json$/i, ''), kind: 'json' });
+      else if (/\.recepta\.json$/i.test(name)) rec.push({ name, label: name.replace(/\.recepta\.json$/i, '') });
+      else if (/^baza_mmb\.wyn$/i.test(name)) wyn = name;
+    }
+  } catch (e) { toast('Nie można odczytać katalogu – połącz go ponownie.'); DIRPENDING = DIR; DIR = null; render(); return; }
+  const cmp = (p, q) => p.label.localeCompare(q.label, 'pl');
+  DIRLIST = { zb: zb.sort(cmp), rec: rec.sort(cmp), wyn };
+  if (wyn && (!WYN || WYN.file !== DIR.name + '/' + wyn)) { try { const buf = await (await (await DIR.getFileHandle(wyn)).getFile()).arrayBuffer(); setWyn(buf, DIR.name + '/' + wyn, zestawFromName(DIR.name)); } catch (e) { } }
+  render();
+}
+async function dirRead(name) { return (await (await DIR.getFileHandle(name)).getFile()).arrayBuffer(); }
+async function dirWrite(name, text) { const fh = await DIR.getFileHandle(name, { create: true }); const wr = await fh.createWritable(); await wr.write(text); await wr.close(); }
+function setWyn(buf, file, zestaw) { WYN = { buf, file, zestaw, list: parseMasaWyn(buf, zestaw) }; }
+function vDirBar() {
+  if (DIR) return `<div class="dirbar"><span>Katalog roboczy: <b>${esc(DIR.name)}</b></span><button class="btn small" data-act="dir-refresh">Odśwież</button><button class="btn small ghost" data-act="dir">Zmień katalog</button></div>`;
+  if (DIRPENDING) return `<div class="dirbar warn"><span>Ostatni katalog: <b>${esc(DIRPENDING.name)}</b></span><button class="btn small primary" data-act="dir">Połącz z katalogiem ${esc(DIRPENDING.name)}</button></div>`;
+  return `<div class="dirbar"><span>${canDir() ? 'Nie wybrano katalogu roboczego.' : 'W tym oknie nie ma dostępu do folderów – zapis do katalogu działa w pliku MASA_Web.html otwartym w Chrome lub Edge.'}</span>${canDir() ? '<button class="btn small primary" data-act="dir">WYBÓR KATALOGU ROBOCZEGO</button>' : ''}</div>`;
+}
+function wynToProject(q) {
+  const p = newProject();
+  p.meta.name = q.name;
+  let best = MIXLIB[0], bd = Infinity;
+  MIXLIB.forEach(l => { const s = l.target.reduce((acc, t, j) => acc + (t - q.target[j]) ** 2, 0); if (s < bd) { bd = s; best = l; } });
+  p.spec = specFromLib(best.id); p.spec.target = q.target.slice(0, 14).concat([100]);
+  if (bd > 1) toast('Rodzaj M.M.A. dobrany po krzywej wzorcowej (' + best.name + ') – sprawdź w PRZYJĘCIU ZAŁOŻEŃ PROJEKTU.');
+  p.mats = q.mats.map(m => ({ ...clone(m), min: m.min || 0, max: m.max || 100, price: 0, ub: 0 }));
+  const sx = q.mats.reduce((s, m) => s + m.x, 0) || 1;
+  p.design = { mode: 'grading', x: q.mats.map(m => Math.round(m.x * 10000 / sx) / 100), infeasible: false, violated: [], manual: true };
+  let b = p.binders.find(x => x.name.toLowerCase() === q.binderName.toLowerCase());
+  if (!b) { b = { id: Math.max(...p.binders.map(x => x.id)) + 1, name: q.binderName || 'Lepiszcze', pen: null, tpk: null, density: q.binderDensity || 1.03 }; p.binders.push(b); }
+  p.binderId = b.id;
+  p.binder.method = 'manual'; p.binder.p.manual = { value: q.B, basis: 'mix' };
+  return p;
+}
+async function saveRecipe() {
+  const txt = JSON.stringify({ format: 'masaweb', version: 2, project: S }, null, 1);
+  if (DIR) { try { const nm = fileSafe(S.meta.name) + '.recepta.json'; await dirWrite(nm, txt); toast('Zapisano ' + nm + ' w katalogu ' + DIR.name + '.'); await refreshDir(); return; } catch (e) { toast('Nie udało się zapisać w katalogu – zapisuję w przeglądarce.'); } }
+  const l = dbList(); const i = l.findIndex(x => x.project.meta.name === S.meta.name); const entry = { saved: new Date().toLocaleString('pl-PL'), project: clone(S) }; if (i >= 0) l[i] = entry; else l.unshift(entry); lsSet(LS_DB, l); toast('Zapisano do bazy w przeglądarce.'); render();
+}
+async function saveZbior() {
+  const nm = ($('#zb-name')?.value || '').trim() || LIBNAME || 'Zbiór ' + new Date().toLocaleDateString('pl-PL'); LIBNAME = nm;
+  if (DIR) { try { const fn = fileSafe(nm) + '.zbior.json'; await dirWrite(fn, JSON.stringify({ format: 'masaweb-zbior', name: nm, mats: LIB }, null, 1)); toast('Zapisano ' + fn + ' w katalogu ' + DIR.name + '.'); await refreshDir(); return; } catch (e) { toast('Nie udało się zapisać w katalogu – zapisuję w przeglądarce.'); } }
+  const l = zbList(); const i = l.findIndex(z => z.name === nm); const e = { name: nm, saved: new Date().toLocaleString('pl-PL'), mats: clone(LIB) }; if (i >= 0) l[i] = e; else l.unshift(e); lsSet(LS_ZB, l); toast('Zapisano zbiór ' + nm + ' w przeglądarce.'); render();
+}
+async function loadZbiorFile(name, append) {
+  try {
+    const buf = await dirRead(name); let mats, label = name.replace(/\.zbior\.json$/i, '').replace(/\.[^.]+$/, '');
+    if (/\.json$/i.test(name)) { const o = JSON.parse(new TextDecoder().decode(buf)); mats = o.mats; label = o.name || label; } else mats = parseMasaDat(decodeCP852(buf), name);
+    if (append) LIB.push(...mats); else { LIB = mats; LIBNAME = label; }
+    toast((append ? 'Dołączono ' : 'Odczytano ') + mats.length + ' materiałów z ' + name + '.'); render();
+  } catch (e) { toast('Nie udało się odczytać ' + name + '.'); }
+}
+async function loadRecipeFile(name) {
+  try { const o = JSON.parse(new TextDecoder().decode(await dirRead(name))); if (!o.project?.spec) throw 0; S = o.project; tab = 'skl'; render(); toast('Odczytano recepturę ' + S.meta.name + '.'); } catch (e) { toast('Nie udało się odczytać ' + name + '.'); }
+}
+async function dirDelete(name) { try { await DIR.removeEntry(name); toast('Usunięto ' + name + '.'); } catch (e) { toast('Nie udało się usunąć ' + name + '.'); } zbConfirm = ''; await refreshDir(); }
+async function initDir() { const h = await idb('get'); if (!h) return; try { if ((await h.queryPermission({ mode: 'readwrite' })) === 'granted') { DIR = h; await refreshDir(); } else { DIRPENDING = h; render(); } } catch (e) { } }
+
+/* ---------- render ---------- */
+function stepState(k) {
+  if (k === 'dob') return S.mats.length >= 2 ? 'done' : '';
+  if (k === 'skl') return S.design ? (S.design.infeasible ? 'warn' : 'done') : '';
+  if (['lep', 'rec'].includes(k)) return binderResults() ? 'done' : '';
+  return '';
+}
+function focusKey(el) {
+  if (!el || el === document.body || !el.matches?.('input,select,textarea')) return null;
+  if (el.id) return '#' + CSS.escape(el.id);
+  const attrs = [...el.attributes].filter(x => x.name.startsWith('data-')).map(x => `[${x.name}="${CSS.escape(x.value)}"]`).join('');
+  return attrs ? el.tagName.toLowerCase() + attrs : null;
+}
+function render() {
+  const ae = document.activeElement, fk = focusKey(ae);
+  let sel = null; try { if (fk && ae.selectionStart != null) sel = [ae.selectionStart, ae.selectionEnd]; } catch (e) { }
+  renderInner();
+  if (fk) { const el = document.querySelector(fk); if (el) { try { el.focus({ preventScroll: true }); if (sel && el.setSelectionRange) el.setSelectionRange(...sel); } catch (e) { } } }
+}
+function renderInner() {
+  $('#pname').textContent = S.meta.name + ' · ' + S.spec.name;
+  const db = $('#dirbtn'); if (db) db.textContent = DIR ? 'Katalog: ' + DIR.name : DIRPENDING ? 'Połącz: ' + DIRPENDING.name : 'Wybór katalogu';
+  $('#steps').innerHTML = STEPS.map(([k, l]) => `<button role="tab" aria-selected="${tab === k}" data-tab="${k}"><span class="dot ${stepState(k)}"></span>${l}</button>`).join('');
+  $('#main').innerHTML = { zal: vZal, dob: vDob, skl: vSkl, lep: vLep, rec: vRec, wyn: vWyn, cfg: vCfg }[tab]();
+  const ch = $('#chart-zal'); if (ch) bindChartDrag(ch, krzywaObj);
+  persist();
+}
+
+/* ---------- zdarzenia ---------- */
+async function saveFile(name, data, type) {
+  try {
+    const dl = window.claude?.use ? await window.claude.use('downloads') : null;
+    if (dl) { await dl.save({ filename: name, data: new Blob([data], { type }) }); return; }
+  } catch (e) { if (e?.code === 'declined') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+const safeName = s => (s || 'recepta').replace(/[^\w\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ ]+/g, '').trim().replace(/\s+/g, '_').slice(0, 60) || 'recepta';
+const REPORT_CSS = 'body{font:13px/1.45 Arial,sans-serif;color:#111;max-width:900px;margin:24px auto;padding:0 16px}table{border-collapse:collapse;margin:6px 0 14px}th,td{border:1px solid #bbb;padding:3px 7px}th{background:#f1f1ee}td.n{text-align:right;font-variant-numeric:tabular-nums}h1{font-size:20px}h2{font-size:14px;margin-top:20px;letter-spacing:.03em}@media print{h2{break-after:avoid}table,svg{break-inside:avoid}}';
+function printReport() {
+  const doc = `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${esc(S.meta.name)}</title><style>${REPORT_CSS}</style></head><body>${reportHTML()}</body></html>`;
+  let framed = true; try { framed = window.self !== window.top; } catch (e) { }
+  try { if (framed && window.top.location.origin === location.origin) framed = false; } catch (e) { }   /* Pracownia: okienko na tej samej stronie — drukuj normalnie */
+  if (!framed) {
+    const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;width:0;height:0;border:0'; document.body.appendChild(f);
+    f.contentDocument.open(); f.contentDocument.write(doc); f.contentDocument.close();
+    setTimeout(() => { f.contentWindow.focus(); f.contentWindow.print(); setTimeout(() => f.remove(), 1000); }, 200);
+  } else { saveFile(safeName(S.meta.name) + '_wydruk.html', doc, 'text/html'); toast('Wydruk zapisany do pliku – otwórz go i wydrukuj (Ctrl+P).'); }
+}
+function importDatFiles(files) {
+  let n = 0, pending = files.length;
+  [...files].forEach(f => {
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        let mats;
+        if (/\.json$/i.test(f.name)) { const o = JSON.parse(new TextDecoder().decode(rd.result)); if (!Array.isArray(o.mats)) throw 0; mats = o.mats; if (!LIB.length && o.name) LIBNAME = o.name; }
+        else { mats = parseMasaDat(decodeCP852(rd.result), f.name); if (!LIB.length) LIBNAME = f.name.replace(/\.[^.]+$/, ''); }
+        LIB.push(...mats); n += mats.length;
+      } catch (e) { toast('Nie udało się odczytać ' + f.name); }
+      if (--pending === 0) { toast(`Odczytano ${n} materiałów.`); render(); }
+    };
+    rd.readAsArrayBuffer(f);
+  });
+}
+function saveCfg() { lsSet(LS_CFG, { cfg: CFG, param: { zarob: { mass: S.trial.mass, step: S.trial.step, n: S.trial.n }, plant: Object.fromEntries(Object.entries(S.plant).filter(([k]) => k !== 'binSieves')), sortownik: S.plant.binSieves, binderId: S.binderId } }); toast('Zapisano ustawienia.'); }
+
+function onClick(e) {
+  const hadPending = pendingRender; pendingRender = false;
+  const b = e.target.closest('button,[data-meth]');
+  if (hadPending) render();
+  if (!b) return;
+  const d = b.dataset;
+  if (d.tab) { tab = d.tab; render(); window.scrollTo(0, 0); return; }
+  if (d.run) { runDesign(d.run); render(); return; }
+  if (d.meth) { if (S.binder.method !== d.meth) { S.binder.method = d.meth; render(); } return; }
+  if (d.kt) { krzywaTryb = d.kt; render(); return; }
+  if (d.ko) { krzywaObj = d.ko; render(); return; }
+  if (d.ladd != null) { if (S.mats.length >= 9) return toast('Mieszanka mineralna może się składać z 2 ÷ 9 materiałów.'); S.mats.push({ ...clone(LIB[+d.ladd]), min: 0, max: 100, price: 0, ub: 0, src: '' }); S.design = null; render(); toast('Wybrano ' + LIB[+d.ladd].name + '.'); return; }
+  if (d.mdel != null) { S.mats.splice(+d.mdel, 1); S.design = null; render(); return; }
+  if (d.bdel != null) { if (S.binders.length < 2) return; S.binders = S.binders.filter(x => x.id !== +d.bdel); if (!S.binders.some(x => x.id === S.binderId)) S.binderId = S.binders[0].id; render(); return; }
+  if (d.fzload != null || d.fzadd != null) { loadZbiorFile(d.fzload ?? d.fzadd, d.fzadd != null); return; }
+  if (d.fzdel != null) { if (zbConfirm !== 'fdel' + d.fzdel) { zbConfirm = 'fdel' + d.fzdel; render(); return; } dirDelete(d.fzdel); return; }
+  if (d.frload != null) { loadRecipeFile(d.frload); return; }
+  if (d.frdel != null) { if (zbConfirm !== 'rdel' + d.frdel) { zbConfirm = 'rdel' + d.frdel; render(); return; } dirDelete(d.frdel); return; }
+  if (d.wynload != null) { S = wynToProject(WYN.list[+d.wynload]); tab = 'skl'; render(); window.scrollTo(0, 0); toast('Odczytano recepturę ' + S.meta.name + ' z BAZA_MMB.WYN.'); return; }
+  if (d.ldel != null) { LIB.splice(+d.ldel, 1); render(); return; }
+  if (d.mtolib != null) { const m = clone(S.mats[+d.mtolib]); delete m.min; delete m.max; delete m.price; m.id = 'm' + Date.now().toString(36); m.source = m.source || 'wpisany ręcznie'; LIB.push(m); toast('Dopisano ' + m.name + ' do zbioru w pamięci.'); render(); return; }
+  if (d.zbload != null || d.zbadd != null) { const z = zbList()[+(d.zbload ?? d.zbadd)]; if (d.zbload != null) { LIB = clone(z.mats); LIBNAME = z.name; toast('Odczytano zbiór ' + z.name + '.'); } else { LIB.push(...clone(z.mats)); toast('Dołączono zbiór ' + z.name + '.'); } zbConfirm = ''; render(); return; }
+  if (d.zbdel != null) { if (zbConfirm !== 'del' + d.zbdel) { zbConfirm = 'del' + d.zbdel; render(); return; } const l = zbList(); l.splice(+d.zbdel, 1); lsSet(LS_ZB, l); zbConfirm = ''; render(); return; }
+  if (d.dbload != null) { const e2 = dbList()[+d.dbload]; S = clone(e2.project); tab = 'skl'; render(); toast('Odczytano recepturę z bazy.'); return; }
+  if (d.dbdel != null) { const l = dbList(); if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'na pewno usunąć?'; return; } l.splice(+d.dbdel, 1); lsSet(LS_DB, l); render(); return; }
+  switch (d.act) {
+    case 'tg-lib': case 'tg-mid': {
+      const old = S.spec.target.slice();
+      S.spec.target = d.act === 'tg-lib' ? clone(S.spec.libTarget || S.spec.target) : SIEVES.map((_, j) => Math.round((S.spec.lower[j] + S.spec.upper[j]) * 5) / 10);
+      const n = S.spec.target.filter((t, j) => Math.abs(t - old[j]) > 0.001).length;
+      if (S.design && !S.design.manual) runDesign(S.design.mode, true);
+      toast((d.act === 'tg-lib' ? 'Krzywa wzorcowa z normy' : 'Krzywa wzorcowa w środku pola') + (n ? ` – zmieniono ${n} ${n === 1 ? 'punkt' : n < 5 ? 'punkty' : 'punktów'}${S.design && !S.design.manual ? ', skład przeliczony' : ''}.` : ' – bez zmian (krzywa już tak przebiega).'));
+      break; }
+    case 'b-add': { const id = Math.max(0, ...S.binders.map(x => x.id)) + 1; S.binders.push({ id, name: 'Nowe lepiszcze', pen: null, tpk: null, density: 1.03 }); break; }
+    case 'm-new': S.mats.push({ id: 'm' + Date.now(), name: 'Materiał ' + (S.mats.length + 1), group: 3, density: 2.65, min: 0, max: 100, price: 0, ub: 0, cert: '', producer: '', src: '', passing: SIEVES.map(() => 100) }); S.design = null; break;
+    case 'lib-clear': if (zbConfirm !== 'clear' && LIB.length) { zbConfirm = 'clear'; break; } LIB = []; LIBNAME = ''; zbConfirm = ''; toast('Utworzono nowy, pusty zbiór.'); break;
+    case 'zb-save': saveZbior(); return;
+    case 'zb-file': { const nm = ($('#zb-name')?.value || '').trim() || LIBNAME || 'zbior'; saveFile(safeName(nm) + '_zbior.json', JSON.stringify({ format: 'masaweb-zbior', name: nm, mats: LIB }, null, 1), 'application/json'); return; }
+    case 'norm': S.design.x = currentX().map(v => Math.round(v * 100) / 100); break;
+    case 'print': printReport(); return;
+    case 'csv-save': { const Y = currentY(); const rows = [['Sito [mm]', ...SIEVES]].concat(S.mats.map(m => [m.name, ...m.passing])); if (Y) rows.push(['Mieszanka mineralna', ...Y.map(v => Math.round(v * 10) / 10)]); rows.push(['Krzywa dolna', ...S.spec.lower], ['Krzywa górna', ...S.spec.upper], ['Krzywa wzorcowa', ...S.spec.target]); saveFile(safeName(S.meta.name) + '_uziarnienie.csv', '﻿' + rows.map(r => r.map(v => typeof v === 'number' ? String(v).replace('.', ',') : '"' + String(v).replace(/"/g, '""') + '"').join(';')).join('\r\n'), 'text/csv'); return; }
+    case 'new': S = newProject(); tab = 'zal'; toast('Nowa recepta.'); break;
+    case 'open': $('#open-file').click(); return;
+    case 'save': saveFile(safeName(S.meta.name) + '.json', JSON.stringify({ format: 'masaweb', version: 2, project: S }, null, 1), 'application/json'); return;
+    case 'db-save': saveRecipe(); return;
+    case 'dir': (DIRPENDING && !DIR) ? reconnectDir() : pickDir(); return;
+    case 'dir-refresh': refreshDir(); return;
+    case 'cfg-save': saveCfg(); break;
+    case 'cfg-reset': CFG = { ...CFG_DEF }; break;
+    default: return;
+  }
+  render();
+}
+
+let pointerDown = false, pendingRender = false;
+function scheduleRender() { if (pointerDown) pendingRender = true; else render(); }
+document.addEventListener('pointerdown', () => { pointerDown = true; }, true);
+document.addEventListener('pointerup', () => { pointerDown = false; if (pendingRender) setTimeout(() => { if (pendingRender) { pendingRender = false; render(); } }, 0); }, true);
+function onChange(e) {
+  const t = e.target, d = t.dataset, v = t.value;
+  if (t.id === 'dat-file') { importDatFiles(t.files); return; }
+  if (t.id === 'wyn-file') { const f = t.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => { try { setWyn(rd.result, f.name, WYN?.zestaw || 12); toast('Odczytano ' + WYN.list.length + ' recept z ' + f.name + '.'); scheduleRender(); } catch (e) { toast('To nie jest plik BAZA_MMB.WYN.'); } }; rd.readAsArrayBuffer(f); return; }
+  if (t.id === 'wyn-z') { setWyn(WYN.buf, WYN.file, +v); scheduleRender(); return; }
+  if (t.id === 'wyn-q') { wynQ = v; scheduleRender(); return; }
+  if (t.id === 'zb-name') { LIBNAME = v.trim(); persist(); return; }
+  if (t.id === 'open-file') {
+    const f = t.files[0]; if (!f) return; const rd = new FileReader();
+    rd.onload = () => { try { const o = JSON.parse(rd.result); if (!o.project?.spec) throw 0; S = o.project; if (!S.binderId) { S.binders = clone(LEPISZCZA); S.binderId = PARAM.binderId; } tab = 'skl'; scheduleRender(); toast('Odczytano ' + f.name); } catch (er) { toast('To nie jest plik recepty MASA Web.'); } t.value = ''; };
+    rd.readAsText(f); return;
+  }
+  if (t.id?.startsWith('m-')) { S.meta[t.id.slice(2)] = v; scheduleRender(); return; }
+  if (t.id === 'mix-sel') { if (v !== 'custom') S.spec = specFromLib(v); else { S.spec.libId = 'custom'; S.spec.name = 'Nowy rodzaj M.M.A.'; S.spec.desc = 'Nowy rodzaj M.M.A.'; krzywaTryb = 'tekst'; } if (S.design) runDesign(S.design.mode, true); scheduleRender(); return; }
+  if (t.id === 'sp-name') { S.spec.desc = v; if (S.spec.libId === 'custom') S.spec.name = v; scheduleRender(); return; }
+  if (t.id === 'sp-przezn') { S.spec.przezn = v; return; }
+  if (t.id === 'sp-norm') { S.spec.norm = v ? +v : null; scheduleRender(); return; }
+  if (t.id === 'sp-bmin') { S.spec.bmin = pnum(v); scheduleRender(); return; }
+  if (t.id === 'sp-max') { S.spec.maxSito = v === '' ? null : +v; scheduleRender(); return; }
+  if (d.spec) { const n = pnum(v); if (n != null) S.spec[d.spec][+d.j] = n; designDirty = !!S.design; scheduleRender(); return; }
+  if (d.actOn != null) { S.spec.active[+d.actOn] = t.checked; designDirty = !!S.design; scheduleRender(); return; }
+  if (d.bnd != null) { S.binderId = +d.bnd; scheduleRender(); return; }
+  if (d.bf) { const bb = S.binders.find(x => x.id === +d.id); if (d.bf === 'name') bb.name = v; else { const n = pnum(v); if (d.bf === 'density') { if (n) bb.density = n; } else bb[d.bf] = n; } scheduleRender(); return; }
+  if (t.id === 'bsel') { S.binderId = +v; scheduleRender(); return; }
+  if (d.mf) {
+    const m = S.mats[+d.i]; const f = d.mf;
+    if (['name', 'cert', 'producer', 'src'].includes(f)) m[f] = v; else if (f === 'group') m.group = +v;
+    else if (f === 'min' || f === 'max') {
+      let n = pnum(v), msg = '';
+      if (n == null) { n = f === 'max' ? 100 : 0; if (v.trim() !== '') msg = 'Wpisz liczbę od 0 do 100.'; }
+      if (n > 100) { n = 100; msg = 'Udział nie może przekraczać 100 % – wpisano 100.'; }
+      if (n < 0) { n = 0; msg = 'Udział nie może być ujemny – wpisano 0.'; }
+      const lo = f === 'min' ? n : (+m.min || 0), hi = f === 'max' ? n : (m.max == null || m.max === '' ? 100 : +m.max);
+      if (lo > hi) { n = f === 'min' ? hi : lo; msg = `Min. udział nie może być większy od max. – wpisano ${fmt(n)} %.`; }
+      m[f] = n;
+      const sMin = S.mats.reduce((s, q) => s + (+q.min || 0), 0), sMax = S.mats.reduce((s, q) => s + (q.max == null || q.max === '' ? 100 : +q.max), 0);
+      if (!msg && sMin > 100) msg = `Suma minimalnych udziałów wynosi ${fmt(sMin)} % – przekracza 100 %.`;
+      if (!msg && sMax < 100) msg = `Suma maksymalnych udziałów wynosi ${fmt(sMax)} % – nie osiąga 100 %.`;
+      if (msg) toast(msg);
+    }
+    else { const n = pnum(v); m[f] = n == null ? 0 : n; }
+    if (['min', 'max'].includes(f) && S.design) designDirty = true;
+    scheduleRender(); return;
+  }
+  if (d.g != null) { const n = pnum(v); const m = S.mats[+d.g]; if (n != null || d.c === 'm0') { const c = d.c === 'm0' ? 'm0' : d.c === 'dno' ? 'dno' : +d.c; gramsSet(m, c, n ?? 0); const g = m.grams; if (m.gerr) toast(gErrMsg(m)); } if (S.design) designDirty = true; scheduleRender(); return; }
+  if (d.pass != null) { const n = pnum(v); if (n != null) analizaSet(S.mats[+d.pass], d.c === 'dno' ? 'dno' : +d.c, n); if (S.design) designDirty = true; scheduleRender(); return; }
+  if (d.x != null) { let n = pnum(v); if (n == null || !S.design) return; if (n > 100 || n < 0) { n = Math.max(0, Math.min(100, n)); toast('Udział musi mieścić się w przedziale 0 ÷ 100 %.'); } S.design.x[+d.x] = n; S.design.manual = true; S.design.infeasible = false; scheduleRender(); return; }
+  if (d.bp) { const [m, k] = d.bp.split('.'); S.binder.p[m][k] = k === 'basis' ? v : k === 'useAlpha' ? t.checked : pnum(v); S.binder.method = m; scheduleRender(); return; }
+  if (d.pg) { podglad[d.pg] = t.checked; scheduleRender(); return; }
+  if (t.id === 't-mass') { S.trial.mass = pnum(v) || 1200; scheduleRender(); return; }
+  if (t.id === 't-step') { S.trial.step = pnum(v) ?? 0.3; scheduleRender(); return; }
+  if (t.id === 't-n') { S.trial.n = +v; S.trial.bulk = []; scheduleRender(); return; }
+  if (d.bulk != null) { S.trial.bulk[+d.bulk] = pnum(v); scheduleRender(); return; }
+  const pmap = { 'p-batch': 'batch', 'p-rate': 'rate', 'p-tb': 'tBinder', 'p-ta': 'tAgg', 'p-tm': 'tMix', 'p-tc': 'tComp' };
+  if (pmap[t.id]) { S.plant[pmap[t.id]] = pnum(v) ?? S.plant[pmap[t.id]]; scheduleRender(); return; }
+  if (t.id === 'p-fill') { S.plant.fillerSeparate = v === '1'; scheduleRender(); return; }
+  if (t.id === 'p-bmode') { S.plant.binderByMass = v === '1'; scheduleRender(); return; }
+  if (d.bin != null) { const dd = +d.bin; S.plant.binSieves = t.checked ? [...S.plant.binSieves, dd] : S.plant.binSieves.filter(q => q !== dd); scheduleRender(); return; }
+  const cmap = { 'c-jd': 'jednostka', 'c-an': 'analiza', 'c-oa': 'ordAnal', 'c-ou': 'ordUz', 'c-or': 'ordRec' };
+  if (cmap[t.id]) { CFG[cmap[t.id]] = v; scheduleRender(); return; }
+  if (t.id === 'mat-curves') { CFG.matCurves = t.checked; lsSet(LS_CFG, { ...(lsGet(LS_CFG) || {}), cfg: CFG }); scheduleRender(); return; }
+  if (t.id === 'c-dec') { CFG.dec = +v; scheduleRender(); return; }
+}
+
+function onPaste(e) {
+  const t = e.target; if (!t.dataset || (t.dataset.pass == null && t.dataset.g == null)) return;
+  if (t.dataset.g != null) {
+    const vals = (e.clipboardData || window.clipboardData).getData('text').trim().split(/[\t;\n\r]+/).map(pnum).filter(v => v != null);
+    if (vals.length < 2) return; e.preventDefault();
+    const m = S.mats[+t.dataset.g], cols = ['m0', ...gramCols()], k0 = cols.findIndex(c => String(c) === t.dataset.c);
+    vals.forEach((v, k) => { if (k0 + k < cols.length) gramsSet(m, cols[k0 + k], v); });
+    if (S.design) designDirty = true; render(); toast(`Wklejono ${Math.min(vals.length, cols.length - k0)} wartości.`); return;
+  }
+  const txt = (e.clipboardData || window.clipboardData).getData('text');
+  const vals = txt.trim().split(/[\t;\n\r]+/).map(pnum).filter(v => v != null);
+  if (vals.length < 2) return;
+  e.preventDefault();
+  const i = +t.dataset.pass, cols = analizaCols(), k0 = cols.findIndex(c => String(c) === t.dataset.c);
+  const m = S.mats[i];
+  if (CFG.analiza === 'przesiew') vals.forEach((v, k) => { if (k0 + k < cols.length) m.passing[cols[k0 + k]] = Math.max(0, Math.min(100, v)); });
+  else vals.forEach((v, k) => { if (k0 + k < cols.length) analizaSet(m, cols[k0 + k], v); });
+  if (S.design) designDirty = true; render(); toast(`Wklejono ${Math.min(vals.length, cols.length - k0)} wartości.`);
+}
+
+document.addEventListener('click', onClick);
+document.addEventListener('change', onChange);
+document.addEventListener('paste', onPaste);
+document.addEventListener('keydown', e => { const m = e.target.closest?.('[data-meth]'); if (m && (e.key === 'Enter' || e.key === ' ') && e.target === m) { e.preventDefault(); S.binder.method = m.dataset.meth; render(); } });
+document.addEventListener('dragover', e => { const dz = e.target.closest?.('#drop'); if (dz) { e.preventDefault(); dz.classList.add('over'); } });
+document.addEventListener('dragleave', e => { const dz = e.target.closest?.('#drop'); if (dz) dz.classList.remove('over'); });
+document.addEventListener('drop', e => { const dz = e.target.closest?.('#drop'); if (dz) { e.preventDefault(); dz.classList.remove('over'); importDatFiles(e.dataTransfer.files); } });
+
+load(); render(); initDir();
+</script>
+</body></html>

@@ -58,6 +58,7 @@ function render(){
   if(key!=='pieniadze' && bkM){ bkM=false; bkRender(); }
   if(key!=='pieniadze' && finM){ finM=false; finRender(); }
   if(key!=='pieniadze' && sbM){ sbM=false; sbRender(); }
+  if(mmaM){ mmaM=false; mmaRender(); }
   window.scrollTo(0,0);
 }
 /* lista 3 ostatnio odwiedzanych podstron (dla kafli na stronie głównej) */
