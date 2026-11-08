@@ -13,13 +13,23 @@
    • listy i obiekty (np. ćwiczenia w planie) są w komórce jako „json:[…]”.
    Możesz dane przeglądać i poprawiać ręcznie — strona pobierze zmiany
    w ciągu ~30 s. Nie zmieniaj tylko nazw kart i nagłówków w wierszu 1.
+
+   SKRZYNKA (ikonka w prawym górnym rogu strony) — przesyłanie plików i tekstu
+   między telefonem a komputerem. Pliki NIE trafiają do Arkusza, tylko do folderu
+   „Pracownia – Skrzynka” na Twoim Dysku Google; po 7 dniach same idą do kosza.
+   Po wklejeniu nowej wersji tego pliku: Wdróż → Zarządzaj wdrożeniami → ołówek →
+   Wersja: Nowa wersja → Wdróż, i zgódź się na dostęp do Dysku (Google zapyta raz).
    ════════════════════════════════════════════════════════════════════════ */
 
 const KLUCZ = 'zmien-mnie';            // ← TU wpisz swoje hasło (min. kilkanaście znaków)
+const SKRZYNKA_FOLDER = 'Pracownia – Skrzynka';   // folder na Dysku Google
+const SKRZYNKA_DNI = 7;                            // po ilu dniach pliki ze skrzynki idą do kosza
 
 /* ——— strona pobiera dane (GET) ——— */
 function doGet(e) {
   const p = (e && e.parameter) || {};
+  /* skrzynka: ?akcja=lista | pobierz&id=… | usun&id=… | wyczysc | wyslij&tekst=… */
+  if (p.akcja) return odpowiedz(() => { sprawdzKlucz(p.klucz); return skrzynka(p.akcja, p); });
   /* zapis przez GET (?ops=[…]) — gdy przeglądarka nie przepuszcza POST */
   if (p.ops) {
     let n = 0;
@@ -41,6 +51,7 @@ function doPost(e) {
   return odpowiedz(() => {
     const body = JSON.parse(e.postData.contents);
     sprawdzKlucz(body.klucz);
+    if (body.akcja) return skrzynka(body.akcja, body);   /* skrzynka: wysłanie pliku (base64) albo tekstu */
     zapiszOperacje(body.ops || []);
     return wszystkieDane();               // w odpowiedzi aktualny stan — strona od razu go ma
   });
@@ -132,7 +143,50 @@ function zapiszOperacje(ops) {
   }
 }
 
+/* ——— SKRZYNKA: pliki i teksty w folderze na Dysku Google ———
+   opis pliku (description) = {"od":"nazwa urządzenia","tekst":true|false} */
+function folderSkrzynki() {
+  const it = DriveApp.getFoldersByName(SKRZYNKA_FOLDER);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(SKRZYNKA_FOLDER);
+}
+function plikZeSkrzynki(folder, id) {
+  const x = DriveApp.getFileById(String(id));
+  const rodzice = x.getParents();
+  if (!rodzice.hasNext() || rodzice.next().getId() !== folder.getId()) throw new Error('Tego pliku nie ma w skrzynce.');
+  return x;
+}
+function skrzynka(akcja, p) {
+  const folder = folderSkrzynki();
+  if (akcja === 'lista') {
+    const wynik = [], granica = Date.now() - SKRZYNKA_DNI * 864e5, it = folder.getFiles();
+    while (it.hasNext()) {
+      const x = it.next();
+      if (x.getDateCreated().getTime() < granica) { x.setTrashed(true); continue; }
+      let m = {}; try { m = JSON.parse(x.getDescription() || '{}'); } catch (e) {}
+      wynik.push({ id: x.getId(), nazwa: x.getName(), typ: x.getMimeType(), rozmiar: x.getSize(), kiedy: x.getDateCreated().getTime(),
+        od: m.od || '', tekst: m.tekst ? x.getBlob().getDataAsString('UTF-8').slice(0, 20000) : null });
+    }
+    return wynik.sort((a, b) => b.kiedy - a.kiedy);
+  }
+  if (akcja === 'wyslij') {
+    const tekst = p.tekst !== undefined && p.tekst !== null;
+    const blob = tekst ? Utilities.newBlob(String(p.tekst), 'text/plain', 'Tekst.txt')
+                       : Utilities.newBlob(Utilities.base64Decode(String(p.dane || '')), String(p.typ || 'application/octet-stream'), String(p.nazwa || 'plik').slice(0, 180));
+    const x = folder.createFile(blob);
+    x.setDescription(JSON.stringify({ od: String(p.od || '').slice(0, 40), tekst: tekst }));
+    return { id: x.getId() };
+  }
+  if (akcja === 'pobierz') {
+    const x = plikZeSkrzynki(folder, p.id), b = x.getBlob();
+    return { nazwa: x.getName(), typ: x.getMimeType(), dane: Utilities.base64Encode(b.getBytes()) };
+  }
+  if (akcja === 'usun') { plikZeSkrzynki(folder, p.id).setTrashed(true); return {}; }
+  if (akcja === 'wyczysc') { const it = folder.getFiles(); while (it.hasNext()) it.next().setTrashed(true); return {}; }
+  throw new Error('Nieznana akcja skrzynki: ' + akcja);
+}
+
 /* ——— test: w edytorze wybierz „test” i kliknij Uruchom — w Dzienniku zobaczysz listę kart ——— */
 function test() {
   Logger.log(Object.keys(wszystkieDane()));
+  Logger.log('Skrzynka: ' + skrzynka('lista', {}).length + ' plików');   // przy okazji Google poprosi o dostęp do Dysku
 }

@@ -32,6 +32,7 @@ css/
   15-subskrypcje.css        Subskrypcje
   17-pieniadze.css          Pieniądze → okienko Zakłady (bukmacherka)
   18-finanse.css            Pieniądze → okienko Finanse
+  20-skrzynka.css           Skrzynka: ikonka w nagłówku i panel przesyłania
   14-wyglad.css             styl „krem + ceramika” — ładuje się ostatni i nadpisuje resztę
 js/
   00-ustawienia.js          adres i hasło Arkusza Google (zapis danych na GitHub Pages)
@@ -50,6 +51,7 @@ js/
   13-router.js              lista podstron, przełączanie stron, motyw, menu
   15-subskrypcje.js         Subskrypcje: koszty, odnowienia, ile wydano — treść okienka w Pieniądzach (ładuje się przed routerem)
   16-pieniadze.js           Pieniądze: karty paneli + okienko Zakłady (bukmacherka) (wpłaty, wypłaty, bilans w czasie)
+  19-skrzynka.js            Skrzynka (ikonka w rogu): pliki i tekst telefon ↔ komputer przez Dysk Google
   18-cv.js                  CV: podgląd, edycja całego CV, eksport do PDF (dane kontaktowe tylko w Arkuszu)
   17-finanse.js             Finanse: konto główne + oszczędnościowe, wydatki/wpływy, stałe wpływy i opłaty, średnie, wlicza Zakłady i Subskrypcje
   14-szkice-formularzy.js   niezapisany tekst w formularzach przeżywa odświeżenie (localStorage) — ładuje się ostatni
