@@ -23,7 +23,7 @@ css/
   05-cv.css                 strona CV
   06-silownia.css           plany treningowe, wykres wagi, zakupy, dziennik treningów (okienko)
   07-todo.css               To-Do
-  08-notatki.css            Notatki
+  08-notatki.css            Notatki: 3 kolumny na komputerze, lista/notatka na telefonie, pasek nad klawiaturą
   09-telefon.css            wygląd na wąskich ekranach (telefon)
   10-kalkulatory.css        Kalkulatory + Wyniki Pawła / Wyniki moje
   11-posiadowki.css         Posiadówki
@@ -40,7 +40,7 @@ js/
   03-strona-glowna-i-cv.js  strona główna (ostatnio odwiedzane + widżety) i CV
   04-world-of-tanks.js      wszystkie zakładki WoT + Farming Simulator
   05-todo.js                To-Do
-  06-notatki.js             Notatki
+  06-notatki.js             Notatki: edytor jak w telefonie (formatowanie, checklisty, tabele), foldery, kolory, tagi, archiwum, kosz
   07-silownia.js            Siłownia: plany, dziennik treningów, waga, zakupy
   08-posiadowki.js          Posiadówki (rozliczanie domówek)
   09-kalkulatory.js         Kalkulatory, Wyniki Pawła, Wyniki moje
