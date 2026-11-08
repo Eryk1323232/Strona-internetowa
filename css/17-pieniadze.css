@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════════
-   PIENIĄDZE (INNE) — okienko „Bukmacherka”
+   PIENIĄDZE (INNE) — okienko „Zakłady” (bukmacherka)
    ════════════════════════════════════════════════════════════════════════
    Karty na stronie: .calc-card z Kalkulatorów. Okienko: .tr-modal/.tr-panel z Siłowni.
    Tabele i kafle liczb: .px-t i .px-cells z Posiadówek. Tu tylko dodatki (.bk-*).
@@ -75,5 +75,21 @@ table.bk-kt input.bk-name{font-weight:700;min-width:150px}
 button.bk-st{cursor:pointer}
 button.bk-st:not(.on){color:var(--muted)}
 tr.bk-zam td.px-prod input{color:var(--muted)}
+/* kafel „Limit wpłat” (piąty kafel; na telefonie na całą szerokość) */
+.grid.bk-cells{grid-template-columns:repeat(5,minmax(0,1fr))}
+.bk-lim .big{display:flex;align-items:baseline;gap:2px;font-size:30px!important;white-space:nowrap}
+input.bk-limin{width:52px;font-family:var(--f-mono);font-size:15px;color:var(--ink);background:transparent;border:0;border-bottom:1px dashed var(--muted);padding:2px 4px;margin-left:4px;height:auto}
+input.bk-limin:focus{outline:none;border-bottom:1px solid var(--accent)}
+.bk-bar{display:block;height:4px;background:var(--line);border-radius:999px;overflow:hidden}
+.bk-bar i{display:block;height:100%;background:var(--ok);border-radius:999px;transition:width .3s}
+.warn .bk-bar i{background:#D9A441}
+.over .bk-bar i{background:var(--bad)}
+.bk-lim.warn p{color:#D9A441}
+.bk-lim.over{border-color:var(--bad)!important}
+.bk-lim.over .big,.bk-lim.over p{color:var(--bad)}
+.bk-clim{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--muted);margin-top:2px}
+.bk-clim .bk-bar{width:100%;max-width:220px}
+.bk-clim.over{color:var(--bad)}
+@media (max-width:1100px){ .grid.bk-cells{grid-template-columns:repeat(3,minmax(0,1fr))} }
 @media (max-width:900px){ .bk-two{grid-template-columns:1fr} }
-@media (max-width:560px){ table.bk-t .bk-kc{display:none} table.bk-t .g-date{width:122px} table.bk-t input.bk-a{width:78px} form.bk-add input[name=a]{flex:1 1 110px} form.bk-add select{flex:1 1 140px} form.bk-add input[type=date]{flex:1 1 140px} form.bk-add button{flex:1 1 100%} .bk-typ{flex:1 1 100%} .bk-typ label{flex:1;text-align:center} }
+@media (max-width:560px){ .grid.bk-cells{grid-template-columns:repeat(2,minmax(0,1fr))} .grid.bk-cells .bk-lim{grid-column:1/-1} table.bk-t .bk-kc{display:none} table.bk-t .g-date{width:122px} table.bk-t input.bk-a{width:78px} form.bk-add input[name=a]{flex:1 1 110px} form.bk-add select{flex:1 1 140px} form.bk-add input[type=date]{flex:1 1 140px} form.bk-add button{flex:1 1 100%} .bk-typ{flex:1 1 100%} .bk-typ label{flex:1;text-align:center} }

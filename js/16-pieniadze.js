@@ -1,10 +1,12 @@
 /* ════════════════════════════════════════════════════════════════════════
-   PIENIĄDZE (INNE) — karty paneli + okienko „Bukmacherka”
+   PIENIĄDZE (INNE) — karty paneli + okienko „Zakłady” (bukmacherka)
    ════════════════════════════════════════════════════════════════════════
    pPieniadze()  – strona z kartami paneli; każda karta otwiera okienko (.tr-modal z Siłowni).
                    Nowy panel (np. „Finanse”): dopisz kartę w pPieniadze() i własne okienko.
 
-   BUKMACHERKA — śledzenie wpłat i wypłat u bukmacherów w czasie.
+   ZAKŁADY (bukmacherka) — śledzenie wpłat i wypłat u bukmacherów w czasie.
+   bkLimit  – miesięczny limit wpłat (wszystkie konta razem; chmura: kolekcja „bukCfg”, dokument „limit”).
+              Kafel „Limit wpłat”: pasek zapełnienia, żółty od 80%, czerwony po przekroczeniu. 0 = brak limitu.
    BK.konta  – konta u bukmacherów (chmura: kolekcja „bukKonta”, kopia w przeglądarce)
      n      nazwa (Superbet, Fortuna…)      st   'akt' aktywne · 'zam' zamknięte
      start  bilans sprzed zapisywania operacji (np. stare konto bez rozpisanych wpłat)
@@ -32,6 +34,12 @@ const bkPushO = x => { const {id,...d}=x; cloud(db=>db.collection('bukOps').doc(
 let bkM = false;                                  /* czy okienko jest otwarte */
 let bkF = store.get('bukFiltr','all');            /* 'all' albo id konta */
 let bkTyp = store.get('bukTyp','wp');             /* ostatnio wybrany typ w formularzu */
+let bkLimit = Math.max(0, +store.get('bukLimit','0')||0);
+const saveLimit = () => { store.set('bukLimit', String(bkLimit)); cloud(db=>db.collection('bukCfg').doc('limit').set({v:bkLimit})); };
+/* limit wpłat w bieżącym miesiącu — zawsze dla wszystkich kont razem */
+function bkLim(){ const m=todayISO().slice(0,7), wp=BK.ops.filter(o=>o.t==='wp'&&o.d.startsWith(m)).reduce((s,o)=>s+o.a,0), p=bkLimit?wp/bkLimit:0;
+  return {wp, p, cls:!bkLimit?'':p>1.0001?'over':p>=0.8?'warn':'ok', zost:bkLimit-wp,
+    mies:new Date().toLocaleDateString('pl-PL',{month:'long'})}; }
 
 /* ——— liczenie ——— */
 const bkKonta = () => [...BK.konta].sort((a,b)=>(a.st===b.st?0:a.st==='akt'?-1:1)||a.o-b.o);
@@ -93,11 +101,16 @@ function bkModalHtml(){
 
   const chips=`<div class="bk-chips" role="tablist">${[['all','Wszystkie'],...K.map(x=>[x.id,x.n,x.st])].map(([id,n,st])=>`<button type="button" role="tab" class="bk-chip${st==='zam'?' zam':''}" data-bkf="${esc(id)}" aria-selected="${bkF===id}">${id!=='all'?'<i aria-hidden="true"></i>':''}${esc(n)}</button>`).join('')}</div>`;
 
+  const LM=bkLim();
+  const limCell=`<div class="cell bk-lim ${LM.cls}"><span class="label">Limit wpłat · ${LM.mies.slice(0,3)}.</span>
+      <span class="big">${fmt(LM.wp,2)}<small>/</small><input class="bk-limin" data-bk="l|x|v" value="${bkLimit?fmt(bkLimit,bkLimit%1?2:0).replace(/\u00a0/g,''):''}" placeholder="—" inputmode="decimal" aria-label="Miesięczny limit wpłat w zł"><small>zł</small></span>
+      <div class="bk-bar" aria-hidden="true"><i style="width:${Math.min(100,LM.p*100).toFixed(1)}%"></i></div>
+      <p>${!bkLimit?'wpisz kwotę, żeby ustawić limit':LM.zost<-0.004?`przekroczony o ${fmt(-LM.zost,2)} zł`:`zostało ${fmt(LM.zost,2)} zł`}${bkF!=='all'?' · wszystkie konta':''}</p></div>`;
   const cells=`<div class="grid g4 px-cells bk-cells">
     <div class="cell"><span class="label">Bilans</span><span class="big ${bkCls(S.bil)}">${bkSign(S.bil)}<small>zł</small></span><p>${S.bil>=0?'wypłacono więcej, niż wpłacono':'wpłacono więcej, niż wypłacono'}</p></div>
     <div class="cell"><span class="label">Wpłacono</span><span class="big">${fmt(S.wp,2)}<small>zł</small></span><p>${S.nwp} ${S.nwp===1?'wpłata':S.nwp%10>=2&&S.nwp%10<=4&&(S.nwp%100<10||S.nwp%100>=20)?'wpłaty':'wpłat'}</p></div>
     <div class="cell"><span class="label">Wypłacono</span><span class="big">${fmt(S.wy,2)}<small>zł</small></span><p>${S.nwy} ${S.nwy===1?'wypłata':S.nwy%10>=2&&S.nwy%10<=4&&(S.nwy%100<10||S.nwy%100>=20)?'wypłaty':'wypłat'}${Math.abs(S.start)>0.004?` · ${bkSign(S.start)} zł sprzed zapisów`:''}</p></div>
-    <div class="cell"><span class="label">Ten miesiąc</span><span class="big ${bkCls(mNet)}">${mo.length?bkSign(mNet):'0,00'}<small>zł</small></span><p>${mo.length?`${mo.length} ${mo.length===1?'operacja':mo.length<5?'operacje':'operacji'}`:'brak operacji'}</p></div></div>`;
+    <div class="cell"><span class="label">Ten miesiąc</span><span class="big ${bkCls(mNet)}">${mo.length?bkSign(mNet):'0,00'}<small>zł</small></span><p>${mo.length?`${mo.length} ${mo.length===1?'operacja':mo.length<5?'operacje':'operacji'}`:'brak operacji'}</p></div>${limCell}</div>`;
 
   const aktywne=K.filter(x=>x.st==='akt'), domK=bkF!=='all'?bkF:(store.get('bukKonto','')&&BK.konta.some(x=>x.id===store.get('bukKonto',''))?store.get('bukKonto',''):(aktywne[0]||K[0]||{}).id);
   const add=K.length?`<form class="bk-add">
@@ -140,7 +153,7 @@ function bkModalHtml(){
     <tbody>${konta}<tr class="px-add"><td colspan="7"><form class="bk-addk"><input name="n" placeholder="+ Bukmacher, np. STS" aria-label="Nazwa nowego konta" autocomplete="off" maxlength="40" required><button type="submit">Dodaj</button></form></td></tr></tbody>
     <tfoot><tr class="px-sum"><td colspan="3">Razem</td><td class="n">${fmt(all.wp,2)}</td><td class="n">${fmt(all.wy,2)}</td><td class="n ${bkCls(all.bil)}">${bkSign(all.bil)}</td><td></td></tr></tfoot></table></div>`;
 
-  return `<div class="tr-top"><div><span class="label">Pieniądze</span><h2>Bukmacherka</h2></div>${close}</div>
+  return `<div class="tr-top"><div><span class="label">Pieniądze · bukmacherka</span><h2>Zakłady</h2></div>${close}</div>
     ${chips}${cells}
     <section class="bk-sec">${add}</section>
     <section class="bk-sec"><h3>Bilans w czasie</h3><div class="chart bk-chart">${bkChart(S)}<div class="w-tip bk-tip" id="bkTip" hidden></div></div></section>
@@ -156,14 +169,14 @@ function bkRender(){
   const a=document.activeElement, key=a&&a.dataset&&a.dataset.bk, inAdd=a&&a.closest&&a.closest('form.bk-add,form.bk-addk'), fname=inAdd&&a.name, fcls=inAdd&&inAdd.className;
   const y=md?md.scrollTop:0, fresh=!md;
   if(fresh){ sc=document.createElement('div'); sc.id='bkScrim'; sc.className='tr-scrim'; document.body.appendChild(sc);
-    md=document.createElement('div'); md.id='bkModal'; md.className='tr-modal'; md.setAttribute('role','dialog'); md.setAttribute('aria-modal','true'); md.setAttribute('aria-label','Bukmacherka'); document.body.appendChild(md); }
+    md=document.createElement('div'); md.id='bkModal'; md.className='tr-modal'; md.setAttribute('role','dialog'); md.setAttribute('aria-modal','true'); md.setAttribute('aria-label','Zakłady'); document.body.appendChild(md); }
   document.body.classList.add('tr-lock'); md.innerHTML=`<div class="tr-panel bk-panel">${bkModalHtml()}</div>`; md.scrollTop=fresh?0:y;
   if(key){ const el=md.querySelector(`[data-bk="${CSS.escape(key)}"]`); if(el) el.focus(); }
   else if(inAdd){ const el=md.querySelector(`form.${fcls.split(' ')[0]} [name="${fname}"]`); el&&el.focus(); }
   else if(fresh){ const f=md.querySelector('form.bk-add [name="a"]'); if(f && matchMedia('(pointer:fine)').matches) setTimeout(()=>f.focus(),30); }
 }
-function bkCard(){ const S=bkSum('all'), akt=BK.konta.filter(k=>k.st==='akt').length;
-  return `<span class="bk-cbil ${bkCls(S.bil)}">${bkSign(S.bil)} zł</span><span class="calc-count">${S.ops.length} ${S.ops.length===1?'operacja':S.ops.length%10>=2&&S.ops.length%10<=4&&(S.ops.length%100<10||S.ops.length%100>=20)?'operacje':'operacji'} · ${akt} ${akt===1?'aktywne konto':'aktywne konta'}</span>`; }
+function bkCard(){ const S=bkSum('all'), akt=BK.konta.filter(k=>k.st==='akt').length, LM=bkLim();
+  return `<span class="bk-cbil ${bkCls(S.bil)}">${bkSign(S.bil)} zł</span>${bkLimit?`<span class="bk-clim ${LM.cls}">Limit: ${fmt(LM.wp,2)} / ${fmt(bkLimit,bkLimit%1?2:0)} zł<span class="bk-bar"><i style="width:${Math.min(100,LM.p*100).toFixed(1)}%"></i></span></span>`:''}<span class="calc-count">${S.ops.length} ${S.ops.length===1?'operacja':S.ops.length%10>=2&&S.ops.length%10<=4&&(S.ops.length%100<10||S.ops.length%100>=20)?'operacje':'operacji'} · ${akt} ${akt===1?'aktywne konto':'aktywne konta'}</span>`; }
 function bkRefresh(){ const c=$('#bkCard'); if(c) c.innerHTML=bkCard(); if(bkM) bkRender(); }
 
 /* ——— strona Pieniądze ——— */
@@ -171,7 +184,7 @@ function pPieniadze(){
   return `<h1>Pienią<span class="acc">dze</span></h1>
   <div class="calc-cards" id="bkPage">
     <button type="button" class="calc-card res bk-card" data-bkact="open"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="10" width="36" height="28" rx="3"/><path d="M6 18h36"/><path d="M12 30l6-6 5 4 8-9 5 4"/></svg></div>
-      <h2>Bukmacherka</h2><span id="bkCard" class="bk-cinfo">${bkCard()}</span><span class="calc-open">Otwórz →</span></button>
+      <h2>Zakłady</h2><span id="bkCard" class="bk-cinfo">${bkCard()}</span><span class="calc-open">Otwórz →</span></button>
     <article class="calc-card"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14h28a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z"/><path d="M8 14l24-6v6"/><path d="M40 24h-8a3 3 0 0 0 0 6h8"/></svg></div>
       <h2>Finanse</h2><span class="calc-soon">w przygotowaniu</span></article>
   </div>`;
@@ -202,6 +215,7 @@ document.addEventListener('change', e=>{
   if(el.name==='t' && el.closest('form.bk-add')){ bkTyp=el.value; store.set('bukTyp',bkTyp); return; }
   const key=el.dataset&&el.dataset.bk; if(!key) return;
   const [kind,id,f]=key.split('|'), v=el.value;
+  if(kind==='l'){ const n=String(v).trim()?bkNum(v):0; if(!isNaN(n)&&n>=0){ bkLimit=n; saveLimit(); } setTimeout(bkRefresh,0); return; }
   setTimeout(()=>{
     if(kind==='k') bkUpdK(id, x=>{ if(f==='n'){ if(v.trim()) x.n=v.trim(); } else if(f==='start'){ const n=bkNum(v); if(!isNaN(n)) x.start=n; } });
     else bkUpdO(id, o=>{ if(f==='a'){ const n=bkNum(v); if(!isNaN(n)&&n>0) o.a=n; } else if(f==='d'){ if(bkIso(v)) o.d=v; } else if(f==='t'||f==='k'){ o[f]=v; } });
