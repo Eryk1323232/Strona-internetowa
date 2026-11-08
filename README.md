@@ -1,6 +1,6 @@
 # Pracownia — prywatna strona Eryka
 
-Strona do codziennego użytku: studia (To-Do, notatki, kalkulatory, dyski), gry (World of Tanks, Farming Simulator 25) i sprawy prywatne (siłownia, posiadówki).
+Strona do codziennego użytku: studia (To-Do, notatki, kalkulatory, dyski), gry (World of Tanks, Farming Simulator 25) i sprawy prywatne (siłownia, posiadówki, subskrypcje, pieniądze).
 Czysty HTML + CSS + JavaScript — bez instalowania czegokolwiek i bez „budowania”.
 
 ## Jak uruchomić
@@ -30,6 +30,7 @@ css/
   12-dyski.css              Dyski
   13-strona-glowna-i-pasek.css  strona główna (kafle, widżety) i dolny pasek
   15-subskrypcje.css        Subskrypcje
+  17-pieniadze.css          Pieniądze → okienko Bukmacherka
   14-wyglad.css             styl „krem + ceramika” — ładuje się ostatni i nadpisuje resztę
 js/
   00-ustawienia.js          adres i hasło Arkusza Google (zapis danych na GitHub Pages)
@@ -47,6 +48,7 @@ js/
   12-synchronizacja.js      synchronizacja z chmurą (działa tylko na claude.ai)
   13-router.js              lista podstron, przełączanie stron, motyw, menu
   15-subskrypcje.js         Subskrypcje: koszty, odnowienia, ile wydano (ładuje się przed routerem)
+  16-pieniadze.js           Pieniądze: karty paneli + okienko Bukmacherka (wpłaty, wypłaty, bilans w czasie)
   14-szkice-formularzy.js   niezapisany tekst w formularzach przeżywa odświeżenie (localStorage) — ładuje się ostatni
 apps-script/
   Kod.gs                    kod do wklejenia w Arkusz Google → Rozszerzenia → Apps Script

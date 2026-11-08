@@ -182,6 +182,11 @@ function arkuszDb(url, klucz){
     let sbF=true;
     gdb.collection('subskrypcje').onSnapshot(s=>{ if(sbF&&s.empty&&wyslijLokalne()&&SUB.length){ sbF=false; SUB.forEach(subPush); return ok(); }
       sbF=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.sk) return; SUB=s.docs.map(d=>subNorm(d.id,d.data())); saveSub(); ok(); }, fail);
+    let bkF1=true, bkF2=true;   /* Pieniądze → Bukmacherka */
+    gdb.collection('bukKonta').onSnapshot(s=>{ if(bkF1&&s.empty&&wyslijLokalne()&&BK.konta.length){ bkF1=false; BK.konta.forEach(bkPushK); return ok(); }
+      bkF1=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.bk) return; BK.konta=s.docs.map(d=>bkKNorm(d.id,d.data())); saveBk(); ok(); }, fail);
+    gdb.collection('bukOps').onSnapshot(s=>{ if(bkF2&&s.empty&&wyslijLokalne()&&BK.ops.length){ bkF2=false; BK.ops.forEach(bkPushO); return ok(); }
+      bkF2=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.bk) return; BK.ops=s.docs.map(d=>bkONorm(d.id,d.data())); saveBk(); ok(); }, fail);
     let plF=true;
     gdb.collection('plany').onSnapshot(s=>{ if(plF&&s.empty&&wyslijLokalne()&&PL.length){ plF=false; PL.forEach(plPush); return ok(); }
       plF=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.pk) return; PL=s.docs.map(d=>plNorm(d.id,d.data())); savePlans(); ok(); }, fail);

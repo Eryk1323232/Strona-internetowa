@@ -1,0 +1,79 @@
+/* ════════════════════════════════════════════════════════════════════════
+   PIENIĄDZE (INNE) — okienko „Bukmacherka”
+   ════════════════════════════════════════════════════════════════════════
+   Karty na stronie: .calc-card z Kalkulatorów. Okienko: .tr-modal/.tr-panel z Siłowni.
+   Tabele i kafle liczb: .px-t i .px-cells z Posiadówek. Tu tylko dodatki (.bk-*).
+   Kolory wyniku: .bk-plus (zielony, na plusie) · .bk-minus (czerwony, na minusie).
+   ════════════════════════════════════════════════════════════════════════ */
+.bk-plus{color:var(--ok)!important}
+.bk-minus{color:var(--bad)!important}
+/* karta na stronie */
+.bk-cinfo{display:flex;flex-direction:column;gap:4px}
+.bk-cbil{font-family:var(--f-mono);font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
+/* okienko — szersze niż w Siłowni */
+.tr-panel.bk-panel{width:min(1180px,100%)}
+.bk-sec{margin-top:26px}
+.bk-sec h3{margin:0 0 12px}
+.bk-two{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:0 28px;align-items:start}
+/* filtr kont */
+.bk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.bk-chip{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);font-family:var(--f-body);font-size:13.5px;font-weight:600;cursor:pointer}
+.bk-chip i{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.bk-chip.zam i{background:var(--muted)}
+.bk-chip:hover{color:var(--ink);border-color:var(--ink)}
+.bk-chip[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.bk-cells .big{white-space:nowrap}
+/* formularz nowej operacji */
+form.bk-add,form.bk-addk{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+form.bk-add input,form.bk-add select,form.bk-addk input{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:7px 10px;font-size:14px;color:var(--ink);font-family:var(--f-body);height:40px}
+form.bk-add input[name=a]{width:130px;font-family:var(--f-mono);font-size:15px}
+form.bk-add input[type=date]{width:150px;font-family:var(--f-mono)}
+form.bk-add select{min-width:150px}
+form.bk-addk input{width:230px;height:36px}
+form.bk-add input:focus,form.bk-add select:focus,form.bk-addk input:focus{outline:none;border-color:var(--accent)}
+form.bk-add button,form.bk-addk button{height:40px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);padding:0 20px;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:14px}
+form.bk-addk button{height:36px;padding:0 16px;font-size:13.5px}
+form.bk-add button:hover,form.bk-addk button:hover{background:var(--accent);color:var(--accent-ink)}
+form.bk-add .tr-err{margin:0 0 0 6px;flex-basis:100%}
+form.bk-add .tr-err:empty{display:none}
+.bk-typ{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
+.bk-typ label{position:relative;cursor:pointer}
+.bk-typ input{position:absolute;opacity:0;width:1px;height:1px}
+.bk-typ span{display:block;padding:8px 16px;border-radius:999px;font-size:13.5px;font-weight:600;color:var(--muted)}
+.bk-typ .t-wp input:checked+span{background:var(--bad);color:var(--surface)}
+.bk-typ .t-wy input:checked+span{background:var(--ok);color:var(--surface)}
+.bk-typ input:focus-visible+span{outline:2px solid var(--accent);outline-offset:1px}
+/* wykres */
+.bk-chart{position:relative}
+.bk-chart svg{max-height:320px;min-width:560px}
+.bk-chart .bk-grid{stroke:var(--line-soft)}
+.bk-chart .bk-zero{stroke:var(--muted);stroke-dasharray:4 4;opacity:.7}
+.bk-chart .bk-line{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linejoin:round}
+.bk-chart .bk-area-up{fill:var(--ok);opacity:.12}
+.bk-chart .bk-area-dn{fill:var(--bad);opacity:.14}
+.bk-chart .bk-dot{fill:var(--surface);stroke:var(--ink);stroke-width:2}
+.bk-chart .bk-dot.bk-plus{stroke:var(--ok)}
+.bk-chart .bk-dot.bk-minus{stroke:var(--bad)}
+.bk-chart circle.bk-hit{cursor:pointer;outline:none}
+.bk-tip i{display:block;font-family:var(--f-mono);font-weight:500!important}
+.bk-tip i.bk-plus{color:var(--ok)!important}
+.bk-tip i.bk-minus{color:var(--mark)!important}
+/* tabele */
+table.bk-t td{white-space:nowrap}
+table.bk-t .g-date{width:140px}
+table.bk-t input.bk-a{width:96px;text-align:right;font-family:var(--f-mono)}
+.bk-amt{display:inline-flex;align-items:center;gap:2px}
+.bk-amt em{font-style:normal;font-family:var(--f-mono);width:10px;text-align:right}
+tr.bk-r-wp .bk-amt em{color:var(--bad)}
+tr.bk-r-wy .bk-amt em{color:var(--ok)}
+select.bk-sel{font-family:var(--f-body);font-size:13.5px;padding:5px 8px;height:32px}
+select.bk-t.t-wp{color:var(--bad)}
+select.bk-t.t-wy{color:var(--ok)}
+td.bk-mn{padding:8px 10px!important;text-transform:capitalize}
+table.bk-mt{width:100%}
+table.bk-kt input.bk-name{font-weight:700;min-width:150px}
+button.bk-st{cursor:pointer}
+button.bk-st:not(.on){color:var(--muted)}
+tr.bk-zam td.px-prod input{color:var(--muted)}
+@media (max-width:900px){ .bk-two{grid-template-columns:1fr} }
+@media (max-width:560px){ table.bk-t .bk-kc{display:none} table.bk-t .g-date{width:122px} table.bk-t input.bk-a{width:78px} form.bk-add input[name=a]{flex:1 1 110px} form.bk-add select{flex:1 1 140px} form.bk-add input[type=date]{flex:1 1 140px} form.bk-add button{flex:1 1 100%} .bk-typ{flex:1 1 100%} .bk-typ label{flex:1;text-align:center} }

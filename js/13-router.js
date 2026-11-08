@@ -19,6 +19,7 @@ const ROUTES = {
   'silownia':{title:'Siłownia', parent:'inne', render:pGym},
   'posiadowki':{title:'Posiadówki', parent:'inne', render:pPos},
   'subskrypcje':{title:'Subskrypcje', parent:'inne', render:pSub},
+  'pieniadze':{title:'Pieniądze', parent:'inne', render:pPieniadze},
   'todo':    {title:'To-Do', parent:'studia', render:pTodo},
   'notatki': {title:'Notatki', parent:'studia', render:pNotes},
   'kalkulatory':{title:'Kalkulatory', parent:'studia', render:pCalcs},
@@ -53,6 +54,7 @@ function render(){
   if(key!=='silownia' && trM){ trM=null; trRender(); }
   if(key!=='kalkulatory' && mxM){ mxM=null; mxRender(); }
   if(key!=='dyski' && dkM){ dkM=null; dkRender(); }
+  if(key!=='pieniadze' && bkM){ bkM=false; bkRender(); }
   window.scrollTo(0,0);
 }
 /* lista 3 ostatnio odwiedzanych podstron (dla kafli na stronie głównej) */
