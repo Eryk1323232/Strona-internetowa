@@ -14,7 +14,6 @@
 form.fin-add{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 form.fin-add input,form.fin-add select{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:7px 10px;font-size:14px;color:var(--ink);font-family:var(--f-body);height:40px}
 form.fin-add input[name=a]{width:110px;font-family:var(--f-mono);font-size:15px}
-form.fin-add input[name=kat]{width:140px}
 form.fin-add input[name=n]{flex:1 1 150px;min-width:120px}
 form.fin-add input[type=date]{width:150px;font-family:var(--f-mono)}
 form.fin-add input:focus,form.fin-add select:focus{outline:none;border-color:var(--accent)}
@@ -22,12 +21,31 @@ form.fin-add button{height:40px;border:0;border-radius:999px;background:var(--in
 form.fin-add button:hover{background:var(--accent);color:var(--accent-ink)}
 form.fin-add .tr-err{flex-basis:100%}
 form.fin-add .tr-err:empty{display:none}
-form.fin-add .fin-dir{display:none}
-form.fin-add[data-t="prz"] .fin-dir{display:block}
-form.fin-add[data-t="prz"] .fin-konto,form.fin-add[data-t="prz"] .fin-kat{display:none}
+form.fin-add select.fin-kat{min-width:150px}
+select.fin-katsel{min-width:120px}
 .fin-typ .t-wyd input:checked+span{background:var(--bad);color:var(--surface)}
 .fin-typ .t-wpl input:checked+span{background:var(--ok);color:var(--surface)}
 .fin-typ .t-prz input:checked+span{background:var(--ink);color:var(--bg)}
+/* przelew na kafelku konta */
+.fin-acc{position:relative}
+.fin-pbtn{align-self:flex-start;margin-top:4px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 14px;font-family:var(--f-body);font-size:13px;font-weight:600;cursor:pointer}
+.fin-pbtn:hover{border-color:var(--accent);color:var(--accent)}
+.fin-pbox{display:flex;flex-direction:column;gap:8px;margin-top:4px;padding-top:10px;border-top:1px solid var(--line)}
+.fin-ph{font-size:12px;color:var(--muted);font-weight:600}
+.fin-pq{display:flex;flex-wrap:wrap;gap:6px}
+.fin-pq button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 11px;font-family:var(--f-mono);font-size:12.5px;cursor:pointer}
+.fin-pq button:hover:not(:disabled){background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.fin-pq button:disabled{opacity:.35;cursor:default}
+form.fin-pform{display:flex;gap:6px}
+form.fin-pform input{flex:1 1 auto;min-width:0;width:90px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:var(--r-sm);padding:6px 9px;font-family:var(--f-mono);font-size:13.5px;height:34px}
+form.fin-pform input:focus{outline:none;border-color:var(--accent)}
+form.fin-pform button{height:34px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);padding:0 14px;font-family:var(--f-body);font-weight:600;font-size:13px;cursor:pointer}
+form.fin-pform button:hover{background:var(--accent);color:var(--accent-ink)}
+form.fin-pform button.fin-pcancel{background:none;border:1px solid var(--line);color:var(--muted);padding:0 11px}
+.fin-pbox .tr-err{margin:0;font-size:12.5px}
+.fin-pbox .tr-err:empty{display:none}
+.fin-pmsg{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent);border-radius:var(--r-sm);padding:6px 6px 6px 10px}
+.fin-pmsg button{border:1px solid currentColor;background:none;color:inherit;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;cursor:pointer}
 /* średnie */
 .fin-avgbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 12px}
 .fin-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
@@ -127,5 +145,6 @@ table.fin-ust{min-width:460px}
   .fin-avgcells{grid-template-columns:minmax(0,1fr)!important}
   table.fin-t .fin-kc{display:none} table.fin-t input.fin-katin{width:96px}
   .fin-mnav b{min-width:120px}
+  .grid.fin-cells .fin-acc{grid-column:1/-1}
   .fin-cells .big{font-size:24px!important} .fin-cells .big small{font-size:10px} .fin-hbar .bk-chips{flex-wrap:nowrap;overflow-x:auto;max-width:100%}
 }
