@@ -84,6 +84,27 @@ tr.fin-pre td,tr.fin-fut td{opacity:.55}
 input.fin-dt{width:28px;height:28px;padding:0;border:0;background:transparent;color:transparent;cursor:pointer;vertical-align:middle;color-scheme:inherit}
 input.fin-dt::-webkit-datetime-edit{display:none}
 input.fin-dt:focus{outline:1px solid var(--accent)}
+/* stałe wpływy i opłaty */
+table.fin-st td{white-space:nowrap}
+table.fin-st input.fin-sn{font-weight:700;min-width:120px;width:140px}
+table.fin-st .g-date{width:128px;font-size:13px}
+table.fin-st input.fin-katin{width:100px}
+table.fin-st input.bk-a{width:84px}
+td.fin-dz{color:var(--muted);font-size:13.5px}
+td.fin-dz input.g-q{width:44px;text-align:center}
+tr.fin-off td{opacity:.5}
+table.fin-st tfoot td{font-size:13.5px}
+table.fin-st tfoot b{font-family:var(--f-mono);font-weight:500;margin:0 2px}
+form.fin-adds{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+form.fin-adds input,form.fin-adds select{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:7px 10px;font-size:14px;color:var(--ink);font-family:var(--f-body);height:36px}
+form.fin-adds input[name=n]{width:220px} form.fin-adds input[name=a]{width:100px;font-family:var(--f-mono)}
+form.fin-adds .fin-dzl{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13.5px}
+form.fin-adds .fin-dzl input{width:52px;text-align:center;font-family:var(--f-mono)}
+form.fin-adds input:focus,form.fin-adds select:focus{outline:none;border-color:var(--accent)}
+form.fin-adds button{height:36px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);padding:0 16px;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:13.5px}
+form.fin-adds button:hover{background:var(--accent);color:var(--accent-ink)}
+form.fin-adds .tr-err:empty{display:none}
+.fin-tag-stale{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
 /* kategorie */
 .fin-kat-l{display:flex;flex-direction:column;gap:12px}
 .fin-kr{display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:baseline}

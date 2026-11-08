@@ -27,6 +27,21 @@ let BK = {konta:[], ops:[]};
   try{ k=JSON.parse(store.get('bukKonta','null')); o=JSON.parse(store.get('bukOps','null')); }catch(e){}
   if(!Array.isArray(k) && !Array.isArray(o) && typeof BUK_START==='object'){ k=BUK_START.konta; o=BUK_START.ops; }   /* pierwszy raz: dane z Excela */
   BK.konta=(k||[]).map(x=>bkKNorm(x.id,x)); BK.ops=(o||[]).map(x=>bkONorm(x.id,x)); })();
+/* ——— import z Excela (karta „Bukmacherka” w Prywatne.xlsx → BUK_START w js/01-dane.js) ———
+   Dopisuje tylko to, czego brakuje (konto po nazwie, operacja po koncie + dacie + rodzaju + kwocie),
+   więc można kliknąć kilka razy bez dublowania. Wykonuje się też sam jeden raz po połączeniu z chmurą
+   (znacznik: kolekcja „bukCfg”, dokument „import”). */
+function bkImport(){
+  if(typeof BUK_START!=='object') return 0;
+  let n=0; const mapa={};
+  BUK_START.konta.forEach(k=>{ const jest=BK.konta.find(x=>x.id===k.id || x.n.trim().toLowerCase()===k.n.toLowerCase());
+    if(jest){ mapa[k.id]=jest.id; return; } const x=bkKNorm(k.id,k); BK.konta=[...BK.konta,x]; mapa[k.id]=x.id; bkPushK(x); n++; });
+  BUK_START.ops.forEach(o=>{ const k=mapa[o.k]||o.k;
+    if(BK.ops.some(x=>x.id===o.id || (x.k===k && x.d===o.d && x.t===o.t && Math.abs(x.a-o.a)<0.005))) return;
+    const x=bkONorm(o.id,{...o, k}); BK.ops=[...BK.ops,x]; bkPushO(x); n++; });
+  saveBk(); store.set('bukImport','1'); cloud(db=>db.collection('bukCfg').doc('import').set({v:1, t:Date.now()}));
+  return n;
+}
 const saveBk = () => { store.set('bukKonta', JSON.stringify(BK.konta)); store.set('bukOps', JSON.stringify(BK.ops)); };
 const bkPushK = x => { const {id,...d}=x; cloud(db=>db.collection('bukKonta').doc(id).set(d)); };
 const bkPushO = x => { const {id,...d}=x; cloud(db=>db.collection('bukOps').doc(id).set(d)); };
@@ -150,7 +165,7 @@ function bkModalHtml(){
       <td class="n"><button type="button" class="g-del" data-bkdel="k|${esc(x.id)}" aria-label="Usuń konto">×</button></td></tr>`; }).join('');
   const all=bkSum('all');
   const kontaT=`<div class="tbl-wrap px-wrap"><table class="px-t bk-t bk-kt"><thead><tr><th>Bukmacher</th><th>Status konta</th><th class="n">Bilans sprzed zapisów</th><th class="n">Wpłaty</th><th class="n">Wypłaty</th><th class="n">Bilans</th><th></th></tr></thead>
-    <tbody>${konta}<tr class="px-add"><td colspan="7"><form class="bk-addk"><input name="n" placeholder="+ Bukmacher, np. STS" aria-label="Nazwa nowego konta" autocomplete="off" maxlength="40" required><button type="submit">Dodaj</button></form></td></tr></tbody>
+    <tbody>${konta}<tr class="px-add"><td colspan="7"><form class="bk-addk"><input name="n" placeholder="+ Bukmacher, np. STS" aria-label="Nazwa nowego konta" autocomplete="off" maxlength="40" required><button type="submit">Dodaj</button><button type="button" class="bk-imp" data-bkimp="1">Importuj z Excela</button><span class="bk-impmsg" id="bkImpMsg"></span></form></td></tr></tbody>
     <tfoot><tr class="px-sum"><td colspan="3">Razem</td><td class="n">${fmt(all.wp,2)}</td><td class="n">${fmt(all.wy,2)}</td><td class="n ${bkCls(all.bil)}">${bkSign(all.bil)}</td><td></td></tr></tfoot></table></div>`;
 
   return `<div class="tr-top"><div><span class="label">Pieniądze · bukmacherka</span><h2>Zakłady</h2></div>${close}</div>
@@ -226,6 +241,7 @@ document.addEventListener('click', e=>{
   const hit=e.target.closest&&e.target.closest('circle.bk-hit'); if(hit) return bkTipShow(hit);   /* telefon: dotknięcie punktu */
   const act=e.target.closest('[data-bkact]');
   if(act){ bkM=act.dataset.bkact==='open'; return bkRender(); }
+  if(e.target.closest('[data-bkimp]')){ const n=bkImport(); bkRefresh(); const m=$('#bkImpMsg'); if(m) m.textContent=n?`Dodano ${n} ${n===1?'wpis':n<5?'wpisy':'wpisów'} z Excela.`:'Wszystko z Excela już tu jest.'; return; }
   const ch=e.target.closest('[data-bkf]'); if(ch){ bkF=ch.dataset.bkf; store.set('bukFiltr',bkF); return bkRender(); }
   const st=e.target.closest('[data-bkst]'); if(st) return bkUpdK(st.dataset.bkst, x=>{ x.st=x.st==='akt'?'zam':'akt'; });
   const b=e.target.closest('[data-bkdel]'); if(!b) return;

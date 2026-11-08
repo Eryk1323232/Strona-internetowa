@@ -188,13 +188,19 @@ function arkuszDb(url, klucz){
     gdb.collection('bukOps').onSnapshot(s=>{ if(bkF2&&s.empty&&wyslijLokalne()&&BK.ops.length){ bkF2=false; BK.ops.forEach(bkPushO); return ok(); }
       bkF2=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.bk) return; BK.ops=s.docs.map(d=>bkONorm(d.id,d.data())); saveBk(); ok(); }, fail);
     let bkF3=true;
-    gdb.collection('bukCfg').onSnapshot(s=>{ if(bkF3&&s.empty&&wyslijLokalne()&&bkLimit){ bkF3=false; saveLimit(); return ok(); }
+    gdb.collection('bukCfg').onSnapshot(s=>{
+      /* jednorazowy import danych z Excela do Zakładów (gdy chmura nie ma znacznika „import”) — po wczytaniu kont i operacji */
+      if(bkF3 && !s.docs.some(d=>d.id==='import')) setTimeout(()=>{ bkImport(); bkRefresh(); }, 2500);
+      if(bkF3&&s.empty&&wyslijLokalne()&&bkLimit){ bkF3=false; saveLimit(); return ok(); }
       bkF3=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.bk) return; const d=s.docs.find(x=>x.id==='limit'); bkLimit=d?Math.max(0,+(d.data()||{}).v||0):0; store.set('bukLimit',String(bkLimit)); ok(); }, fail);
     let fnF1=true, fnF2=true;   /* Pieniądze → Finanse */
     gdb.collection('finOps').onSnapshot(s=>{ if(fnF1&&s.empty&&wyslijLokalne()&&FIN.ops.length){ fnF1=false; FIN.ops.forEach(finPushO); return ok(); }
       fnF1=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.fn) return; FIN.ops=s.docs.map(d=>finONorm(d.id,d.data())); saveFin(); ok(); }, fail);
     gdb.collection('finCfg').onSnapshot(s=>{ if(fnF2&&s.empty&&wyslijLokalne()&&FIN.cfg.u){ fnF2=false; finPushCfg(); return ok(); }
       fnF2=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.fn) return; const d=s.docs.find(x=>x.id==='cfg'); if(d) FIN.cfg=finCfgNorm(d.data()); saveFin(); ok(); }, fail);
+    let fnF3=true;
+    gdb.collection('finStale').onSnapshot(s=>{ if(fnF3&&s.empty&&wyslijLokalne()&&FIN.stale.length){ fnF3=false; FIN.stale.forEach(finPushS); return ok(); }
+      fnF3=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.fn) return; FIN.stale=s.docs.map(d=>finSNorm(d.id,d.data())); saveFin(); ok(); }, fail);
     let plF=true;
     gdb.collection('plany').onSnapshot(s=>{ if(plF&&s.empty&&wyslijLokalne()&&PL.length){ plF=false; PL.forEach(plPush); return ok(); }
       plF=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.pk) return; PL=s.docs.map(d=>plNorm(d.id,d.data())); savePlans(); ok(); }, fail);
