@@ -1,8 +1,10 @@
 /* ════════════════════════════════════════════════════════════════════════
-   PRACA (STUDIA) — dziennik badań do pracy inżynierskiej
+   PRACA (STUDIA) — dziennik badań do pracy inżynierskiej (moja część: projektowanie MMA)
+   Podział pracy: najpierw lepiszcza Pawła (asfalt + SBS + olej → Kalkulatory → Wyniki Pawła),
+   potem moje mieszanki mineralno-asfaltowe na tych lepiszczach (Kalkulatory → Wyniki moje).
    ════════════════════════════════════════════════════════════════════════
    PR – wpisy badań (chmura: kolekcja „badania”):
-     d data · b badanie · p próbka / mieszanka · u jednostka · w pomiary [liczby]
+     d data · b badanie · p próbka / mieszanka MMA · l lepiszcze (mieszanka Pawła) · u jednostka · w pomiary [liczby]
      war warunki (temperatura, sprzęt…) · n uwagi · ai wnioski z weryfikacji AI · c kolejność
    Szybka kontrola (prKontrola) — liczona na stronie, bez internetu:
      • rozrzut pomiarów: współczynnik zmienności > PR_CV %,
@@ -10,17 +12,23 @@
      • mniej niż 2 pomiary (nie da się ocenić powtarzalności).
    Weryfikacja AI (prAi) — składa gotowe pytanie z wpisem i historią tego badania,
      kopiuje je i otwiera Claude (claude.ai/new?q=…). Odpowiedź można wkleić w „Wnioski AI”.
-   PR_BADANIA — podpowiedzi nazw badań z jednostkami (dopisz własne).
+   PR_BADANIA — podpowiedzi nazw badań MMA z jednostkami (na końcu badania lepiszcza; dopisz własne).
    ════════════════════════════════════════════════════════════════════════ */
 const PR_CV = 10, PR_ODCH = 15;
 const PR_BADANIA = [
-  ['Penetracja w 25 °C','0,1 mm'], ['Temperatura mięknienia PiK','°C'], ['Temperatura łamliwości Fraassa','°C'],
-  ['Nawrót sprężysty','%'], ['Lepkość dynamiczna','Pa·s'], ['Siła rozciągania (duktylometr)','J/cm²'],
-  ['Gęstość objętościowa','Mg/m³'], ['Gęstość','Mg/m³'], ['Zawartość wolnych przestrzeni','%'],
-  ['Wytrzymałość na pośrednie rozciąganie ITS','kPa'], ['Wrażliwość na wodę ITSR','%'], ['Moduł sztywności','MPa'],
-  ['Koleinowanie WTS','mm/10³ cykli'], ['Koleinowanie PRD','%'], ['Spływność lepiszcza (Schellenberg)','%']
+  ['Gęstość objętościowa próbki (PN-EN 12697-6)','Mg/m³'], ['Gęstość mieszanki MMA (PN-EN 12697-5)','Mg/m³'],
+  ['Zawartość wolnych przestrzeni Vm (PN-EN 12697-8)','%'], ['Wypełnienie wolnych przestrzeni lepiszczem VFB','%'], ['Wolna przestrzeń w mieszance mineralnej VMA','%'],
+  ['Zawartość lepiszcza (PN-EN 12697-1)','%'], ['Uziarnienie — przesiew (PN-EN 12697-2)','% przechodzi'],
+  ['Wytrzymałość na pośrednie rozciąganie ITS (PN-EN 12697-23)','kPa'], ['Wrażliwość na wodę ITSR (PN-EN 12697-12)','%'],
+  ['Stabilność Marshalla (PN-EN 12697-34)','kN'], ['Osiadanie Marshalla','mm'],
+  ['Koleinowanie WTS (PN-EN 12697-22)','mm/10³ cykli'], ['Koleinowanie PRD','%'], ['Głębokość koleiny RD','mm'],
+  ['Moduł sztywności (PN-EN 12697-26)','MPa'], ['Spływność lepiszcza Schellenberga (PN-EN 12697-18)','%'],
+  ['Penetracja w 25 °C','0,1 mm'], ['Temperatura mięknienia PiK','°C'], ['Temperatura łamliwości Fraassa','°C'], ['Nawrót sprężysty','%']
 ];
-const prNorm = (id,v={}) => ({id, d:String(v.d||''), b:String(v.b||''), p:String(v.p||''), u:String(v.u||''),
+/* mieszanka MMA z „Wyników moich” (po nazwie) i jej lepiszcze z „Wyników Pawła” */
+const prMx = n => typeof MXS==='object' ? MXS.moje.find(m=>prK(m.n)===prK(n)) : null;
+const prLep = m => m&&m.base&&typeof MXS==='object' ? MXS.pawel.find(x=>x.id===m.base) : null;
+const prNorm = (id,v={}) => ({id, d:String(v.d||''), b:String(v.b||''), p:String(v.p||''), l:String(v.l||''), u:String(v.u||''),
   w:(Array.isArray(v.w)?v.w:[]).map(Number).filter(x=>isFinite(x)), war:String(v.war||''), n:String(v.n||''), ai:String(v.ai||''), c:+v.c||0});
 let PR=[];
 try{ const c=JSON.parse(store.get('prState','null')); if(Array.isArray(c)) PR=c.map(x=>prNorm(x.id,x)); }catch(e){}
@@ -49,19 +57,20 @@ function prKontrola(x){ const S=prStat(x.w), L=[]; if(!S) return [{t:'warn', m:'
 /* ——— weryfikacja AI: pytanie do Claude z wpisem/wpisami i historią ——— */
 function prPytanie(L){
   const opis=x=>{ const S=prStat(x.w);
-    return `- ${x.d} · ${x.b}${x.p?` · próbka: ${x.p}`:''}\n  pomiary: ${x.w.map(v=>String(v).replace('.',',')).join('; ')} ${x.u}`+
+    const m=prMx(x.p), sk=m&&m.parts.length?m.parts.map(q=>`${q.n} ${String(q.v).replace('.',',')} ${q.unit}`).join(', '):'';
+    return `- ${x.d} · ${x.b}${x.p?` · MMA: ${x.p}`:''}${x.l?` · lepiszcze: ${x.l}`:''}${sk?`\n  skład MMA: ${sk}`:''}\n  pomiary: ${x.w.map(v=>String(v).replace('.',',')).join('; ')} ${x.u}`+
       (S?`\n  średnia ${prF2(S.sr)} ${x.u}${S.n>1?`, odch. std ${prF2(S.sd)}, CV ${fmt(S.cv,1)} %`:''}`:'')+
       (x.war?`\n  warunki: ${x.war}`:'')+(x.n?`\n  uwagi: ${x.n}`:''); };
   const hist=[...new Map(L.flatMap(prPoprz).map(y=>[y.id,y])).values()].sort((a,b)=>a.d.localeCompare(b.d)).slice(-12);
-  return `Piszę pracę inżynierską z budownictwa (Politechnika Białostocka): lepiszcza asfaltowe modyfikowane (asfalt + SBS + olej, różne proporcje) i mieszanki mineralno-asfaltowe (MMA) projektowane na ich bazie.
+  return `Piszę pracę inżynierską z budownictwa (Politechnika Białostocka). Praca jest dwuczęściowa: kolega zbadał lepiszcza asfaltowe modyfikowane (asfalt + SBS + olej w różnych proporcjach), a moja część to projektowanie mieszanek mineralno-asfaltowych (MMA) na bazie tych lepiszczy i badanie tych mieszanek.
 
-Zweryfikuj moje dzisiejsze wyniki badań laboratoryjnych:
+Zweryfikuj moje wyniki badań MMA:
 ${L.map(opis).join('\n')}
 ${hist.length?`\nWcześniejsze wyniki tych samych badań i próbek (do porównania):\n${hist.map(opis).join('\n')}\n`:''}
 Sprawdź proszę:
 1. Czy wartości są realne dla tego typu materiału i badania (typowe zakresy, jednostki)?
 2. Czy powtarzalność pomiarów mieści się w wymaganiach odpowiedniej normy PN-EN (jeśli norma podaje dopuszczalne różnice)?
-3. Czy wyniki są spójne z wcześniejszymi i z oczekiwanym wpływem dodatków (SBS, olej)?
+3. Czy wyniki są spójne z wcześniejszymi i z oczekiwanym wpływem lepiszcza (zawartość SBS i oleju) na właściwości MMA? Jeśli to możliwe, oceń je względem typowych wymagań dla danego typu mieszanki (np. WT-2 dla AC/SMA).
 4. Co może być przyczyną ewentualnych odchyleń i czy któryś pomiar warto powtórzyć?
 Odpowiedz zwięźle, w punktach. Jeśli nie jesteś pewien zakresów z normy, napisz to wprost.`;
 }
@@ -76,7 +85,7 @@ function prAi(L, btn){
 /* ——— strona ——— */
 function prKarta(x){ const S=prStat(x.w), K=prKontrola(x);
   return `<article class="pr-card">
-    <div class="pr-ch"><div><b>${esc(x.b||'Badanie')}</b>${x.p?`<span class="pr-p">${esc(x.p)}</span>`:''}</div>
+    <div class="pr-ch"><div><b>${esc(x.b||'Badanie')}</b>${x.p||x.l?`<span class="pr-p">${esc(x.p)}${x.p&&x.l?' · ':''}${x.l?'lepiszcze: '+esc(x.l):''}</span>`:''}</div>
       <div class="pr-acts"><button type="button" class="pr-ai" data-pract="ai" data-id="${esc(x.id)}">Weryfikacja AI</button><button type="button" class="td-btn" data-pract="edit" data-id="${esc(x.id)}">Edytuj</button><button type="button" class="g-del" data-pract="del" data-id="${esc(x.id)}" aria-label="Usuń wpis">×</button></div></div>
     <div class="pr-res">${S?`<div class="pr-big"><span class="label">Średnia</span><b>${prF2(S.sr)}</b><small>${esc(x.u)}</small></div>
       ${S.n>1?`<div class="pr-st"><span>n = ${S.n}</span><span>s = ${prF2(S.sd)}</span><span>CV = ${fmt(S.cv,1)} %</span><span>${prF2(S.min)} – ${prF2(S.max)}</span></div>`:''}`:''}
@@ -103,13 +112,16 @@ function pPraca(){ return `<h1>Pra<span class="acc">ca</span></h1><div id="prApp
 /* ——— okienko wpisu ——— */
 function prModalHtml(){
   const x=PR.find(y=>y.id===prM.id)||prNorm('',{d:todayISO(), ...(prM.wzor||{})});
-  const prob=[...new Set([...PR.map(y=>y.p), ...(typeof MXS==='object'?[...MXS.pawel,...MXS.moje].map(m=>m.n):[])].map(s=>String(s||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pl'));
+  const uniq=L=>[...new Set(L.map(s=>String(s||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pl'));
+  const prob=uniq([...PR.map(y=>y.p), ...(typeof MXS==='object'?MXS.moje.map(m=>m.n):[])]);
+  const lep=uniq([...PR.map(y=>y.l), ...(typeof MXS==='object'?MXS.pawel.map(m=>m.n):[])]);
   const bad=[...new Map([...PR_BADANIA.map(([n])=>n), ...PR.map(y=>y.b)].filter(Boolean).map(n=>[prK(n),n])).values()];
   return `<form class="pr-form"><div class="tr-top"><div><span class="label">Studia · praca</span><h2>${x.id?'Edytuj wpis':'Nowy wpis'}</h2></div><button type="button" class="tr-x" data-pract="close" aria-label="Zamknij">✕</button></div>
     <div class="pr-fg">
       <label class="mx-f"><span class="label">Data</span><input type="date" name="d" value="${esc(x.d)}" required></label>
       <label class="mx-f pr-wide"><span class="label">Badanie</span><input name="b" value="${esc(x.b)}" list="prBadList" placeholder="np. Penetracja w 25 °C" required autocomplete="off" maxlength="80"><datalist id="prBadList">${bad.map(n=>`<option value="${esc(n)}">`).join('')}</datalist></label>
-      <label class="mx-f pr-wide"><span class="label">Próbka / mieszanka</span><input name="p" value="${esc(x.p)}" list="prProbList" placeholder="np. Mieszanka 3 — 5 % SBS, 2 % oleju" autocomplete="off" maxlength="100"><datalist id="prProbList">${prob.map(n=>`<option value="${esc(n)}">`).join('')}</datalist></label>
+      <label class="mx-f pr-wide"><span class="label">Mieszanka MMA / próbka</span><input name="p" value="${esc(x.p)}" list="prProbList" placeholder="np. AC 11 S — wariant 2" autocomplete="off" maxlength="100"><datalist id="prProbList">${prob.map(n=>`<option value="${esc(n)}">`).join('')}</datalist></label>
+      <label class="mx-f"><span class="label">Lepiszcze (mieszanka Pawła)</span><input name="l" value="${esc(x.l)}" list="prLepList" placeholder="np. Mieszanka 3" autocomplete="off" maxlength="100"><datalist id="prLepList">${lep.map(n=>`<option value="${esc(n)}">`).join('')}</datalist></label>
       <label class="mx-f"><span class="label">Jednostka</span><input name="u" value="${esc(x.u)}" placeholder="np. °C" autocomplete="off" maxlength="20"></label>
     </div>
     <label class="mx-f"><span class="label">Pomiary — oddziel średnikiem, spacją lub Enterem</span><textarea name="w" rows="2" placeholder="np. 52; 54; 53" inputmode="decimal">${esc(x.w.map(v=>String(v).replace('.',',')).join('; '))}</textarea></label>
@@ -135,7 +147,7 @@ document.addEventListener('click', e=>{
   const fb=e.target.closest('[data-prf]'); if(fb){ prF=fb.dataset.prf; store.set('prFiltr',prF); return prRefresh(); }
   const b=e.target.closest('[data-pract]'); if(!b) return;
   const a=b.dataset.pract;
-  if(a==='new'){ const ost=PR.slice().sort((x,y)=>y.d.localeCompare(x.d)||y.c-x.c)[0]; prM={id:'', wzor:ost?{p:ost.p}:{}}; return prRender(); }
+  if(a==='new'){ const ost=PR.slice().sort((x,y)=>y.d.localeCompare(x.d)||y.c-x.c)[0]; prM={id:'', wzor:ost?{p:ost.p, l:ost.l}:{}}; return prRender(); }
   if(a==='edit'){ prM={id:b.dataset.id}; return prRender(); }
   if(a==='close'){ prM=null; return prRender(); }
   if(a==='ai'){ const x=PR.find(y=>y.id===b.dataset.id); if(x) prAi([x], b); return; }
@@ -147,6 +159,7 @@ document.addEventListener('input', e=>{
   const f=e.target.form; if(!f || !f.matches('form.pr-form')) return;
   if(e.target.name==='b'){ const m=PR_BADANIA.find(([n])=>prK(n)===prK(e.target.value)); const prev=PR.find(y=>prK(y.b)===prK(e.target.value)&&y.u);
     if((m||prev) && !f.u.value) f.u.value=prev?prev.u:m[1]; }
+  if(e.target.name==='p'){ const L=prLep(prMx(e.target.value)); if(L) f.l.value=L.n; }   /* lepiszcze z „Wyników moich” */
   prLive();
 });
 document.addEventListener('submit', e=>{
@@ -155,7 +168,7 @@ document.addEventListener('submit', e=>{
   if(!f.b.value.trim()){ f.b.focus(); return; }
   if(!w.length){ $('#prErr').textContent='Wpisz przynajmniej jeden pomiar (liczbę).'; f.w.focus(); return; }
   const old=PR.find(x=>x.id===prM.id);
-  const x=prNorm(old?old.id:uid('b'),{d:f.d.value||todayISO(), b:f.b.value.trim(), p:f.p.value.trim(), u:f.u.value.trim(), w, war:f.war.value.trim(), n:f.n.value.trim(), ai:f.ai.value.trim(), c:old?old.c:Date.now()});
+  const x=prNorm(old?old.id:uid('b'),{d:f.d.value||todayISO(), b:f.b.value.trim(), p:f.p.value.trim(), l:f.l.value.trim(), u:f.u.value.trim(), w, war:f.war.value.trim(), n:f.n.value.trim(), ai:f.ai.value.trim(), c:old?old.c:Date.now()});
   PR=old?PR.map(y=>y.id===x.id?x:y):[...PR,x]; savePr(); prPush(x); prM=null; prRender(); prRefresh();
 });
 document.addEventListener('keydown', e=>{ if(prM && e.key==='Escape'){ e.stopPropagation(); prM=null; prRender(); } }, true);
