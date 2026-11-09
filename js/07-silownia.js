@@ -5,12 +5,13 @@
    weightChart()   – wykres masy ciała (SVG) z dymkami po najechaniu.
    G               – waga (G.w) i zakupy (G.z); gymWeightHtml(), gymShopHtml().
    PL              – plany treningowe (dni → ćwiczenia: seria, powtórzenia, RIR); planHtml().
-   TR              – dziennik treningów (zapisane wyniki); okienko trModalHtml().
+   TR              – treningi (jak w GymRun: plan → dzień → okienko treningu, edycja z Historii); trModalHtml().
    ════════════════════════════════════════════════════════════════════════ */
 
 function pGym(){
   return `<h1>Siłow<span class="acc">nia</span></h1>
   <div class="grid g4" id="gymCells">${gymCellsHtml()}</div>
+  <section class="block"><div class="block-head"><h2>Trening</h2></div><div id="gymTr">${trBar()}</div></section>
   <section class="block"><div class="block-head"><h2>Plany treningowe</h2></div><div id="gymPlan">${planHtml()}</div></section>
   <section class="block"><div class="block-head"><h2>Masa ciała</h2></div><div id="gymW">${gymWeightHtml()}</div></section>
   <section class="block"><div class="block-head"><h2>Zakupy</h2></div><div id="gymZ">${gymShopHtml()}</div></section>`;
@@ -159,7 +160,7 @@ function planHtml(){
   return `${tabs}<div class="pl-head"><input class="pl-in pl-pname" data-pk="${esc(P)}|||n" value="${esc(cur.n)}" aria-label="Nazwa planu" maxlength="60">
       <span class="pl-meta">${cur.days.length} ${cur.days.length===1?'dzień':'dni'} · ${cur.days.reduce((a,d)=>a+d.ex.length,0)} ćwiczeń</span>
       <button type="button" class="td-btn" data-pact="delplan" data-pid="${esc(P)}">Usuń plan</button></div>
-    <div class="plan">${days}<button type="button" class="pl-addday" data-pact="addday" data-pid="${esc(P)}"><span>+</span>Dodaj dzień</button></div>${trBar(cur)}`;
+    <div class="plan">${days}<button type="button" class="pl-addday" data-pact="addday" data-pid="${esc(P)}"><span>+</span>Dodaj dzień</button></div>`;
 }
 function planRefresh(){
   const box=$('#gymPlan'); if(!box) return;
@@ -201,108 +202,170 @@ document.addEventListener('click', e=>{
 });
 
 
-/* ——— DZIENNIK TRENINGÓW: zapis ciężaru i powtórzeń + historia (chmura przez db, kopia w przeglądarce) ——— */
-const trNorm = (id,v={}) => ({id, pid:String(v.pid||''), pn:String(v.pn||''), did:String(v.did||''), dn:String(v.dn||''), d:String(v.d||''), c:+v.c||0,
-  ex:(Array.isArray(v.ex)?v.ex:[]).map(e=>({n:String(e.n||''), sets:(Array.isArray(e.sets)?e.sets:[]).map(s=>({w:+s.w||0, r:+s.r||0}))}))});
+/* ——— TRENING (jak w GymRun): Rozpocznij trening → wybór planu → wybór dnia → okienko treningu ———
+   Zapis: każda zmiana zapisuje się sama (trSave po ~0,7 s), więc można zamknąć okienko między seriami.
+   Seria: ciężar, powtórzenia i ✓ (zrobiona). ✓ przy pustych polach wpisuje wartości z poprzedniego treningu.
+   Po ✓ liczy się przerwa (pasek na dole okienka). Każdy zapisany trening da się otworzyć z Historii i poprawić.
+   TR – zapisane treningi (chmura: kolekcja „treningi”):
+     pid/pn plan · did/dn dzień · d data · c kolejność · s start (ms) · e koniec (ms, 0 = w trakcie)
+     ex [{n nazwa, sets:[{w kg, r powtórzenia, ok zrobiona}]}] */
+const trNorm = (id,v={}) => ({id, pid:String(v.pid||''), pn:String(v.pn||''), did:String(v.did||''), dn:String(v.dn||''), d:String(v.d||''), c:+v.c||0, s:+v.s||0, e:+v.e||0,
+  ex:(Array.isArray(v.ex)?v.ex:[]).map(e=>({n:String(e.n||''), sets:(Array.isArray(e.sets)?e.sets:[]).map(s=>({w:+s.w||0, r:+s.r||0, ok:!!s.ok}))}))});
 let TR = [];
 try{ const c=JSON.parse(store.get('trState','null')); if(Array.isArray(c)) TR=c.map(t=>trNorm(t.id,t)); }catch(e){}
 const saveTr = () => store.set('trState', JSON.stringify(TR));
-let trM = null; /* {mode:'pick'|'log'|'hist', pid, did, d, tid} — tid = edytowany (zapisany) trening */
-/* Zapis w trakcie: każda zmiana w formularzu zapisuje się sama po chwili (trAuto), formularz zostaje otwarty.
-   Ponowne „Zapisz trening” tego samego dnia planu w tej samej dacie otwiera ten trening do dalszego wpisywania.
-   W Historii „Edytuj” otwiera dowolny zapisany trening. */
-const trFor = pid => TR.filter(t=>t.pid===pid).sort((a,b)=>(b.d||'').localeCompare(a.d||'')||b.c-a.c);
-const trLast = (pid,did,n,skip) => { for(const t of trFor(pid)){ if(t.did!==did || t.id===skip) continue; const e=t.ex.find(x=>x.n.trim().toLowerCase()===n.trim().toLowerCase()); if(e&&e.sets.length) return {t,e}; } return null; };
+let trM = null;   /* {mode:'plans'|'pick'|'log'|'hist', pid, did, d, tid} — tid = otwarty (zapisany) trening */
+let trRestT = 0;  /* kiedy zaznaczono ostatnią serię (przerwa) */
+const trAll = () => TR.slice().sort((a,b)=>(b.d||'').localeCompare(a.d||'')||b.c-a.c);
+const trFor = pid => trAll().filter(t=>t.pid===pid);
+const trKey = n => n.trim().toLowerCase();
+const trLast = (pid,did,n,skip) => { for(const t of trFor(pid)){ if(t.did!==did || t.id===skip) continue; const e=t.ex.find(x=>trKey(x.n)===trKey(n)); if(e&&e.sets.length) return {t,e}; } return null; };
 const trSetsN = s => { const m=String(s).match(/\d+/); return Math.min(10,Math.max(1, m?+m[0]:3)); };
 const trW = w => fmt(w, Number.isInteger(w)?0:1);
 const trVol = t => t.ex.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+s.w*s.r,0),0);
-function trBar(p){ const n=trFor(p.id).length;
-  return `<div class="tr-bar"><button type="button" class="tr-btn tr-main" data-tract="pick" data-pid="${esc(p.id)}"><span aria-hidden="true">+</span> Zapisz trening</button>
-    <button type="button" class="tr-btn" data-tract="hist" data-pid="${esc(p.id)}">Historia${n?` <span class="ct">${n}</span>`:''}</button></div>`; }
+const trSetsDone = t => t.ex.reduce((a,e)=>a+e.sets.filter(s=>s.ok).length,0);
+const trMin = t => t.s&&t.e&&t.e>t.s ? Math.round((t.e-t.s)/60000) : 0;
+const trClock = ms => { const s=Math.max(0,Math.floor(ms/1000)), h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0'); };
+/* trening dzisiejszy w trakcie (niezakończony) — do przycisku „Kontynuuj” */
+const trOpen = () => TR.find(t=>t.d===todayISO() && !t.e);
+/* trening z tego samego dnia planu i tej samej daty (do dopisywania kolejnych serii) */
+const trOpenId = (pid,did,d) => { const t=TR.find(x=>x.pid===pid && x.did===did && x.d===(d||todayISO())); return t?t.id:''; };
+/* następny dzień w kolejce: ten po ostatnio zrobionym */
+const trNext = p => { const last=trFor(p.id)[0]; if(!last||!p.days.length) return p.days[0]&&p.days[0].id; const i=p.days.findIndex(d=>d.id===last.did); return p.days[(i+1)%p.days.length].id; };
+
+/* pasek na stronie Siłowni */
+function trBar(){ const o=trOpen(), n=TR.length;
+  return `<div class="tr-bar">${o?`<button type="button" class="tr-btn tr-main" data-tract="edit" data-tid="${esc(o.id)}"><span aria-hidden="true">▶</span> Kontynuuj trening · ${esc(o.dn||'Trening')}<small>zrobione serie: ${trSetsDone(o)}</small></button>`
+      :`<button type="button" class="tr-btn tr-main" data-tract="plans"><span aria-hidden="true">▶</span> Rozpocznij trening</button>`}
+    <button type="button" class="tr-btn" data-tract="hist">Historia${n?` <span class="ct">${n}</span>`:''}</button></div>`; }
+function trBarRefresh(){ const b=$('#gymTr'); if(b) b.innerHTML=trBar(); }
+
 function trModalHtml(){
-  const p=PL.find(x=>x.id===trM.pid); if(!p) return '';
   const close=`<button type="button" class="tr-x" data-tract="close" aria-label="Zamknij">✕</button>`;
-  if(trM.mode==='pick') return `<div class="tr-top"><div><span class="label">${esc(p.n)}</span><h2>Wybierz dzień treningowy</h2></div>${close}</div>
-    <div class="tr-days">${p.days.map(d=>{ const last=trFor(p.id).find(t=>t.did===d.id);
-      return `<button type="button" class="tr-day" data-tract="day" data-did="${esc(d.id)}"><b>${esc(d.n||'Dzień')}</b>${d.tag?`<span class="tr-tag">${esc(d.tag)}</span>`:''}<span class="tr-sub">${d.ex.length} ćwiczeń · ${last?'ostatnio '+dPL(last.d):'jeszcze nie robiony'}</span></button>`; }).join('')||'<p class="nt-none">Ten plan nie ma jeszcze dni.</p>'}</div>`;
-  if(trM.mode==='log'){ const T=trM.tid?TR.find(x=>x.id===trM.tid):null;
-    let d=p.days.find(x=>x.id===trM.did);
-    if(!d && T) d={id:T.did, n:T.dn, ex:[]};             /* dzień usunięty z planu — edycja z samego zapisu */
-    if(!d) return '';
-    const exs=[...d.ex]; if(T) T.ex.forEach(e=>{ if(!exs.some(x=>x.n.trim().toLowerCase()===e.n.trim().toLowerCase())) exs.push({n:e.n, s:'', r:'', rir:''}); });
-    const zap=n=>T&&T.ex.find(x=>x.n.trim().toLowerCase()===n.trim().toLowerCase());
-    return `<form class="tr-log"><div class="tr-top"><div><span class="label">${esc(p.n)}</span><h2>${esc(d.n||'Trening')}</h2></div>${close}</div>
-      <div class="tr-meta"><button type="button" class="tr-back" data-tract="pick" data-pid="${esc(p.id)}">← Zmień dzień</button><label><span class="label">Data</span><input type="date" name="d" value="${esc(trM.d||todayISO())}" required></label></div>
-      <div class="tr-exs">${exs.map((e,ei)=>{ const L=trLast(p.id,d.id,e.n,trM.tid), Z=zap(e.n), n=Math.max(e.s?trSetsN(e.s):1, L?L.e.sets.length:0, Z?Z.sets.length:0);
-        return `<div class="tr-ex" data-ei="${ei}" data-n="${esc(e.n)}"><div class="tr-exh"><b>${esc(e.n)}</b>${e.s||e.r?`<span class="tr-goal">${esc(e.s)} × ${esc(e.r)}${e.rir!==''?` · RIR ${esc(e.rir)}`:''}</span>`:''}</div>
-          ${L?`<div class="tr-prev">Ostatnio (${dPL(L.t.d)}): ${L.e.sets.map(s=>`${trW(s.w)} kg × ${s.r}`).join(' · ')}</div>`:''}
-          <div class="tr-sets">${Array.from({length:n},(_,si)=>{ const ps=L&&L.e.sets[si], zs=Z&&Z.sets[si];
-            return `<div class="tr-set"><span class="tr-sn">${si+1}</span><label><input name="w" value="${zs&&zs.w?trW(zs.w).replace(/\s/g,''):''}" inputmode="decimal" placeholder="${ps?trW(ps.w):''}" aria-label="Seria ${si+1}: ciężar w kg" autocomplete="off"><em>kg</em></label><span class="tr-times">×</span><label><input name="r" value="${zs&&zs.r?zs.r:''}" inputmode="numeric" placeholder="${ps?ps.r:'powt.'}" aria-label="Seria ${si+1}: powtórzenia" autocomplete="off"></label></div>`; }).join('')}
-            <button type="button" class="tr-addset" data-tract="addset">+ seria</button></div></div>`; }).join('')||'<p class="nt-none">Ten dzień nie ma ćwiczeń.</p>'}</div>
-      <div class="tr-foot"><span class="tr-err" id="trErr"></span><span class="tr-st" id="trSt">${T?'Zapisano · zmiany zapisują się same':'Zapisuje się samo w trakcie'}</span>${T?`<button type="button" class="td-btn" data-tract="close">Zamknij</button>`:`<button type="button" class="td-btn" data-tract="close">Anuluj</button>`}<button type="submit" class="tr-save">Zakończ trening</button></div></form>`; }
-  const H=trFor(p.id);
-  return `<div class="tr-top"><div><span class="label">${esc(p.n)}</span><h2>Historia treningów</h2></div>${close}</div>
-    ${H.length?`<div class="tr-hist">${H.map(t=>`<article class="tr-entry"><div class="tr-eh"><div><b>${esc(t.dn||'Trening')}</b><span class="tr-sub">${dPL(t.d)} · objętość ${fmt(trVol(t),0)} kg</span></div>
+  if(trM.mode==='plans'){ const L=plList();
+    return `<div class="tr-top"><div><span class="label">Rozpocznij trening</span><h2>Wybierz plan</h2></div>${close}</div>
+      <div class="tr-days">${L.map(p=>{ const last=trFor(p.id)[0];
+        return `<button type="button" class="tr-day" data-tract="pick" data-pid="${esc(p.id)}"><b>${esc(p.n)}</b><span class="tr-sub">${p.days.length} ${p.days.length===1?'dzień':'dni'} · ${p.days.reduce((a,d)=>a+d.ex.length,0)} ćwiczeń</span><span class="tr-sub">${last?'ostatnio '+dPL(last.d)+' · '+esc(last.dn):'jeszcze nie robiony'}</span></button>`; }).join('')||'<p class="nt-none">Nie masz jeszcze planów — dodaj je w „Plany treningowe”.</p>'}</div>`; }
+  if(trM.mode==='pick'){ const p=PL.find(x=>x.id===trM.pid); if(!p) return '';
+    const nx=trNext(p);
+    return `<div class="tr-top"><div><button type="button" class="tr-back" data-tract="plans">← Plany</button><span class="label">${esc(p.n)}</span><h2>Który dzień robisz?</h2></div>${close}</div>
+      <div class="tr-days">${p.days.map(d=>{ const last=trFor(p.id).find(t=>t.did===d.id);
+        return `<button type="button" class="tr-day${d.id===nx?' nx':''}" data-tract="day" data-did="${esc(d.id)}">${d.id===nx?'<span class="tr-nx">Następny</span>':''}<b>${esc(d.n||'Dzień')}</b>${d.tag?`<span class="tr-tag">${esc(d.tag)}</span>`:''}<span class="tr-sub">${d.ex.length} ćwiczeń · ${last?'ostatnio '+dPL(last.d):'jeszcze nie robiony'}</span></button>`; }).join('')||'<p class="nt-none">Ten plan nie ma jeszcze dni.</p>'}</div>`; }
+  if(trM.mode==='log') return trLogHtml(close);
+  /* historia: wszystkie treningi, od najnowszego */
+  const H=trAll(), mies={}; H.forEach(t=>{ const k=(t.d||'').slice(0,7); (mies[k]=mies[k]||[]).push(t); });
+  return `<div class="tr-top"><div><span class="label">Siłownia</span><h2>Historia treningów</h2></div>${close}</div>
+    ${H.length?Object.entries(mies).map(([m,L])=>`<h3 class="tr-mh">${m?esc(new Date(m+'-01T12:00').toLocaleDateString('pl-PL',{month:'long',year:'numeric'})):'Bez daty'}<span>${L.length} ${L.length===1?'trening':(L.length%10>=2&&L.length%10<=4&&(L.length%100<10||L.length%100>=20))?'treningi':'treningów'}</span></h3>
+      <div class="tr-hist">${L.map(t=>`<article class="tr-entry"><div class="tr-eh"><div><b>${esc(t.dn||'Trening')}</b><span class="tr-sub">${dPL(t.d)} · ${esc(t.pn)}${trMin(t)?` · ${trMin(t)} min`:''} · objętość ${fmt(trVol(t),0)} kg${!t.e&&t.d===todayISO()?' · <i class="tr-live">w trakcie</i>':''}</span></div>
         <div class="tr-eacts"><button type="button" class="td-btn" data-tract="edit" data-tid="${esc(t.id)}">Edytuj</button><button type="button" class="g-del" data-tract="del" data-tid="${esc(t.id)}" aria-label="Usuń trening">×</button></div></div>
-        <table class="tr-ht"><tbody>${t.ex.map(e=>`<tr><td>${esc(e.n)}</td><td>${e.sets.map(s=>`<span class="tr-pill">${trW(s.w)}×${s.r||'?'}</span>`).join('')}</td></tr>`).join('')}</tbody></table></article>`).join('')}</div>`
-      :`<div class="nt-blank"><p>Brak zapisanych treningów. Kliknij „Zapisz trening” pod planem.</p></div>`}`;
+        <table class="tr-ht"><tbody>${t.ex.map(e=>`<tr><td>${esc(e.n)}</td><td>${e.sets.map(s=>`<span class="tr-pill">${trW(s.w)}×${s.r||'?'}</span>`).join('')}</td></tr>`).join('')}</tbody></table></article>`).join('')}</div>`).join('')
+    :`<div class="nt-blank"><p>Brak zapisanych treningów. Kliknij „Rozpocznij trening”.</p></div>`}`;
+}
+/* okienko treningu */
+function trLogHtml(close){
+  const T=trM.tid?TR.find(x=>x.id===trM.tid):null, p=PL.find(x=>x.id===trM.pid);
+  let d=p&&p.days.find(x=>x.id===trM.did);
+  if(!d && T) d={id:T.did, n:T.dn, ex:[]};             /* dzień albo plan usunięty — edycja z samego zapisu */
+  if(!d) return '';
+  const exs=[...d.ex]; if(T) T.ex.forEach(e=>{ if(!exs.some(x=>trKey(x.n)===trKey(e.n))) exs.push({n:e.n, s:'', r:'', rir:''}); });
+  const zap=n=>T&&T.ex.find(x=>trKey(x.n)===trKey(n));
+  const done=T?trSetsDone(T):0, all=exs.reduce((a,e)=>{ const Z=zap(e.n), L=trLast(trM.pid,d.id,e.n,trM.tid); return a+Math.max(e.s?trSetsN(e.s):1, L?L.e.sets.length:0, Z?Z.sets.length:0); },0);
+  const live=!T || (!T.e && T.d===todayISO());
+  return `<form class="tr-log"><div class="tr-top"><div><span class="label">${esc(p?p.n:T.pn)}</span><h2>${esc(d.n||'Trening')}</h2></div>${close}</div>
+    <div class="tr-meta"><label><span class="label">Data</span><input type="date" name="d" value="${esc(trM.d||todayISO())}" required></label>
+      <div class="tr-stats"><div><span class="label">Serie</span><b id="trProg">${done} / ${all}</b></div><div><span class="label">${live?'Czas':'Trwał'}</span><b id="trTime" data-s="${T&&T.s||''}" data-live="${live?1:''}">${T&&T.s?(live?trClock(Date.now()-T.s):(trMin(T)?trMin(T)+' min':'—')):'0:00'}</b></div></div></div>
+    <div class="tr-exs">${exs.map((e,ei)=>{ const L=trLast(trM.pid,d.id,e.n,trM.tid), Z=zap(e.n), n=Math.max(e.s?trSetsN(e.s):1, L?L.e.sets.length:0, Z?Z.sets.length:0);
+      return `<div class="tr-ex" data-n="${esc(e.n)}"><div class="tr-exh"><b>${esc(e.n)}</b>${e.s||e.r?`<span class="tr-goal">${esc(e.s)} × ${esc(e.r)}${e.rir!==''?` · RIR ${esc(e.rir)}`:''}</span>`:''}</div>
+        <div class="tr-grid"><span class="tr-gh">#</span><span class="tr-gh">Poprzednio</span><span class="tr-gh">kg</span><span class="tr-gh">Powt.</span><span class="tr-gh" aria-hidden="true">✓</span>
+        ${Array.from({length:n},(_,si)=>trSetRow(si, L&&L.e.sets[si], Z&&Z.sets[si])).join('')}</div>
+        <div class="tr-exf"><button type="button" class="tr-addset" data-tract="addset">+ seria</button><button type="button" class="tr-addset" data-tract="rmset">− seria</button></div></div>`; }).join('')||'<p class="nt-none">Ten dzień nie ma ćwiczeń.</p>'}</div>
+    <div class="tr-foot"><span class="tr-err" id="trErr"></span><span class="tr-st" id="trSt">${T?'Zapisano · zmiany zapisują się same':'Zapisuje się samo w trakcie'}</span><button type="button" class="td-btn" data-tract="close">Zamknij</button><button type="submit" class="tr-save">${live?'Zakończ trening':'Gotowe'}</button></div>
+    <div class="tr-rest" id="trRest" hidden><span>Przerwa</span><b>0:00</b><button type="button" data-tract="resthide" aria-label="Ukryj przerwę">✕</button></div></form>`;
+}
+function trSetRow(si, ps, zs){
+  return `<div class="tr-set${zs&&zs.ok?' ok':''}"><span class="tr-sn">${si+1}</span><span class="tr-prev">${ps?`${trW(ps.w)}×${ps.r||'?'}`:'—'}</span>
+    <input name="w" value="${zs&&zs.w?String(zs.w).replace('.',','):''}" inputmode="decimal" placeholder="${ps?trW(ps.w):'kg'}" data-p="${ps?ps.w:''}" aria-label="Seria ${si+1}: ciężar w kg" autocomplete="off">
+    <input name="r" value="${zs&&zs.r?zs.r:''}" inputmode="numeric" placeholder="${ps?ps.r:'powt.'}" data-p="${ps?ps.r:''}" aria-label="Seria ${si+1}: powtórzenia" autocomplete="off">
+    <button type="button" class="tr-ok" data-tract="done" aria-pressed="${zs&&zs.ok?'true':'false'}" aria-label="Seria ${si+1} zrobiona">✓</button></div>`;
 }
 function trRender(){
   let sc=$('#trScrim'), md=$('#trModal');
-  if(!trM || !$('#gymPlan')){ sc&&sc.remove(); md&&md.remove(); trM=null; document.body.classList.remove('tr-lock'); return; }
+  if(!trM || !$('#gymPlan')){ sc&&sc.remove(); md&&md.remove(); trM=null; document.body.classList.remove('tr-lock'); trBarRefresh(); return; }
   if(!md){ sc=document.createElement('div'); sc.id='trScrim'; sc.className='tr-scrim'; document.body.appendChild(sc);
     md=document.createElement('div'); md.id='trModal'; md.className='tr-modal'; md.setAttribute('role','dialog'); md.setAttribute('aria-modal','true'); document.body.appendChild(md); }
-  document.body.classList.add('tr-lock'); md.innerHTML=`<div class="tr-panel">${trModalHtml()}</div>`; md.scrollTop=0;
-  const ins=[...md.querySelectorAll('.tr-set input')], f=ins.find(i=>!i.value)||ins[0]; if(f) setTimeout(()=>f.focus(),30);
+  document.body.classList.add('tr-lock'); md.classList.toggle('tr-sess', trM.mode==='log'); md.innerHTML=`<div class="tr-panel">${trModalHtml()}</div>`; md.scrollTop=0;
+  if(trM.mode==='log'){ const ins=[...md.querySelectorAll('.tr-set input')], f=ins.find(i=>!i.value)||ins[0]; if(f && !matchMedia('(pointer:coarse)').matches) setTimeout(()=>f.focus(),30); trTick(); }
 }
-function trRefresh(){ if(trM && trM.mode==='hist') trRender(); }
-document.addEventListener('click', e=>{
-  if(e.target.id==='trScrim' || e.target.id==='trModal'){ trFlush(); trM=null; return trRender(); }
-  const b=e.target.closest('[data-tract]'); if(!b) return;
-  const a=b.dataset.tract;
-  if(a==='pick'){ trFlush(); trM={mode:'pick', pid:b.dataset.pid||trM.pid, d:trM&&trM.d}; const p=PL.find(x=>x.id===trM.pid); if(p&&p.days.length===1){ trM.mode='log'; trM.did=p.days[0].id; trM.tid=trOpenId(trM.pid,trM.did,trM.d); } return trRender(); }
-  if(a==='hist'){ trM={mode:'hist', pid:b.dataset.pid}; return trRender(); }
-  if(a==='day'){ trM={...trM, mode:'log', did:b.dataset.did, tid:trOpenId(trM.pid,b.dataset.did,trM.d)}; return trRender(); }
-  if(a==='edit'){ const t=TR.find(x=>x.id===b.dataset.tid); if(!t) return; trM={mode:'log', pid:t.pid, did:t.did, d:t.d, tid:t.id}; return trRender(); }
-  if(a==='close'){ trFlush(); trM=null; return trRender(); }
-  if(a==='addset'){ const box=b.closest('.tr-sets'), n=box.querySelectorAll('.tr-set').length; if(n>=12) return;
-    const row=box.querySelector('.tr-set').cloneNode(true); row.querySelector('.tr-sn').textContent=n+1; row.querySelectorAll('input').forEach(i=>{ i.value=''; i.placeholder=i.name==='w'?'':'powt.'; i.setAttribute('aria-label',`Seria ${n+1}: ${i.name==='w'?'ciężar w kg':'powtórzenia'}`); });
-    box.insertBefore(row,b); row.querySelector('input').focus(); return; }
-  if(a==='del'){ if(!b.dataset.tarm){ b.dataset.tarm='1'; b.textContent='Usuń?'; b.classList.add('armed'); setTimeout(()=>{ if(b.isConnected){ delete b.dataset.tarm; b.textContent='×'; b.classList.remove('armed'); } },3000); return; }
-    const id=b.dataset.tid; TR=TR.filter(t=>t.id!==id); saveTr(); trRender(); planRefresh(); cloud(db=>db.collection('treningi').doc(id).delete()); }
-});
-/* trening z tego samego dnia planu i tej samej daty (do dopisywania kolejnych serii) */
-const trOpenId = (pid,did,d) => { const t=TR.find(x=>x.pid===pid && x.did===did && x.d===(d||todayISO())); return t?t.id:''; };
-/* odczyt formularza; seria liczy się, gdy ma ciężar albo powtórzenia */
+function trRefresh(){ if(trM && trM.mode==='hist') trRender(); trBarRefresh(); }
+/* zegar treningu i przerwy (co sekundę, tylko gdy okienko treningu jest otwarte) */
+function trTick(){ const t=$('#trTime'); if(t&&t.dataset.live&&t.dataset.s) t.textContent=trClock(Date.now()-+t.dataset.s);
+  const r=$('#trRest'); if(r){ r.hidden=!trRestT; if(trRestT) r.querySelector('b').textContent=trClock(Date.now()-trRestT); } }
+setInterval(()=>{ if(trM&&trM.mode==='log') trTick(); }, 1000);
+function trProg(){ const f=$('form.tr-log'), el=$('#trProg'); if(!f||!el) return; el.textContent=`${f.querySelectorAll('.tr-set.ok').length} / ${f.querySelectorAll('.tr-set').length}`; }
+
+/* odczyt formularza; seria liczy się, gdy ma ciężar, powtórzenia albo ✓ */
 function trRead(f){ return [...f.querySelectorAll('.tr-ex')].map(box=>({n:box.dataset.n, sets:[...box.querySelectorAll('.tr-set')].map(r=>{ const w=gNum(r.querySelector('[name=w]').value), rp=Math.round(gNum(r.querySelector('[name=r]').value));
-      return {w:isNaN(w)?0:Math.round(w*100)/100, r:isNaN(rp)?0:rp}; })})).map(x=>{ let L=x.sets.length; while(L&&!x.sets[L-1].w&&!x.sets[L-1].r) L--; return {...x, sets:x.sets.slice(0,L)}; }).filter(x=>x.sets.length); }
-/* zapis (nowy albo aktualizacja tego samego treningu); zwraca false, gdy nie ma nic do zapisania */
-function trSave(f){
+      return {w:isNaN(w)?0:Math.round(w*100)/100, r:isNaN(rp)?0:rp, ok:r.classList.contains('ok')}; })})).map(x=>{ let L=x.sets.length; while(L&&!x.sets[L-1].w&&!x.sets[L-1].r&&!x.sets[L-1].ok) L--; return {...x, sets:x.sets.slice(0,L)}; }).filter(x=>x.sets.length); }
+/* zapis (nowy albo aktualizacja otwartego treningu); fin = zakończ; zwraca false, gdy nie ma nic do zapisania */
+function trSave(f, fin){
   if(!trM||trM.mode!=='log') return false;
   const p=PL.find(x=>x.id===trM.pid), T=trM.tid?TR.find(x=>x.id===trM.tid):null, d=(p&&p.days.find(x=>x.id===trM.did))||(T&&{id:T.did,n:T.dn});
   if(!d) return false;
   const ex=trRead(f), date=f.d.value||todayISO();
-  if(!ex.length){ if(T){ TR=TR.filter(x=>x.id!==T.id); trM.tid=''; saveTr(); planRefresh(); cloud(db=>db.collection('treningi').doc(T.id).delete()); } return false; }
-  const t=trNorm(T?T.id:uid('t'),{pid:trM.pid, pn:p?p.n:T.pn, did:d.id, dn:d.n, d:date, c:T?T.c:Date.now(), ex});
-  TR=T?TR.map(x=>x.id===t.id?t:x):[t,...TR]; trM.tid=t.id; trM.d=date; saveTr(); planRefresh();
+  if(!ex.length){ if(T){ TR=TR.filter(x=>x.id!==T.id); trM.tid=''; saveTr(); trBarRefresh(); cloud(db=>db.collection('treningi').doc(T.id).delete()); } return false; }
+  const now=Date.now(), s0=T&&T.s?T.s:now;
+  const t=trNorm(T?T.id:uid('t'),{pid:trM.pid, pn:p?p.n:T.pn, did:d.id, dn:d.n, d:date, c:T?T.c:now, s:s0, e:fin?(T&&T.e?T.e:now):(T?T.e:0), ex});
+  TR=T?TR.map(x=>x.id===t.id?t:x):[t,...TR]; trM.tid=t.id; trM.d=date; saveTr(); trBarRefresh();
   cloud(db=>{ const {id,...doc}=t; return db.collection('treningi').doc(id).set(doc); });
   const st=$('#trSt'); if(st) st.textContent='Zapisano '+new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
+  const tm=$('#trTime'); if(tm && !tm.dataset.s){ tm.dataset.s=String(s0); }
   return true;
 }
 let trTimer=null;
 const trFlush = () => { if(!trTimer) return; clearTimeout(trTimer); trTimer=null; const f=$('form.tr-log'); if(f) trSave(f); };
-document.addEventListener('input', e=>{ const f=e.target.closest&&e.target.closest('form.tr-log'); if(!f) return;
-  const st=$('#trSt'); if(st) st.textContent='zapisywanie…'; const er=$('#trErr'); if(er) er.textContent='';
-  clearTimeout(trTimer); trTimer=setTimeout(()=>{ trTimer=null; trSave(f); },700); });
+const trSoon = f => { const st=$('#trSt'); if(st) st.textContent='zapisywanie…'; const er=$('#trErr'); if(er) er.textContent='';
+  clearTimeout(trTimer); trTimer=setTimeout(()=>{ trTimer=null; trSave(f); },700); };
+const trClose = () => { trFlush(); trM=null; trRestT=0; trRender(); };
+
+document.addEventListener('click', e=>{
+  if(e.target.id==='trScrim' || e.target.id==='trModal') return trClose();
+  const b=e.target.closest('[data-tract]'); if(!b) return;
+  const a=b.dataset.tract;
+  if(a==='plans'){ trFlush(); trM={mode:'plans'}; return trRender(); }
+  if(a==='pick'){ trM={mode:'pick', pid:b.dataset.pid}; return trRender(); }
+  if(a==='hist'){ trFlush(); trM={mode:'hist'}; return trRender(); }
+  if(a==='day'){ trRestT=0; trM={mode:'log', pid:trM.pid, did:b.dataset.did, d:todayISO(), tid:trOpenId(trM.pid,b.dataset.did,todayISO())}; return trRender(); }
+  if(a==='edit'){ const t=TR.find(x=>x.id===b.dataset.tid); if(!t) return; trRestT=0; trM={mode:'log', pid:t.pid, did:t.did, d:t.d, tid:t.id}; return trRender(); }
+  if(a==='close') return trClose();
+  if(a==='resthide'){ trRestT=0; return trTick(); }
+  if(a==='done'){ const row=b.closest('.tr-set'), w=row.querySelector('[name=w]'), r=row.querySelector('[name=r]'), on=!row.classList.contains('ok');
+    if(on){ const pr=row.previousElementSibling&&row.previousElementSibling.classList.contains('tr-set')?row.previousElementSibling:null;   /* brak poprzedniego treningu → jak seria wyżej */
+      if(!w.value) w.value=w.dataset.p?String(w.dataset.p).replace('.',','):(pr?pr.querySelector('[name=w]').value:'');
+      if(!r.value) r.value=r.dataset.p||(pr?pr.querySelector('[name=r]').value:''); }
+    row.classList.toggle('ok',on); b.setAttribute('aria-pressed',String(on)); trRestT=on?Date.now():trRestT; trTick(); trProg(); trSoon(b.closest('form'));
+    if(on){ const nx=[...document.querySelectorAll('#trModal .tr-set:not(.ok) input[name=w]')].find(i=>i.compareDocumentPosition(w)&Node.DOCUMENT_POSITION_PRECEDING); if(nx && !matchMedia('(pointer:coarse)').matches) nx.focus(); }
+    return; }
+  if(a==='addset'){ const box=b.closest('.tr-ex').querySelector('.tr-grid'), n=box.querySelectorAll('.tr-set').length; if(n>=12) return;
+    const last=box.querySelector('.tr-set:last-of-type'), tmp=document.createElement('div');
+    tmp.innerHTML=trSetRow(n, null, null); const row=tmp.firstChild;
+    if(last){ const lw=last.querySelector('[name=w]'), lr=last.querySelector('[name=r]');   /* podpowiedź = poprzednia seria */
+      row.querySelector('[name=w]').placeholder=lw.value||lw.placeholder; row.querySelector('[name=w]').dataset.p=(lw.value||lw.dataset.p||'').replace(',','.');
+      row.querySelector('[name=r]').placeholder=lr.value||lr.placeholder; row.querySelector('[name=r]').dataset.p=lr.value||lr.dataset.p||''; }
+    box.appendChild(row); trProg(); if(!matchMedia('(pointer:coarse)').matches) row.querySelector('input').focus(); return; }
+  if(a==='rmset'){ const L=b.closest('.tr-ex').querySelectorAll('.tr-set'); if(L.length<=1) return; L[L.length-1].remove(); trProg(); trSoon(b.closest('form')); return; }
+  if(a==='del'){ if(!b.dataset.tarm){ b.dataset.tarm='1'; b.textContent='Usuń?'; b.classList.add('armed'); setTimeout(()=>{ if(b.isConnected){ delete b.dataset.tarm; b.textContent='×'; b.classList.remove('armed'); } },3000); return; }
+    const id=b.dataset.tid; TR=TR.filter(t=>t.id!==id); saveTr(); trRender(); trBarRefresh(); cloud(db=>db.collection('treningi').doc(id).delete()); }
+});
+document.addEventListener('input', e=>{ const f=e.target.closest&&e.target.closest('form.tr-log'); if(f) trSoon(f); });
 document.addEventListener('submit', e=>{
   const f=e.target; if(!f.matches('form.tr-log')) return; e.preventDefault();
   clearTimeout(trTimer); trTimer=null;
-  if(!trSave(f)){ $('#trErr').textContent='Wpisz przynajmniej jedną serię.'; return; }
-  trM={mode:'hist', pid:trM.pid}; trRender();
+  if(!trSave(f,true)){ $('#trErr').textContent='Wpisz przynajmniej jedną serię.'; return; }
+  trRestT=0; trM={mode:'hist'}; trRender();
 });
 document.addEventListener('keydown', e=>{
   if(!trM) return;
-  if(e.key==='Escape'){ e.stopPropagation(); trFlush(); trM=null; trRender(); return; }
+  if(e.key==='Escape'){ e.stopPropagation(); trClose(); return; }
   if(e.key==='Enter' && e.target.matches && e.target.matches('.tr-set input')){ e.preventDefault();
     const all=[...document.querySelectorAll('#trModal .tr-set input')], i=all.indexOf(e.target); if(all[i+1]) all[i+1].focus(); }
 }, true);

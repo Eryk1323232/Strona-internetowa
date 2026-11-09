@@ -175,7 +175,7 @@ function arkuszDb(url, klucz){
         first=false; MXS[k]=s.docs.map(d=>mxNorm(d.id,d.data())); saveMx(k); if(!(mxM&&mxM.mode==='edit')) mxRefresh(); ok(); }, fail); });
     let trF=true;
     gdb.collection('treningi').onSnapshot(s=>{ if(trF&&s.empty&&wyslijLokalne()&&TR.length){ trF=false; TR.forEach(t=>{ const {id,...doc}=t; cloud(db=>db.collection('treningi').doc(id).set(doc)); }); return ok(); }
-      trF=false; TR=s.docs.map(d=>trNorm(d.id,d.data())); saveTr(); if(!(trM&&trM.mode==='log')) planRefresh(); ok(); }, fail);
+      trF=false; TR=s.docs.map(d=>trNorm(d.id,d.data())); saveTr(); if(!(trM&&trM.mode==='log')) planRefresh(); typeof trBarRefresh==='function'&&trBarRefresh(); ok(); }, fail);
     let pxF=true;
     gdb.collection('posiadowki').onSnapshot(s=>{ if(pxF&&s.empty&&wyslijLokalne()&&PX.length){ pxF=false; PX.forEach(pxPush); return ok(); }
       pxF=false; const a=document.activeElement; if(a&&a.dataset&&a.dataset.xk) return; PX=s.docs.map(d=>pxNorm(d.id,d.data())); savePos(); ok(); }, fail);

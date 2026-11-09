@@ -145,16 +145,10 @@ body.tr-lock{overflow:hidden}
 .tr-exh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .tr-exh b{font-family:var(--f-display);font-weight:600;font-size:17px}
 .tr-goal{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
-.tr-prev{font-size:12.5px;color:var(--accent);margin-top:4px}
-.tr-sets{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:10px;align-items:center}
-.tr-set{display:flex;align-items:center;gap:6px}
 .tr-sn{width:22px;height:22px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:11.5px;font-weight:600;color:var(--muted)}
-.tr-set label{position:relative;display:block}
-.tr-set input{width:76px;height:40px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:15px;text-align:center;padding:0 6px}
-.tr-set input[name=w]{padding-right:22px}
+.tr-set input{width:100%;height:40px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:15px;text-align:center;padding:0 6px}
 .tr-set input:focus{outline:none;border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
 .tr-set input::placeholder{color:color-mix(in srgb,var(--muted) 65%,transparent)}
-.tr-set em{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-style:normal;font-size:10.5px;color:var(--muted);pointer-events:none}
 .tr-times{color:var(--muted)}
 .tr-addset{background:none;border:1px dashed var(--muted);border-radius:999px;padding:6px 12px;cursor:pointer;color:var(--muted);font-family:var(--f-body);font-size:12.5px}
 .tr-addset:hover{border-color:var(--accent);color:var(--accent)}
@@ -173,4 +167,52 @@ table.tr-ht{width:100%;border-collapse:collapse;font-size:14px}
 table.tr-ht td{padding:6px 0;border-top:1px solid var(--line-soft);vertical-align:top}
 table.tr-ht td:first-child{padding-right:14px;width:42%}
 .tr-pill{display:inline-block;font-family:var(--f-mono);font-size:12.5px;background:var(--soft);border-radius:999px;padding:2px 9px;margin:0 5px 4px 0}
-@media (max-width:560px){ .tr-panel{padding:20px 16px 18px;border-radius:16px} .tr-top h2{font-size:24px} .tr-set input{width:64px} table.tr-ht td{display:block;width:auto!important;border-top:0;padding:2px 0} table.tr-ht tr{display:block;border-top:1px solid var(--line-soft);padding:6px 0} }
+@media (max-width:560px){ .tr-panel{padding:20px 16px 18px;border-radius:16px} .tr-top h2{font-size:24px} table.tr-ht td{display:block;width:auto!important;border-top:0;padding:2px 0} table.tr-ht tr{display:block;border-top:1px solid var(--line-soft);padding:6px 0} }
+
+/* ——— TRENING jak w GymRun: wybór planu → dzień → okienko treningu (js/07-silownia.js) ——— */
+.tr-btn.tr-main small{font-weight:400;font-size:12px;opacity:.75;margin-left:4px}
+.tr-top .tr-back{display:block;margin-bottom:6px}
+.tr-day{position:relative}
+.tr-day.nx{border-color:var(--accent)}
+.tr-nx{position:absolute;top:12px;right:12px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:2px 9px}
+.tr-mh{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--f-body);font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 10px}
+.tr-mh:first-of-type{margin-top:0}
+.tr-mh span{letter-spacing:0;text-transform:none;font-weight:400;font-size:12.5px}
+.tr-live{font-style:normal;color:var(--accent);font-weight:600}
+/* okienko treningu: szersze, przyciski na dole przyklejone */
+.tr-sess .tr-panel{width:min(900px,100%);padding-bottom:0}
+.tr-stats{display:flex;gap:22px}
+.tr-stats>div{display:flex;flex-direction:column;gap:2px;align-items:flex-end}
+.tr-stats b{font-family:var(--f-mono);font-size:22px;font-weight:500;line-height:1.1}
+.tr-grid{display:grid;grid-template-columns:42px minmax(70px,1fr) minmax(70px,96px) minmax(60px,84px) 44px;gap:6px 10px;align-items:center;margin-top:10px}
+.tr-gh{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tr-gh:nth-child(n+3){text-align:center}
+.tr-set{display:contents}
+.tr-set .tr-sn{justify-self:start}
+.tr-set .tr-prev{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.tr-ok{width:40px;height:40px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer;font-size:17px;line-height:1}
+.tr-ok:hover{border-color:var(--ok);color:var(--ok)}
+.tr-set.ok .tr-ok{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.tr-set.ok .tr-sn{background:var(--ok);color:var(--surface)}
+.tr-set.ok input{border-color:color-mix(in srgb,var(--ok) 55%,var(--line));background:color-mix(in srgb,var(--ok) 9%,var(--surface))}
+.tr-exf{display:flex;gap:8px;margin-top:10px}
+.tr-sess .tr-foot{position:sticky;bottom:0;background:var(--bg);margin:20px -28px 0;padding:14px 28px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);border-radius:0 0 20px 20px;z-index:2}
+.tr-rest{position:sticky;bottom:78px;margin:12px auto 0;width:max-content;display:flex;align-items:center;gap:12px;background:var(--ink);color:var(--bg);border-radius:999px;padding:8px 10px 8px 18px;box-shadow:var(--shadow);z-index:3}
+.tr-rest[hidden]{display:none}
+.tr-rest span{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.tr-rest b{font-family:var(--f-mono);font-size:18px;font-weight:500;min-width:52px}
+.tr-rest button{background:none;border:0;color:inherit;opacity:.7;cursor:pointer;font-size:13px;padding:4px 6px}
+@media (max-width:560px){
+  .tr-sess .tr-modal,.tr-modal.tr-sess{padding:0}
+  .tr-modal.tr-sess .tr-panel{border-radius:0;min-height:100%;border:0;padding:16px 12px 0}
+  .tr-sess .tr-foot{margin:16px -12px 0;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));border-radius:0}
+  .tr-sess .tr-foot .tr-st{flex-basis:100%;order:-1}
+  .tr-sess .tr-foot .tr-save{flex:1}
+  .tr-ex{padding:12px}
+  .tr-grid{grid-template-columns:24px minmax(56px,1fr) minmax(58px,1.2fr) minmax(48px,1fr) 40px;gap:6px}
+  .tr-gh{font-size:9.5px;letter-spacing:.02em}
+  .tr-set input{font-size:16px;padding:0 4px}
+  .tr-set .tr-prev{font-size:12px}
+  .tr-stats{gap:14px} .tr-stats b{font-size:18px}
+  .tr-rest{bottom:96px}
+}
