@@ -111,6 +111,32 @@ body{padding-bottom:var(--sbar-h)}
 .snip-toast{position:fixed;left:50%;bottom:calc(var(--sbar-h) + 14px);transform:translate(-50%,20px);opacity:0;z-index:95;background:var(--ink);color:var(--bg);border-radius:999px;padding:9px 18px;font-size:13.5px;box-shadow:var(--shadow);transition:opacity .2s,transform .2s;pointer-events:none;max-width:calc(100vw - 32px);text-align:center}
 .snip-toast.on{opacity:1;transform:translate(-50%,0)}
 
+/* szybki wydatek (kod: js/17-finanse.js → widgetFin) — cała szerokość pod widżetami */
+.w-fin{grid-column:1/-1;min-height:0}
+.wf-open{text-decoration:none;color:var(--muted)} .wf-open:hover{color:var(--accent)}
+form.fin-qadd{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+form.fin-qadd input,form.fin-qadd select{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:7px 10px;font-size:14px;color:var(--ink);font-family:var(--f-body);height:42px;min-width:0}
+form.fin-qadd input[name=a]{width:120px;font-family:var(--f-mono);font-size:16px}
+form.fin-qadd input[name=n]{flex:1 1 180px}
+form.fin-qadd input:focus,form.fin-qadd select:focus{outline:none;border-color:var(--accent)}
+form.fin-qadd button{height:42px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);padding:0 22px;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:14px}
+form.fin-qadd button:hover{background:var(--accent);color:var(--accent-ink)}
+form.fin-qadd .tr-err{flex-basis:100%} form.fin-qadd .tr-err:empty{display:none}
+.wf-sum{display:flex;gap:28px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--line-soft)}
+.wf-sum>div{display:flex;flex-direction:column;gap:2px}
+.wf-sum b{font-family:var(--f-mono);font-size:20px;font-weight:500}
+.wf-sum small{font-size:12px;color:var(--muted)}
+.wf-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column}
+.wf-list li{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line-soft);font-size:14px}
+.wf-list .wf-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.wf-list .wf-k{font-size:12px;color:var(--muted)}
+.wf-list b{font-family:var(--f-mono);font-weight:500;color:var(--bad);white-space:nowrap}
+@media (max-width:560px){
+  form.fin-qadd input[name=a]{flex:1 1 40%;width:auto} form.fin-qadd select[name=kat]{flex:1 1 40%}
+  form.fin-qadd input[name=n]{flex:1 1 100%} form.fin-qadd select[name=k]{flex:1} form.fin-qadd button{flex:1}
+  .wf-list .wf-k{display:none}
+}
+
 /* ——— telefon ——— */
 @media (max-width:900px){
   .home-tiles{grid-template-columns:minmax(0,1fr)}

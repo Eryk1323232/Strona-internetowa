@@ -2,7 +2,7 @@
    STRONA GŁÓWNA I CV
    ════════════════════════════════════════════════════════════════════════
    pStart() – strona główna: powitanie, 3 kafle „ostatnio odwiedzane”, widżety
-              (zegar, pogoda, szybkie notatki).
+              (zegar, pogoda, szybkie notatki, szybki wydatek → js/17-finanse.js).
               • ostatnio odwiedzane zapisuje router (js/13-router.js → zapamiętajWizytę),
               • pogodę pobiera js/11-pasek-dolny.js (wspólna dla widżetu i paska),
               • ikony kafli i nazwy działów: stałe HOME_ICONS / HOME_SECTION niżej.
@@ -72,6 +72,7 @@ function pStart(){
     ${widgetClock()}
     ${widgetWeather()}
     ${widgetQuick()}
+    ${typeof widgetFin==='function'?widgetFin():''}
   </section>`;
 }
 

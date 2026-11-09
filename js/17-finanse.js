@@ -20,6 +20,7 @@
    finCalc()  – salda, „zostaje do końca miesiąca”, średnie dzienne/tygodniowe/miesięczne.
    Przelew między kontami: przycisk „Przelej” na kafelku konta (szybkie kwoty FIN_SZYBKIE, „Całość”, inna kwota, „Cofnij”).
    Kategorie: FIN_KAT_WYD (wydatki) i FIN_KAT_WPL (wpływy) niżej.
+   Strona główna: widżet „Szybki wydatek” (widgetFin) — wpis trafia do FIN.ops, czyli prosto do Finansów.
    Operacje z przyszłą datą = zaplanowane: nie zmieniają salda dziś, ale liczą się w „zostaje”.
    ════════════════════════════════════════════════════════════════════════ */
 
@@ -292,7 +293,32 @@ function finRender(){
 }
 function finCard(){ const F=finCalc();
   return `<span class="bk-cbil">${fmt(F.saldo.glowne+F.saldo.oszcz,2)} zł</span><span class="calc-count">główne ${fmt(F.saldo.glowne,2)} · oszczędn. ${fmt(F.saldo.oszcz,2)}</span><span class="calc-count ${F.zostaje<-0.004?'bk-minus':''}">zostaje do ${dPL(F.eom).slice(0,5)}: ${fmt(F.zostaje,2)} zł</span>`; }
-function finRefresh(){ const c=$('#finCard'); if(c) c.innerHTML=finCard(); if(finM) finRender(); }
+function finRefresh(){ const c=$('#finCard'); if(c) c.innerHTML=finCard(); const w=$('#wfData'); if(w) w.innerHTML=finWidgetData(); if(finM) finRender(); }
+
+/* ——— STRONA GŁÓWNA: widżet „Szybki wydatek” (wywoływany w pStart, js/03) ———
+   Ten sam zapis co formularz w Finansach (FIN.ops + chmura), zawsze z dzisiejszą datą.
+   Pod formularzem: ile dziś wydane, ile zostaje do końca miesiąca i dzisiejsze wpisy (× = usuń). */
+function widgetFin(){ return `<article class="widget w-fin" id="wFin">${finWidgetInner()}</article>`; }
+function finWidgetInner(){
+  const konto=store.get('finKonto','glowne');
+  return `<div class="w-head"><span class="label">Szybki wydatek</span><a class="w-sub wf-open" href="#pieniadze">Pieniądze →</a></div>
+    <form class="fin-qadd" autocomplete="off">
+      <input name="a" placeholder="Kwota" inputmode="decimal" aria-label="Kwota wydatku" required>
+      <select name="kat" aria-label="Kategoria">${finKatOpts('wyd', store.get('finQKat','Jedzenie'))}</select>
+      <input name="n" placeholder="Opis (opcjonalnie)" aria-label="Opis" maxlength="80">
+      <select name="k" aria-label="Konto">${Object.entries(FIN_KR).map(([v,n])=>`<option value="${v}"${v===konto?' selected':''}>${n}</option>`).join('')}</select>
+      <button type="submit">Dodaj</button><span class="tr-err" id="finQErr"></span></form>
+    <div id="wfData">${finWidgetData()}</div>`;
+}
+/* część odświeżana po każdej zmianie (formularz zostaje nietknięty, żeby nie gubić wpisywanej kwoty) */
+function finWidgetData(){
+  const F=finCalc(), td=F.td;
+  const dzis=FIN.ops.filter(o=>o.t==='wyd' && o.d===td).sort((a,b)=>b.c-a.c);
+  const dzisSuma=F.liczone.filter(o=>o.t==='wyd' && o.d===td).reduce((s,o)=>s+o.a,0);
+  return `<div class="wf-sum"><div><span class="label">Dziś wydane</span><b class="${dzisSuma?'bk-minus':''}">${fmt(dzisSuma,2)} zł</b></div>
+      <div><span class="label">Zostaje do końca miesiąca</span><b class="${finCls(F.zostaje)}">${fmt(F.zostaje,2)} zł</b><small>${fmt(F.zostaje/F.dniDoKonca,2)} zł / dzień</small></div></div>
+    ${dzis.length?`<ul class="wf-list">${dzis.map(o=>`<li><span class="fin-tag">${esc(o.kat||'Inne')}</span><span class="wf-n">${esc(o.n)}</span><span class="wf-k">${FIN_KR[o.k]}</span><b>−${fmt(o.a,2)}</b><button type="button" class="g-del" data-findel="${esc(o.id)}" aria-label="Usuń wydatek">×</button></li>`).join('')}</ul>`:''}`;
+}
 
 /* ——— zapis zmian ——— */
 function finUpdO(id, fn){ const x=FIN.ops.find(o=>o.id===id); if(!x) return; const n={...x}; fn(n); const f=finONorm(id,n); FIN.ops=FIN.ops.map(o=>o.id===id?f:o); saveFin(); finRefresh(); finPushO(f); }
@@ -311,6 +337,13 @@ document.addEventListener('submit', e=>{
     const x=finSNorm(uid('fs'),{n, t:f.t.value, a, dz, k:f.k.value, kat:'', od, do:'', o:Date.now()});
     FIN.stale=[...FIN.stale,x]; saveFin(); finRefresh(); finPushS(x);
     setTimeout(()=>{ const i=$('form.fin-adds [name="n"]'); i&&i.focus(); },0); return; }
+  if(f.matches('form.fin-qadd')){ e.preventDefault();
+    const a=bkNum(f.a.value); if(isNaN(a)||a<=0){ $('#finQErr').textContent='Wpisz kwotę większą od zera.'; f.a.focus(); return; }
+    store.set('finKonto',f.k.value); store.set('finQKat',f.kat.value);
+    const o=finONorm(uid('fo'),{t:'wyd', k:f.k.value, d:todayISO(), a, kat:f.kat.value, n:f.n.value.trim(), c:Date.now()});
+    f.a.value=''; f.n.value=''; $('#finQErr').textContent='';
+    FIN.ops=[...FIN.ops,o]; saveFin(); finRefresh(); finPushO(o);
+    setTimeout(()=>{ const i=$('form.fin-qadd [name="a"]'); i&&i.focus(); },0); return; }
   if(!f.matches('form.fin-add')) return; e.preventDefault();
   const a=bkNum(f.a.value), t=f.t.value==='wpl'?'wpl':'wyd';
   if(isNaN(a)||a<=0){ $('#finErr').textContent='Wpisz kwotę większą od zera.'; f.a.focus(); return; }
