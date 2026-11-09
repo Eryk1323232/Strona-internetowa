@@ -12,6 +12,12 @@
      • mniej niż 2 pomiary (nie da się ocenić powtarzalności).
    Weryfikacja AI (prAi) — składa gotowe pytanie z wpisem i historią tego badania,
      kopiuje je i otwiera Claude (claude.ai/new?q=…). Odpowiedź można wkleić w „Wnioski AI”.
+   Wymiana z innymi stronami / Excelem:
+     „Wklej wyniki” (prM.mode 'wklej') — tabela (z Excela, Arkusza, innej strony: tab / ; / ,) albo JSON;
+       najpierw podgląd, potem dodanie; identyczne wpisy są pomijane. Kolumny rozpoznawane po nagłówkach
+       (Data, Badanie, Mieszanka/Próbka, Lepiszcze, Jednostka, Pomiar 1…n / Wyniki, Warunki, Uwagi),
+       bez nagłówka — w tej kolejności.
+     „Kopiuj wyniki” (prM.mode 'kopiuj') — te same formaty (JSON: {app:'Pracownia-badania', v:1, wpisy:[…]}).
    PR_BADANIA — podpowiedzi nazw badań MMA z jednostkami (na końcu badania lepiszcza; dopisz własne).
    ════════════════════════════════════════════════════════════════════════ */
 const PR_CV = 10, PR_ODCH = 15;
@@ -100,6 +106,7 @@ function prHtml(){
   const L=PR.filter(x=>!prF||prK(x.b)===prK(prF)).sort((a,b)=>b.d.localeCompare(a.d)||b.c-a.c), dni={};
   L.forEach(x=>{ (dni[x.d]=dni[x.d]||[]).push(x); });
   return `<div class="pr-bar"><button type="button" class="dk-plus" data-pract="new"><span aria-hidden="true">+</span>Nowy wpis</button>
+      <div class="pr-io"><button type="button" class="td-btn" data-pract="wklej">Wklej wyniki</button>${PR.length?`<button type="button" class="td-btn" data-pract="kopiuj">Kopiuj wyniki</button>`:''}</div>
       ${B.length>1?`<div class="seg pr-seg" role="tablist"><button type="button" data-prf="" aria-selected="${!prF}">Wszystkie</button>${B.map(b=>`<button type="button" data-prf="${esc(b)}" aria-selected="${prK(prF)===prK(b)}">${esc(b)}</button>`).join('')}</div>`:''}</div>
     ${L.length?Object.entries(dni).map(([d,X])=>`<section class="block pr-day"><div class="block-head"><h2>${d?esc(new Date(d+'T12:00').toLocaleDateString('pl-PL',{weekday:'long', day:'numeric', month:'long', year:'numeric'})):'Bez daty'}</h2>
         ${X.length>1?`<button type="button" class="pr-ai" data-pract="aiday" data-d="${esc(d)}">Weryfikacja AI całego dnia</button>`:''}</div>
@@ -139,7 +146,10 @@ function prRender(){
   if(!prM || !$('#prApp')){ sc&&sc.remove(); md&&md.remove(); prM=null; document.body.classList.remove('tr-lock'); return; }
   if(!md){ sc=document.createElement('div'); sc.id='prScrim'; sc.className='tr-scrim'; document.body.appendChild(sc);
     md=document.createElement('div'); md.id='prModal'; md.className='tr-modal'; md.setAttribute('role','dialog'); md.setAttribute('aria-modal','true'); document.body.appendChild(md); }
-  document.body.classList.add('tr-lock'); md.innerHTML=`<div class="tr-panel pr-panel">${prModalHtml()}</div>`; prLive();
+  document.body.classList.add('tr-lock');
+  if(prM.mode==='wklej'||prM.mode==='kopiuj'){ md.innerHTML=`<div class="tr-panel pr-panel">${prM.mode==='wklej'?prWklejHtml():prKopiujHtml()}</div>`;
+    const t=md.querySelector('textarea'); if(t && prM.mode==='wklej' && !matchMedia('(pointer:coarse)').matches) setTimeout(()=>t.focus(),30); return; }
+  md.innerHTML=`<div class="tr-panel pr-panel">${prModalHtml()}</div>`; prLive();
   const f=md.querySelector(prM.id?'[name=w]':'[name=b]'); if(f && !matchMedia('(pointer:coarse)').matches) setTimeout(()=>f.focus(),30);
 }
 document.addEventListener('click', e=>{
@@ -149,6 +159,12 @@ document.addEventListener('click', e=>{
   const a=b.dataset.pract;
   if(a==='new'){ const ost=PR.slice().sort((x,y)=>y.d.localeCompare(x.d)||y.c-x.c)[0]; prM={id:'', wzor:ost?{p:ost.p, l:ost.l}:{}}; return prRender(); }
   if(a==='edit'){ prM={id:b.dataset.id}; return prRender(); }
+  if(a==='wklej'){ prM={mode:'wklej'}; return prRender(); }
+  if(a==='kopiuj'){ prM={mode:'kopiuj'}; return prRender(); }
+  if(a==='wkdodaj'){ const R=prWklejParse($('#prWkTxt').value).nowe; if(!R.length) return;
+    let c=Date.now(); const X=R.map(x=>prNorm(uid('b'),{...x, c:c++})); PR=[...PR,...X]; savePr(); X.forEach(prPush);
+    prM=null; prRender(); prRefresh(); return; }
+  if(a==='kpt'||a==='kpj'){ const L=prKopiujLista(); prKopiuj(a==='kpt'?prTabela(L):JSON.stringify({app:'Pracownia-badania', v:1, wpisy:L.map(({id,c,...x})=>x)},null,1), b); return; }
   if(a==='close'){ prM=null; return prRender(); }
   if(a==='ai'){ const x=PR.find(y=>y.id===b.dataset.id); if(x) prAi([x], b); return; }
   if(a==='aiday'){ prAi(PR.filter(y=>y.d===b.dataset.d).sort((x,y)=>x.c-y.c), b); return; }
@@ -156,6 +172,7 @@ document.addEventListener('click', e=>{
     const id=b.dataset.id; PR=PR.filter(x=>x.id!==id); savePr(); prRefresh(); cloud(db=>db.collection('badania').doc(id).delete()); }
 });
 document.addEventListener('input', e=>{
+  if(e.target.id==='prWkTxt'){ const p=$('#prWkPrev'); if(p) p.innerHTML=prWklejPrev(e.target.value); return; }
   const f=e.target.form; if(!f || !f.matches('form.pr-form')) return;
   if(e.target.name==='b'){ const m=PR_BADANIA.find(([n])=>prK(n)===prK(e.target.value)); const prev=PR.find(y=>prK(y.b)===prK(e.target.value)&&y.u);
     if((m||prev) && !f.u.value) f.u.value=prev?prev.u:m[1]; }
@@ -172,3 +189,68 @@ document.addEventListener('submit', e=>{
   PR=old?PR.map(y=>y.id===x.id?x:y):[...PR,x]; savePr(); prPush(x); prM=null; prRender(); prRefresh();
 });
 document.addEventListener('keydown', e=>{ if(prM && e.key==='Escape'){ e.stopPropagation(); prM=null; prRender(); } }, true);
+
+/* ——— WKLEJANIE: tabela albo JSON → wpisy ——— */
+const PR_KOL = [['d',/^(data|date|dzie[nń])/], ['b',/^(badanie|test|rodzaj|nazwa bad)/], ['p',/^(mieszanka|pr[oó]bka|mma|sample)/], ['l',/^(lepiszcze|binder|asfalt)/],
+  ['u',/^(jednostka|unit|j\.?$)/], ['war',/^(warunki|conditions)/], ['n',/^(uwagi|notatk|komentarz|notes?)/], ['ai',/^(wnioski|ai)/], ['w',/^(pomiar|wynik|warto[sś][cć]|result|value|x\d|nr ?\d|\d+$)/]];
+const PR_DOMYSL = ['d','b','p','l','u','w'];   /* bez nagłówka: Data, Badanie, Mieszanka, Lepiszcze, Jednostka, pomiary… */
+function prData(v){ v=String(v||'').trim(); let m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  m=v.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/); if(m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; return ''; }
+const prLiczby = v => String(v||'').replace(/(\d),(\d)/g,'$1.$2').split(/[;\s|]+/).map(prNum).filter(x=>!isNaN(x));
+function prWklejParse(txt){
+  txt=String(txt||'').trim(); const bledy=[]; let wp=[];
+  if(!txt) return {nowe:[], dup:0, bledy, fmt:''};
+  if(/^[\[{]/.test(txt)){   /* JSON: {wpisy:[…]} albo tablica */
+    try{ const j=JSON.parse(txt), L=Array.isArray(j)?j:(j.wpisy||j.badania||j.results||[]);
+      wp=L.map(x=>({d:prData(x.d||x.data||x.date)||todayISO(), b:String(x.b||x.badanie||x.test||''), p:String(x.p||x.mieszanka||x.probka||x.sample||''), l:String(x.l||x.lepiszcze||''),
+        u:String(x.u||x.jednostka||x.unit||''), w:Array.isArray(x.w||x.pomiary||x.wyniki)?(x.w||x.pomiary||x.wyniki).map(Number).filter(isFinite):prLiczby(x.w||x.pomiary||x.wyniki||x.wynik||x.wartosc),
+        war:String(x.war||x.warunki||''), n:String(x.n||x.uwagi||''), ai:String(x.ai||'')}));
+    }catch(e){ return {nowe:[], dup:0, bledy:['To wygląda na JSON, ale nie da się go odczytać.'], fmt:'JSON'}; }
+  } else {               /* tabela: separator = tab, potem ;, potem , */
+    const wiersze=txt.split(/\r?\n/).filter(r=>r.trim()), sep=wiersze[0].includes('\t')?'\t':wiersze[0].includes(';')?';':',';
+    const komorki=wiersze.map(r=>r.split(sep).map(c=>c.trim().replace(/^"|"$/g,'')));
+    const nag=komorki[0].map(c=>{ const k=c.toLowerCase(); const h=PR_KOL.find(([,re])=>re.test(k)); return h?h[0]:null; });
+    const maNag=nag.filter(Boolean).length>=2 && !prData(komorki[0][0]);
+    const kol=maNag?nag:komorki[0].map((_,i)=>PR_DOMYSL[Math.min(i,PR_DOMYSL.length-1)]);
+    (maNag?komorki.slice(1):komorki).forEach((r,ri)=>{ const x={d:'',b:'',p:'',l:'',u:'',w:[],war:'',n:'',ai:''};
+      r.forEach((c,i)=>{ const k=kol[i]; if(!k||c==='') return; if(k==='w') x.w.push(...prLiczby(c)); else if(k==='d') x.d=prData(c); else x[k]=x[k]?x[k]+' '+c:c; });
+      x.wiersz=ri+(maNag?2:1); wp.push(x); });
+  }
+  const nowe=[]; let dup=0;
+  wp.forEach(x=>{ if(!x.b.trim() || !x.w.length){ bledy.push(`${x.wiersz?'Wiersz '+x.wiersz:'Wpis'}: ${!x.b.trim()?'brak nazwy badania':'brak liczb w pomiarach'} — pominięty`); return; }
+    x.d=x.d||todayISO(); delete x.wiersz;
+    const klucz=y=>[y.d,prK(y.b),prK(y.p),y.w.join('|')].join('#');
+    if(PR.some(y=>klucz(y)===klucz(x)) || nowe.some(y=>klucz(y)===klucz(x))){ dup++; return; }
+    nowe.push(x); });
+  return {nowe, dup, bledy, fmt:/^[\[{]/.test(txt)?'JSON':'tabela'};
+}
+function prWklejPrev(txt){ const R=prWklejParse(txt); if(!String(txt||'').trim()) return '';
+  return `<p class="pr-wkinfo">${R.fmt?`Rozpoznano: <b>${R.fmt}</b> · `:''}nowe wpisy: <b>${R.nowe.length}</b>${R.dup?` · pominięte duplikaty: ${R.dup}`:''}</p>
+    ${R.bledy.length?`<ul class="pr-k">${R.bledy.slice(0,6).map(b=>`<li class="warn">${esc(b)}</li>`).join('')}${R.bledy.length>6?`<li class="info">…i ${R.bledy.length-6} więcej</li>`:''}</ul>`:''}
+    ${R.nowe.length?`<div class="tbl-wrap"><table class="px-t pr-wkt"><thead><tr><th>Data</th><th>Badanie</th><th>Mieszanka</th><th>Lepiszcze</th><th class="n">Pomiary</th></tr></thead><tbody>
+      ${R.nowe.slice(0,30).map(x=>`<tr><td>${dPL(x.d)}</td><td>${esc(x.b)}</td><td>${esc(x.p)}</td><td>${esc(x.l)}</td><td class="n">${x.w.map(v=>prF2(v)).join('; ')} ${esc(x.u)}</td></tr>`).join('')}
+      ${R.nowe.length>30?`<tr><td colspan="5">…i ${R.nowe.length-30} więcej</td></tr>`:''}</tbody></table></div>`:''}
+    <div class="tr-foot"><button type="button" class="td-btn" data-pract="close">Anuluj</button><button type="button" class="tr-save" data-pract="wkdodaj"${R.nowe.length?'':' disabled'}>Dodaj ${R.nowe.length||''} ${plCntWp(R.nowe.length)}</button></div>`; }
+const plCntWp = n => n===1?'wpis':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'wpisy':'wpisów';
+function prWklejHtml(){
+  return `<div class="tr-top"><div><span class="label">Studia · praca</span><h2>Wklej wyniki</h2></div><button type="button" class="tr-x" data-pract="close" aria-label="Zamknij">✕</button></div>
+    <p class="pr-wkhelp">Wklej tabelę z Excela, Arkusza albo drugiej strony (kolumny: <b>Data · Badanie · Mieszanka · Lepiszcze · Jednostka · Pomiar 1 · Pomiar 2…</b>; nagłówek opcjonalny, mogą być też Warunki i Uwagi) albo JSON skopiowany przyciskiem „Kopiuj wyniki”.</p>
+    <textarea id="prWkTxt" class="pr-wktxt" rows="7" placeholder="Data&#9;Badanie&#9;Mieszanka&#9;Lepiszcze&#9;Jednostka&#9;Pomiar 1&#9;Pomiar 2&#10;09.11.2026&#9;Vm&#9;AC 11 S wariant 2&#9;Mieszanka 3&#9;%&#9;3,8&#9;4,1" spellcheck="false"></textarea>
+    <div id="prWkPrev"></div>`; }
+
+/* ——— KOPIOWANIE: wszystkie albo tylko z aktualnego filtra ——— */
+const prKopiujLista = () => PR.filter(x=>!prF||prK(x.b)===prK(prF)).sort((a,b)=>a.d.localeCompare(b.d)||a.c-b.c);
+function prTabela(L){ const n=Math.max(1,...L.map(x=>x.w.length)), czysc=v=>String(v||'').replace(/[\t\r\n]+/g,' ');
+  return [['Data','Badanie','Mieszanka','Lepiszcze','Jednostka',...Array.from({length:n},(_,i)=>'Pomiar '+(i+1)),'Średnia','Warunki','Uwagi'].join('\t'),
+    ...L.map(x=>{ const S=prStat(x.w); return [x.d, czysc(x.b), czysc(x.p), czysc(x.l), czysc(x.u), ...Array.from({length:n},(_,i)=>x.w[i]!=null?String(x.w[i]).replace('.',','):''), S?String(Math.round(S.sr*1e4)/1e4).replace('.',','):'', czysc(x.war), czysc(x.n)].join('\t'); })].join('\n'); }
+function prKopiuj(txt, btn){
+  const done=ok=>{ const o=btn.dataset.o||btn.textContent; btn.dataset.o=o; btn.textContent=ok?'Skopiowano ✓':'Nie udało się'; setTimeout(()=>{ if(btn.isConnected) btn.textContent=o; },1800); };
+  const awaryjnie=()=>{ try{ const t=document.createElement('textarea'); t.value=txt; t.style.cssText='position:fixed;top:-1000px;opacity:0'; document.body.appendChild(t); t.select(); const r=document.execCommand('copy'); t.remove(); return r; }catch(e){ return false; } };
+  (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt).then(()=>true,awaryjnie):Promise.resolve(awaryjnie())).then(done); }
+function prKopiujHtml(){ const L=prKopiujLista();
+  return `<div class="tr-top"><div><span class="label">Studia · praca</span><h2>Kopiuj wyniki</h2></div><button type="button" class="tr-x" data-pract="close" aria-label="Zamknij">✕</button></div>
+    <p class="pr-wkhelp">${L.length} ${plCntWp(L.length)}${prF?` (filtr: ${esc(prF)})`:' (wszystkie)'}, od najstarszego.</p>
+    <div class="pr-kp">
+      <button type="button" class="pr-kpb" data-pract="kpt"><b>Jako tabela</b><span>Wklejasz do Excela, Arkusza Google albo drugiej strony — każdy pomiar w osobnej kolumnie, plus średnia.</span></button>
+      <button type="button" class="pr-kpb" data-pract="kpj"><b>Jako JSON</b><span>Pełne dane (z warunkami, uwagami i wnioskami AI) — do wczytania w drugiej stronie albo z powrotem tutaj.</span></button>
+    </div>`; }
