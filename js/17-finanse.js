@@ -100,11 +100,12 @@ function finCalc(){
   const C=FIN.cfg, td=todayISO(), eom=finEom(td), od=C.od;
   const kon=finD(eom)>finD(td)?eom:td, max=FIN.ops.reduce((m,o)=>o.d>m?o.d:m, kon);
   const all=[...FIN.ops, ...finAuto(od, max>kon?max:kon)];
-  const saldo={glowne:C.sg, oszcz:C.so}, poMies={glowne:0, oszcz:0};
+  const saldo={glowne:C.sg, oszcz:C.so}, poMies={glowne:0, oszcz:0}, przMies={glowne:0, oszcz:0};
   const ruch=(o,s)=>{ if(o.t==='wpl') s[o.k]+=o.a; else if(o.t==='wyd') s[o.k]-=o.a; else { s[o.k]-=o.a; s[o.k==='glowne'?'oszcz':'glowne']+=o.a; } };
   const liczone=all.filter(o=>o.d>=od && o.d<=td), plan=all.filter(o=>o.d>td && o.d<=eom);
   liczone.forEach(o=>ruch(o,saldo));
-  liczone.filter(o=>o.d.startsWith(td.slice(0,7))).forEach(o=>ruch(o,poMies));
+  /* „w tym miesiącu” na kartach kont: tylko prawdziwe wpływy i wydatki; przelewy własne osobno (przMies) */
+  liczone.filter(o=>o.d.startsWith(td.slice(0,7))).forEach(o=>ruch(o, o.t==='prz'?przMies:poMies));
   const po={...saldo}; plan.forEach(o=>ruch(o,po));
   const planSub=plan.filter(o=>o.auto==='sub').reduce((s,o)=>s+o.a,0);
   const planStale=plan.filter(o=>o.auto==='stale'&&o.k==='glowne').reduce((s,o)=>s+(o.t==='wpl'?o.a:-o.a),0);
@@ -113,7 +114,7 @@ function finCalc(){
   /* średnie: wydatki i wpływy bez przelewów, od dnia „od” do dziś */
   const przeplyw=liczone.filter(o=>o.t!=='prz'), dni=Math.max(1, finDni(od,td)+1);
   const wyd=przeplyw.filter(o=>o.t==='wyd').reduce((s,o)=>s+o.a,0), wpl=przeplyw.filter(o=>o.t==='wpl').reduce((s,o)=>s+o.a,0);
-  return {all, liczone, plan, saldo, poMies, po, zostaje:po.glowne, planSub, planStale, planInne, dniDoKonca, eom, td, od, dni, wyd, wpl};
+  return {all, liczone, plan, saldo, poMies, przMies, po, zostaje:po.glowne, planSub, planStale, planInne, dniDoKonca, eom, td, od, dni, wyd, wpl};
 }
 const finSign = v => (v>0.004?'+':v<-0.004?'−':'')+fmt(Math.abs(v),2);
 const finCls = v => v>0.004?'bk-plus':v<-0.004?'bk-minus':'';
@@ -153,7 +154,7 @@ function finModalHtml(){
   const nieUst=!C.u;
   const naDzien=F.zostaje/F.dniDoKonca;
   const cells=`<div class="grid g4 px-cells fin-cells">
-    ${['glowne','oszcz'].map(kk=>`<div class="cell fin-acc${finPrz===kk?' open':''}"><span class="label">${FIN_KONTA[kk]}</span><span class="big ${F.saldo[kk]<-0.004?'bk-minus':''}">${fmt(F.saldo[kk],2)}<small>zł</small></span><p>${finSign(F.poMies[kk])} zł w tym miesiącu</p>${finPrzHtml(kk,F)}</div>`).join('')}
+    ${['glowne','oszcz'].map(kk=>`<div class="cell fin-acc${finPrz===kk?' open':''}"><span class="label">${FIN_KONTA[kk]}</span><span class="big ${F.saldo[kk]<-0.004?'bk-minus':''}">${fmt(F.saldo[kk],2)}<small>zł</small></span><p>${finSign(F.poMies[kk])} zł w tym miesiącu</p>${Math.abs(F.przMies[kk])>0.004?`<p class="fin-przm">przelewy własne: ${finSign(F.przMies[kk])} zł</p>`:''}${finPrzHtml(kk,F)}</div>`).join('')}
     <div class="cell"><span class="label">Razem</span><span class="big">${fmt(F.saldo.glowne+F.saldo.oszcz,2)}<small>zł</small></span><p>oba konta${nieUst?' · ustaw salda w „Konta” niżej':''}</p></div>
     <div class="cell fin-zost${F.zostaje<-0.004?' over':''}"><span class="label">Zostaje do ${dPL(F.eom).slice(0,5)}</span><span class="big">${fmt(F.zostaje,2)}<small>zł</small></span>
       <p>${F.zostaje>0?`≈ ${fmt(naDzien,2)} zł na dzień (${F.dniDoKonca} ${F.dniDoKonca===1?'dzień':'dni'})`:'na koncie głównym zabraknie pieniędzy'}${Math.abs(F.planStale)>0.004?` · ${finSign(F.planStale)} stałe`:''}${F.planSub?` · −${fmt(F.planSub,2)} subskrypcje`:''}${Math.abs(F.planInne)>0.004?` · ${finSign(F.planInne)} zaplanowane`:''}</p></div></div>`;

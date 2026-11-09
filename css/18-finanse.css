@@ -148,3 +148,6 @@ table.fin-ust{min-width:460px}
   .grid.fin-cells .fin-acc{grid-column:1/-1}
   .fin-cells .big{font-size:24px!important} .fin-cells .big small{font-size:10px} .fin-hbar .bk-chips{flex-wrap:nowrap;overflow-x:auto;max-width:100%}
 }
+
+/* karta konta: przelewy własne w tym miesiącu (nie liczą się do bilansu) */
+.fin-acc p.fin-przm{margin-top:-4px;font-size:12.5px;opacity:.7}
