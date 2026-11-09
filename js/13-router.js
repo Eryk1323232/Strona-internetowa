@@ -23,6 +23,7 @@ const ROUTES = {
   'notatki': {title:'Notatki', parent:'studia', render:pNotes},
   'kalkulatory':{title:'Kalkulatory', parent:'studia', render:pCalcs},
   'dyski':   {title:'Dyski', parent:'studia', render:pDiski},
+  'praca':   {title:'Praca', parent:'studia', render:pPraca},
 };
 
 /* ——— router ——— */
@@ -55,6 +56,7 @@ function render(){
   if(key!=='silownia' && trM){ trM=null; trRender(); }
   if(key!=='kalkulatory' && mxM){ mxM=null; mxRender(); }
   if(key!=='dyski' && dkM){ dkM=null; dkRender(); }
+  if(key!=='praca' && prM){ prM=null; prRender(); }
   if(key!=='pieniadze' && bkM){ bkM=false; bkRender(); }
   if(key!=='pieniadze' && finM){ finM=false; finRender(); }
   if(key!=='pieniadze' && sbM){ sbM=false; sbRender(); }
