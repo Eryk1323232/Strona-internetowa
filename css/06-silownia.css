@@ -217,17 +217,20 @@ table.tr-ht td:first-child{padding-right:14px;width:42%}
   .tr-rest{bottom:96px}
 }
 
-/* plany: zwijane dni (strzałka przy nazwie, podsumowanie gdy zwinięty) */
-.pl-tg{flex:none;width:30px;height:30px;border:1px solid var(--line);border-radius:50%;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center;padding:0}
-.pl-tg svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transform:rotate(-90deg);transition:transform .15s}
-.day.open .pl-tg svg{transform:none}
-.pl-tg:hover{color:var(--ink);border-color:var(--ink)}
-.day:not(.open) .day-head{border-bottom-color:var(--line-soft)}
-.pl-sum{display:block;width:100%;text-align:left;background:none;border:0;padding:10px 14px 12px;color:var(--muted);font-family:var(--f-body);font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pl-sum:hover{color:var(--ink)}
-.pl-body[hidden]{display:none}
-#gymPlan .plan{align-items:start}
-#gymPlan .pl-addday{min-height:96px}
+/* plany: zwinięte karty planów na stronie (klik → okienko wyboru dnia; tam „Edytuj plan”) */
+.pl-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:16px}
+.pl-card{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:18px 20px;cursor:pointer;color:var(--ink);box-shadow:var(--shadow);min-height:150px;font:inherit}
+.pl-card:hover{border-color:var(--accent)}
+.pl-card b{font-family:var(--f-display);font-weight:500;font-size:26px;line-height:1.1;letter-spacing:-.01em}
+.pl-cmeta{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.pl-cfoot{margin-top:auto;width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted);padding-top:10px;border-top:1px solid var(--line-soft)}
+.pl-card:hover .ht-go{background:var(--accent);color:var(--accent-ink)}
+.pl-cnew{cursor:default;border-style:dashed;box-shadow:none;background:none;justify-content:center}
+.pl-cnew input{width:100%;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-family:var(--f-display);font-size:20px;padding:6px 0}
+.pl-cnew input:focus{outline:none;border-bottom-color:var(--accent)}
+.tr-pfoot{display:flex;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft)}
+.tr-wide .tr-panel{width:min(1200px,100%)}
+#plEdit .plan{grid-template-columns:repeat(auto-fill,minmax(min(360px,100%),1fr))}
 
 /* trening: „Zmień” ćwiczenie */
 .tr-exh{align-items:center}
@@ -248,3 +251,10 @@ table.tr-ht td:first-child{padding-right:14px;width:42%}
 .tr-sw-del:hover{color:var(--bad)}
 .tr-sw-add{text-align:left;background:none;border:1px dashed var(--accent);color:var(--accent);border-radius:var(--r-sm);padding:9px 10px;font-family:var(--f-body);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:4px}
 .tr-sw-none{margin:8px 4px;font-size:13px;color:var(--muted)}
+
+.tr-sw-row{display:flex;gap:8px}
+.tr-sw-row .tr-sw-q{flex:1;min-width:0}
+.tr-sw-plus{flex:none;height:40px;border:0;border-radius:var(--r-sm);background:var(--ink);color:var(--bg);padding:0 14px;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:13px;white-space:nowrap}
+.tr-sw-plus:hover{background:var(--accent);color:var(--accent-ink)}
+.tr-sw-msg{margin:6px 2px 0;font-size:12.5px;color:var(--ok)} .tr-sw-msg:empty{display:none}
+@media (max-width:560px){ .tr-sw-plus{padding:0 10px;font-size:12px} }

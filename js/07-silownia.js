@@ -133,50 +133,56 @@ const plNorm = (id,v={}) => ({id, n:String(v.n||'Plan'), o:+v.o||0, days:(Array.
   ex:(Array.isArray(d.ex)?d.ex:[]).map(e=>({id:String(e.id||uid('e')), n:String(e.n||''), s:String(e.s??''), r:String(e.r??''), rir:String(e.rir??'')}))}))});
 let PL = plDef();
 try{ const c=JSON.parse(store.get('planState','null')); if(Array.isArray(c)&&c.length) PL=c.map(p=>plNorm(p.id,p)); }catch(e){}
-let plSel = store.get('planSel','');
-/* rozwinięte dni w edytorze planów (domyślnie wszystkie zwinięte; pamiętane w przeglądarce) */
-let plOpen = new Set(); try{ const o=JSON.parse(store.get('planOpen','[]')); if(Array.isArray(o)) plOpen=new Set(o); }catch(e){}
+
 const savePlans = () => store.set('planState', JSON.stringify(PL));
 const plList = () => PL.slice().sort((a,b)=>a.o-b.o);
-const plCur = () => PL.find(p=>p.id===plSel) || plList()[0];
 const plPush = p => cloud(db=>db.collection('plany').doc(p.id).set({n:p.n, o:p.o, days:p.days}));
 function plUpdate(pid, fn){ const p=PL.find(x=>x.id===pid); if(!p) return; const np=plNorm(p.id, JSON.parse(JSON.stringify(p))); fn(np); PL=PL.map(x=>x.id===pid?np:x); savePlans(); planRefresh(); plPush(np); }
+/* „Plany treningowe” na stronie: zwinięte karty planów. Kliknięcie planu → okienko z wyborem dnia (trM.mode 'pick'),
+   tam „Edytuj plan” → okienko edycji planu (trM.mode 'pedit', planEditHtml). */
+const plCnt = (n,a,b,c) => n+' '+(n===1?a:(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?b:c);
 function planHtml(){
-  const cur=plCur();
-  const tabs=`<div class="ptabs pl-tabs" role="tablist">${plList().map(p=>`<button type="button" role="tab" data-plsel="${esc(p.id)}" aria-selected="${cur&&p.id===cur.id}">${esc(p.n)}</button>`).join('')}
-    <form class="pl-new"><input name="n" placeholder="+ Nowy plan" aria-label="Nazwa nowego planu" autocomplete="off" maxlength="60"></form></div>`;
-  if(!cur) return tabs+'<div class="nt-blank"><p>Brak planów. Wpisz nazwę w polu „+ Nowy plan”.</p></div>';
-  const P=cur.id;
-  const days=cur.days.map(d=>{ const k=`${P}|${d.id}`, op=plOpen.has(d.id);
-    return `<div class="day${op?' open':''}"><div class="day-head"><button type="button" class="pl-tg" data-pact="toggle" data-did="${esc(d.id)}" aria-expanded="${op}" aria-label="${op?'Zwiń':'Rozwiń'} dzień"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6.5l3 3 3-3"/></svg></button><input class="pl-in pl-dname" data-pk="${esc(k)}||n" value="${esc(d.n)}" placeholder="Nazwa dnia" aria-label="Nazwa dnia">
+  const L=plList();
+  return `<div class="pl-cards">${L.map(p=>{ const last=typeof trFor==='function'&&trFor(p.id)[0];
+      return `<button type="button" class="pl-card" data-tract="pick" data-pid="${esc(p.id)}"><span class="label">Plan</span><b>${esc(p.n)}</b>
+        <span class="pl-cmeta">${plCnt(p.days.length,'dzień','dni','dni')} · ${plCnt(p.days.reduce((a,d)=>a+d.ex.length,0),'ćwiczenie','ćwiczenia','ćwiczeń')}</span>
+        <span class="pl-cfoot"><span>${last?'ostatnio '+dPL(last.d)+' · '+esc(last.dn):'jeszcze nie robiony'}</span><span class="ht-go" aria-hidden="true">→</span></span></button>`; }).join('')}
+    <form class="pl-new pl-card pl-cnew"><span class="label">Nowy plan</span><input name="n" placeholder="+ Nazwa planu" aria-label="Nazwa nowego planu" autocomplete="off" maxlength="60"></form></div>`;
+}
+/* edycja jednego planu (w okienku) */
+function planEditHtml(P){
+  const cur=PL.find(p=>p.id===P); if(!cur) return '<p class="nt-none">Plan został usunięty.</p>';
+  const days=cur.days.map(d=>{ const k=`${P}|${d.id}`;
+    return `<div class="day"><div class="day-head"><input class="pl-in pl-dname" data-pk="${esc(k)}||n" value="${esc(d.n)}" placeholder="Nazwa dnia" aria-label="Nazwa dnia">
       <input class="pl-in pl-tag" data-pk="${esc(k)}||tag" value="${esc(d.tag)}" placeholder="opis" aria-label="Opis dnia" maxlength="20">
       <button type="button" class="g-del" data-pact="delday" data-pid="${esc(P)}" data-did="${esc(d.id)}" aria-label="Usuń dzień">×</button></div>
-      ${op?'':`<button type="button" class="pl-sum" data-pact="toggle" data-did="${esc(d.id)}">${d.ex.length} ${d.ex.length===1?'ćwiczenie':(d.ex.length%10>=2&&d.ex.length%10<=4&&(d.ex.length%100<10||d.ex.length%100>=20))?'ćwiczenia':'ćwiczeń'}${d.ex.length?' · '+esc(d.ex.slice(0,3).map(e=>e.n).join(', '))+(d.ex.length>3?'…':''):''}</button>`}
-      <div class="pl-body"${op?'':' hidden'}><div class="tbl-wrap" style="border:0"><table class="pl-t"><thead><tr><th>Ćwiczenie</th><th class="n">Serie</th><th class="n">Powt.</th><th class="n">RIR</th><th></th></tr></thead><tbody>
+      <div class="tbl-wrap" style="border:0"><table class="pl-t"><thead><tr><th>Ćwiczenie</th><th class="n">Serie</th><th class="n">Powt.</th><th class="n">RIR</th><th></th></tr></thead><tbody>
       ${d.ex.map(e=>{ const ek=`${k}|${e.id}`; return `<tr><td><input class="pl-in pl-ex" data-pk="${esc(ek)}|n" value="${esc(e.n)}" title="${esc(e.n)}" aria-label="Nazwa ćwiczenia"></td>
         <td class="n"><input class="pl-in pl-sm" data-pk="${esc(ek)}|s" value="${esc(e.s)}" aria-label="Serie"></td>
         <td class="n"><input class="pl-in pl-md" data-pk="${esc(ek)}|r" value="${esc(e.r)}" aria-label="Powtórzenia"></td>
         <td class="n"><input class="pl-in pl-sm" data-pk="${esc(ek)}|rir" value="${esc(e.rir)}" aria-label="RIR"></td>
         <td class="n"><button type="button" class="g-del" data-pact="delex" data-pid="${esc(P)}" data-did="${esc(d.id)}" data-eid="${esc(e.id)}" aria-label="Usuń ćwiczenie">×</button></td></tr>`; }).join('')}
       </tbody></table></div>
-      <form class="pl-addex" data-pid="${esc(P)}" data-did="${esc(d.id)}"><input name="n" placeholder="+ Dodaj ćwiczenie" aria-label="Nazwa nowego ćwiczenia" autocomplete="off" maxlength="80"></form></div></div>`; }).join('');
-  return `${tabs}<div class="pl-head"><input class="pl-in pl-pname" data-pk="${esc(P)}|||n" value="${esc(cur.n)}" aria-label="Nazwa planu" maxlength="60">
-      <span class="pl-meta">${cur.days.length} ${cur.days.length===1?'dzień':'dni'} · ${cur.days.reduce((a,d)=>a+d.ex.length,0)} ćwiczeń</span>
+      <form class="pl-addex" data-pid="${esc(P)}" data-did="${esc(d.id)}"><input name="n" placeholder="+ Dodaj ćwiczenie" aria-label="Nazwa nowego ćwiczenia" autocomplete="off" maxlength="80"></form></div>`; }).join('');
+  return `<div class="pl-head"><input class="pl-in pl-pname" data-pk="${esc(P)}|||n" value="${esc(cur.n)}" aria-label="Nazwa planu" maxlength="60">
+      <span class="pl-meta">${plCnt(cur.days.length,'dzień','dni','dni')} · ${plCnt(cur.days.reduce((a,d)=>a+d.ex.length,0),'ćwiczenie','ćwiczenia','ćwiczeń')}</span>
       <button type="button" class="td-btn" data-pact="delplan" data-pid="${esc(P)}">Usuń plan</button></div>
     <div class="plan">${days}<button type="button" class="pl-addday" data-pact="addday" data-pid="${esc(P)}"><span>+</span>Dodaj dzień</button></div>`;
 }
 function planRefresh(){
-  const box=$('#gymPlan'); if(!box) return;
+  const box=$('#gymPlan'); if(box && !box.contains(document.activeElement)) box.innerHTML=planHtml();
+  const ed=$('#plEdit'); if(!ed||!trM||trM.mode!=='pedit') return;
   const a=document.activeElement, key=a&&a.dataset&&a.dataset.pk, nf=a&&a.closest&&a.closest('form.pl-addex'), nfDay=nf&&nf.dataset.did;
-  box.innerHTML=planHtml();
-  if(key){ const el=box.querySelector(`[data-pk="${CSS.escape(key)}"]`); if(el){ el.focus(); el.select&&el.select(); } }
-  else if(nfDay){ const el=box.querySelector(`form.pl-addex[data-did="${CSS.escape(nfDay)}"] input`); el&&el.focus(); }
+  ed.innerHTML=planEditHtml(trM.pid);
+  if(key){ const el=ed.querySelector(`[data-pk="${CSS.escape(key)}"]`); if(el){ el.focus(); el.select&&el.select(); } }
+  else if(nfDay){ const el=ed.querySelector(`form.pl-addex[data-did="${CSS.escape(nfDay)}"] input`); el&&el.focus(); }
 }
 document.addEventListener('submit', e=>{
   const f=e.target;
   if(f.matches('form.pl-new')){ e.preventDefault(); const n=f.n.value.trim(); if(!n) return;
     const p=plNorm(uid('p'),{n, o:Math.max(-1,...PL.map(x=>x.o))+1, days:[{id:uid('d'),n:'Dzień 1',tag:'',ex:[]}]});
-    PL=[...PL,p]; plSel=p.id; store.set('planSel',plSel); savePlans(); f.n.value=''; document.activeElement.blur(); planRefresh(); plPush(p); return; }
+    PL=[...PL,p]; savePlans(); f.n.value=''; document.activeElement.blur(); planRefresh(); plPush(p);
+    trM={mode:'pedit', pid:p.id}; trRender(); return; }
   if(f.matches('form.pl-addex')){ e.preventDefault(); const n=f.n.value.trim(); if(!n) return;
     plUpdate(f.dataset.pid, p=>{ const d=p.days.find(x=>x.id===f.dataset.did); if(d) d.ex.push({id:uid('e'), n, s:'3', r:'8-10', rir:'1'}); }); }
 });
@@ -192,17 +198,15 @@ document.addEventListener('change', e=>{
 });
 document.addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.matches && e.target.matches('input.pl-in')){ e.preventDefault(); e.target.blur(); } });
 document.addEventListener('click', e=>{
-  const t=e.target.closest('[data-plsel]'); if(t){ plSel=t.dataset.plsel; store.set('planSel',plSel); planRefresh(); return; }
   const b=e.target.closest('[data-pact]'); if(!b) return;
   const a=b.dataset.pact, pid=b.dataset.pid;
-  if(a==='toggle'){ const id=b.dataset.did; plOpen.has(id)?plOpen.delete(id):plOpen.add(id); store.set('planOpen',JSON.stringify([...plOpen])); return planRefresh(); }
   if(a==='addday'){ plUpdate(pid, p=>{ p.days.push({id:uid('d'), n:'Dzień '+(p.days.length+1), tag:'', ex:[]}); });
-    setTimeout(()=>{ const ins=document.querySelectorAll('#gymPlan .pl-dname'); const el=ins[ins.length-1]; if(el){ el.focus(); el.select(); } },0); return; }
+    setTimeout(()=>{ const ins=document.querySelectorAll('#plEdit .pl-dname'); const el=ins[ins.length-1]; if(el){ el.focus(); el.select(); } },0); return; }
   if(!b.dataset.parm){ b.dataset.parm='1'; const o=b.textContent; b.dataset.otext=o; b.textContent=a==='delplan'?'Na pewno usunąć plan?':'Usuń?'; b.classList.add('armed');
     setTimeout(()=>{ if(b.isConnected){ delete b.dataset.parm; b.textContent=b.dataset.otext; b.classList.remove('armed'); } },3000); return; }
   if(a==='delex') plUpdate(pid, p=>{ const d=p.days.find(x=>x.id===b.dataset.did); if(d) d.ex=d.ex.filter(x=>x.id!==b.dataset.eid); });
   else if(a==='delday') plUpdate(pid, p=>{ p.days=p.days.filter(x=>x.id!==b.dataset.did); });
-  else if(a==='delplan'){ PL=PL.filter(p=>p.id!==pid); if(plSel===pid){ plSel=''; store.set('planSel',''); } savePlans(); planRefresh(); cloud(db=>db.collection('plany').doc(pid).delete()); }
+  else if(a==='delplan'){ PL=PL.filter(p=>p.id!==pid); savePlans(); trM=null; trRender(); planRefresh(); cloud(db=>db.collection('plany').doc(pid).delete()); }
 });
 
 
@@ -261,9 +265,13 @@ function trModalHtml(){
         return `<button type="button" class="tr-day" data-tract="pick" data-pid="${esc(p.id)}"><b>${esc(p.n)}</b><span class="tr-sub">${p.days.length} ${p.days.length===1?'dzień':'dni'} · ${p.days.reduce((a,d)=>a+d.ex.length,0)} ćwiczeń</span><span class="tr-sub">${last?'ostatnio '+dPL(last.d)+' · '+esc(last.dn):'jeszcze nie robiony'}</span></button>`; }).join('')||'<p class="nt-none">Nie masz jeszcze planów — dodaj je w „Plany treningowe”.</p>'}</div>`; }
   if(trM.mode==='pick'){ const p=PL.find(x=>x.id===trM.pid); if(!p) return '';
     const nx=trNext(p);
-    return `<div class="tr-top"><div><button type="button" class="tr-back" data-tract="plans">← Plany</button><span class="label">${esc(p.n)}</span><h2>Który dzień robisz?</h2></div>${close}</div>
+    return `<div class="tr-top"><div>${PL.length>1?'<button type="button" class="tr-back" data-tract="plans">← Plany</button>':''}<span class="label">${esc(p.n)}</span><h2>Który dzień robisz?</h2></div>${close}</div>
       <div class="tr-days">${p.days.map(d=>{ const last=trFor(p.id).find(t=>t.did===d.id);
-        return `<button type="button" class="tr-day${d.id===nx?' nx':''}" data-tract="day" data-did="${esc(d.id)}">${d.id===nx?'<span class="tr-nx">Następny</span>':''}<b>${esc(d.n||'Dzień')}</b>${d.tag?`<span class="tr-tag">${esc(d.tag)}</span>`:''}<span class="tr-sub">${d.ex.length} ćwiczeń · ${last?'ostatnio '+dPL(last.d):'jeszcze nie robiony'}</span></button>`; }).join('')||'<p class="nt-none">Ten plan nie ma jeszcze dni.</p>'}</div>`; }
+        return `<button type="button" class="tr-day${d.id===nx?' nx':''}" data-tract="day" data-did="${esc(d.id)}">${d.id===nx?'<span class="tr-nx">Następny</span>':''}<b>${esc(d.n||'Dzień')}</b>${d.tag?`<span class="tr-tag">${esc(d.tag)}</span>`:''}<span class="tr-sub">${d.ex.length} ćwiczeń · ${last?'ostatnio '+dPL(last.d):'jeszcze nie robiony'}</span></button>`; }).join('')||'<p class="nt-none">Ten plan nie ma jeszcze dni.</p>'}</div>
+      <div class="tr-pfoot"><button type="button" class="td-btn" data-tract="pedit" data-pid="${esc(p.id)}">Edytuj plan</button></div>`; }
+  if(trM.mode==='pedit'){ const p=PL.find(x=>x.id===trM.pid);
+    return `<div class="tr-top"><div><button type="button" class="tr-back" data-tract="pick" data-pid="${esc(trM.pid)}">← Wybór dnia</button><span class="label">Edycja planu</span><h2>${esc(p?p.n:'Plan')}</h2></div>${close}</div>
+      <div id="plEdit">${planEditHtml(trM.pid)}</div>`; }
   if(trM.mode==='log') return trLogHtml(close);
   /* historia: wszystkie treningi, od najnowszego */
   const H=trAll(), mies={}; H.forEach(t=>{ const k=(t.d||'').slice(0,7); (mies[k]=mies[k]||[]).push(t); });
@@ -313,7 +321,7 @@ function trSwapList(box, q){
 function trSwapOpen(ex){
   document.querySelectorAll('#trModal .tr-swap:not([hidden])').forEach(x=>{ x.hidden=true; x.closest('.tr-ex').querySelector('.tr-chg').setAttribute('aria-expanded','false'); });
   const box=ex.querySelector('.tr-swap'); box.hidden=false; ex.querySelector('.tr-chg').setAttribute('aria-expanded','true');
-  box.innerHTML=`<input class="tr-sw-q" placeholder="Szukaj albo wpisz nowe ćwiczenie…" aria-label="Szukaj ćwiczenia" autocomplete="off" maxlength="80"><div class="tr-sw-l">${trSwapList(box,'')}</div>`;
+  box.innerHTML=`<div class="tr-sw-row"><input class="tr-sw-q" placeholder="Szukaj albo wpisz nowe ćwiczenie…" aria-label="Szukaj albo nowe ćwiczenie" autocomplete="off" maxlength="80"><button type="button" class="tr-sw-plus" data-tract="swapadd" title="Dodaj wpisane ćwiczenie do listy (bez wymiany)">+ Dodaj do listy</button></div><p class="tr-sw-msg" aria-live="polite"></p><div class="tr-sw-l">${trSwapList(box,'')}</div>`;
   if(!matchMedia('(pointer:coarse)').matches) box.querySelector('input').focus();
 }
 /* wymiana ćwiczenia tylko w tym treningu (plan zostaje bez zmian); wpisane serie przechodzą na nowe ćwiczenie */
@@ -340,7 +348,7 @@ function trRender(){
   if(!trM || !$('#gymPlan')){ sc&&sc.remove(); md&&md.remove(); trM=null; document.body.classList.remove('tr-lock'); trBarRefresh(); return; }
   if(!md){ sc=document.createElement('div'); sc.id='trScrim'; sc.className='tr-scrim'; document.body.appendChild(sc);
     md=document.createElement('div'); md.id='trModal'; md.className='tr-modal'; md.setAttribute('role','dialog'); md.setAttribute('aria-modal','true'); document.body.appendChild(md); }
-  document.body.classList.add('tr-lock'); md.classList.toggle('tr-sess', trM.mode==='log'); md.innerHTML=`<div class="tr-panel">${trModalHtml()}</div>`; md.scrollTop=0;
+  document.body.classList.add('tr-lock'); md.classList.toggle('tr-sess', trM.mode==='log'); md.classList.toggle('tr-wide', trM.mode==='pedit'); md.innerHTML=`<div class="tr-panel">${trModalHtml()}</div>`; md.scrollTop=0;
   if(trM.mode==='log'){ const ins=[...md.querySelectorAll('.tr-set input')], f=ins.find(i=>!i.value)||ins[0]; if(f && !matchMedia('(pointer:coarse)').matches) setTimeout(()=>f.focus(),30); trTick(); }
 }
 function trRefresh(){ if(trM && trM.mode==='hist') trRender(); trBarRefresh(); }
@@ -381,6 +389,7 @@ document.addEventListener('click', e=>{
   if(a==='plans'){ trFlush(); trM={mode:'plans'}; return trRender(); }
   if(a==='pick'){ trM={mode:'pick', pid:b.dataset.pid}; return trRender(); }
   if(a==='hist'){ trFlush(); trM={mode:'hist'}; return trRender(); }
+  if(a==='pedit'){ trM={mode:'pedit', pid:b.dataset.pid}; return trRender(); }
   if(a==='day'){ trRestT=0; trM={mode:'log', pid:trM.pid, did:b.dataset.did, d:todayISO(), tid:trOpenId(trM.pid,b.dataset.did,todayISO())}; return trRender(); }
   if(a==='edit'){ const t=TR.find(x=>x.id===b.dataset.tid); if(!t) return; trRestT=0; trM={mode:'log', pid:t.pid, did:t.did, d:t.d, tid:t.id}; return trRender(); }
   if(a==='close') return trClose();
@@ -388,6 +397,11 @@ document.addEventListener('click', e=>{
   if(a==='swappick') return trSwapTo(b.closest('.tr-ex'), b.dataset.name);
   if(a==='swapnew'){ const ex=b.closest('.tr-ex'), q=ex.querySelector('.tr-sw-q').value.trim(); if(!q) return;
     if(!CWL.some(x=>trKey(x)===trKey(q))){ CWL=[...CWL,q]; saveCwl(); } return trSwapTo(ex, q); }
+  if(a==='swapadd'){ const box=b.closest('.tr-swap'), inp=box.querySelector('.tr-sw-q'), q=inp.value.trim(), msg=box.querySelector('.tr-sw-msg');
+    if(!q){ msg.textContent='Wpisz nazwę ćwiczenia w polu obok.'; inp.focus(); return; }
+    if(cwlAll().some(x=>trKey(x)===trKey(q))){ msg.textContent=`„${q}” już jest na liście.`; }
+    else { CWL=[...CWL,q]; saveCwl(); msg.textContent=`Dodano „${q}” do listy.`; }
+    inp.value=''; box.querySelector('.tr-sw-l').innerHTML=trSwapList(box,''); inp.focus(); return; }
   if(a==='swapdel'){ const n=b.dataset.name; CWL=CWL.filter(x=>trKey(x)!==trKey(n)); saveCwl(); const box=b.closest('.tr-swap'); box.querySelector('.tr-sw-l').innerHTML=trSwapList(box, box.querySelector('.tr-sw-q').value); return; }
   if(a==='unswap'){ const ex=b.closest('.tr-ex'); return trSwapTo(ex, ex.dataset.z); }
   if(a==='resthide'){ trRestT=0; return trTick(); }
