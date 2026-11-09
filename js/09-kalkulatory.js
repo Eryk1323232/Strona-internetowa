@@ -4,6 +4,7 @@
    pCalcs() – karty: Liczenie MMA (kalkulator MASA Web w okienku), Wyniki Pawła, Wyniki moje.
    MXC      – ustawienia obu list wyników (nazwy, domyślne składniki, podpowiedzi).
    MXS      – zapisane mieszanki: {pawel: [...], moje: [...]}.
+   PDF      – „Pobierz PDF” (wszystkie) i „PDF” przy mieszance (jedna) → mxPdf(); wygląd w mxPrintHtml().
    Nowy kalkulator = nowa karta w pCalcs() + własny kod pod spodem.
    ════════════════════════════════════════════════════════════════════════ */
 
@@ -42,10 +43,11 @@ function mxModalHtml(){
   const close=`<button type="button" class="tr-x" data-mxact="close" aria-label="Zamknij">✕</button>`;
   const C=MXC[mxM.set], MX=MXS[mxM.set];
   if(mxM.mode==='list'){ const L=mxList(mxM.set);
-    return `<div class="tr-top"><div><span class="label">${esc(C.label)}</span><h2>${esc(C.title)}</h2></div>${close}</div>
+    const pdf=L.length?`<button type="button" class="mx-pdf" data-mxact="pdf"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.5h5.5L13 5v9.5H4z"/><path d="M9.5 1.5V5H13M8.5 7.5v5M6.5 10.5l2 2 2-2"/></svg>Pobierz PDF</button>`:'';
+    return `<div class="tr-top"><div><span class="label">${esc(C.label)}</span><h2>${esc(C.title)}</h2></div><div class="mx-topr">${pdf}${close}</div></div>
       <button type="button" class="mx-add" data-mxact="new"><span aria-hidden="true">+</span>Dodaj mieszankę</button>
       ${L.length?`<div class="mx-list">${L.map(m=>{ const tot=m.parts.reduce((a,p)=>a+Math.max(0,p.v),0);
-        return `<article class="mx-item"><div class="mx-ih"><b>${esc(m.n||'Bez nazwy')}</b><div class="mx-acts"><button type="button" class="td-btn" data-mxact="edit" data-id="${esc(m.id)}">Edytuj</button><button type="button" class="g-del" data-mxact="del" data-id="${esc(m.id)}" aria-label="Usuń mieszankę">×</button></div></div>
+        return `<article class="mx-item"><div class="mx-ih"><b>${esc(m.n||'Bez nazwy')}</b><div class="mx-acts"><button type="button" class="td-btn" data-mxact="pdf" data-id="${esc(m.id)}" title="Pobierz tę mieszankę jako PDF">PDF</button><button type="button" class="td-btn" data-mxact="edit" data-id="${esc(m.id)}">Edytuj</button><button type="button" class="g-del" data-mxact="del" data-id="${esc(m.id)}" aria-label="Usuń mieszankę">×</button></div></div>
           ${m.base?(b=>b?`<p class="mx-base">Lepiszcze: <b>${esc(b.n)}</b></p>`:'')(MXS.pawel.find(x=>x.id===m.base)):''}
           ${mxBar(m)}
           <table class="mx-t"><tbody>${m.parts.map((p,i)=>`<tr><td><span class="mx-dot" style="background:${MX_COL[i%MX_COL.length]}"></span>${esc(p.n)}</td><td class="n">${fmt(p.v, Number.isInteger(p.v)?0:2)} ${esc(p.unit)}</td><td class="n mx-pct">${tot?fmt(p.v/tot*100,1)+'%':''}</td></tr>`).join('')}</tbody></table>
@@ -79,6 +81,59 @@ function mxSum(){ const f=$('form.mx-form'); if(!f) return; const rows=[...f.que
   el.textContent = units.length===1 ? `Suma: ${fmt(tot, Number.isInteger(tot)?0:2)} ${units[0]}${units[0]==='%'&&Math.abs(tot-100)>0.001&&tot>0?(tot<100?` (brakuje do 100%: ${fmt(100-tot,2)})`:` (przekracza 100% o ${fmt(tot-100,2)})`):''}` : `Suma: ${fmt(tot,2)} (różne jednostki)`;
   el.classList.toggle('warn', units[0]==='%' && units.length===1 && tot>0 && Math.abs(tot-100)>0.001);
 }
+/* ——— PDF wyników: biały arkusz A4 (niezależnie od motywu strony), drukowany → „Zapisz jako PDF” ——— */
+const MX_PCOL=['#C8102E','#2F5D8A','#3C8D5A','#B58B5A','#8E6BB0','#5AA3A8','#B04A3A','#7A7066'];
+function mxPrintHtml(k, id){
+  const C=MXC[k], L=mxList(k).filter(m=>!id||m.id===id);
+  const tytul=id&&L[0]?`${C.title} – ${L[0].n||'mieszanka'}`:C.title;
+  const data=new Date().toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'});
+  const item=m=>{ const tot=m.parts.reduce((a,p)=>a+Math.max(0,p.v),0), b=m.base&&MXS.pawel.find(x=>x.id===m.base);
+    return `<section class="mx">
+      <h2>${esc(m.n||'Bez nazwy')}</h2>
+      ${b?`<p class="base">Lepiszcze: <b>${esc(b.n)}</b></p>`:''}
+      ${tot?`<div class="bar">${m.parts.map((p,i)=>p.v>0?`<i style="flex:${p.v};background:${MX_PCOL[i%MX_PCOL.length]}"></i>`:'').join('')}</div>`:''}
+      <h3>Skład i proporcje</h3>
+      <table><thead><tr><th>Składnik</th><th class="n">Ilość</th><th class="n">Udział</th></tr></thead><tbody>${m.parts.map((p,i)=>`<tr><td><span class="dot" style="background:${MX_PCOL[i%MX_PCOL.length]}"></span>${esc(p.n)}</td><td class="n">${fmt(p.v, Number.isInteger(p.v)?0:2)} ${esc(p.unit)}</td><td class="n">${tot?fmt(p.v/tot*100,1)+' %':''}</td></tr>`).join('')}</tbody></table>
+      ${m.tests.length?`<h3>Badania</h3><table><thead><tr><th style="width:34%">Badanie</th><th style="width:22%">Wynik</th><th>Uwagi</th></tr></thead><tbody>${m.tests.map(t=>`<tr><td><b>${esc(t.n)}</b></td><td class="res">${esc(t.r)}</td><td class="muted">${esc(t.note)}</td></tr>`).join('')}</tbody></table>`:''}
+      ${m.note.trim()?`<h3>Uwagi ogólne</h3><p class="note">${esc(m.note)}</p>`:''}
+    </section>`; };
+  return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${esc(tytul)}</title><style>
+  @page{size:A4;margin:14mm 15mm 16mm}
+  *{box-sizing:border-box} html,body{margin:0;background:#fff}
+  body{font:10pt/1.5 Calibri,Carlito,"Segoe UI",Arial,sans-serif;color:#1d1d1d;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet{max-width:180mm;margin:0 auto}
+  header{border-bottom:2px solid #1d1d1d;padding-bottom:3mm;margin-bottom:6mm;display:flex;justify-content:space-between;align-items:flex-end;gap:10mm}
+  header small{display:block;font-size:8.5pt;letter-spacing:.12em;text-transform:uppercase;color:#C8102E}
+  header h1{margin:1mm 0 0;font-size:20pt;font-weight:600;letter-spacing:.01em}
+  header .meta{text-align:right;font-size:8.5pt;color:#666;line-height:1.5}
+  .mx{padding:0 0 6mm;margin-bottom:6mm;border-bottom:1px solid #cfcfcf;break-inside:avoid}
+  .mx:last-child{border-bottom:0}
+  h2{margin:0 0 2mm;font-size:14pt;font-weight:600}
+  h3{margin:4mm 0 1.5mm;font-size:8.5pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#666}
+  .base{margin:0 0 2mm;color:#444}
+  .bar{display:flex;height:3mm;border-radius:1.5mm;overflow:hidden;margin:2mm 0 1mm}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:8.5pt;font-weight:600;color:#666;border-bottom:1px solid #1d1d1d;padding:1.2mm 2mm 1.2mm 0}
+  td{border-bottom:1px solid #e3e3e3;padding:1.4mm 2mm 1.4mm 0;vertical-align:top}
+  .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .dot{display:inline-block;width:2.4mm;height:2.4mm;border-radius:50%;margin-right:2mm;vertical-align:.1mm}
+  .res{font-weight:600;white-space:nowrap} .muted{color:#555}
+  .note{margin:0;white-space:pre-wrap}
+  @media screen{ body{background:#e8e8e8;padding:20px} .sheet{background:#fff;padding:14mm 15mm;box-shadow:0 2px 12px rgba(0,0,0,.2)} }
+  </style></head><body><div class="sheet">
+  <header><div><small>${esc(C.label)}</small><h1>${esc(C.title)}</h1></div><div class="meta">${data}<br>${mxCnt(L.length)}</div></header>
+  ${L.map(item).join('')}
+  </div></body></html>`;
+}
+function mxPdf(k, id){
+  const html=mxPrintHtml(k,id), name=(html.match(/<title>(.*?)<\/title>/)||[])[1]||'Wyniki';
+  if(matchMedia('(pointer:coarse)').matches){   /* telefon: nowa karta → Udostępnij/Drukuj → Zapisz jako PDF */
+    const w=window.open('','_blank'); if(w){ w.document.open(); w.document.write(html.replace('</body>','<script>setTimeout(()=>print(),400)<\/script></body>')); w.document.close(); return; } }
+  const f=document.createElement('iframe'); f.style.cssText='position:fixed;width:0;height:0;border:0;right:0;bottom:0'; document.body.appendChild(f);
+  const d=f.contentDocument; d.open(); d.write(html); d.close();
+  const t0=document.title; document.title=name.replace(/&amp;/g,'&').replace(/&quot;/g,'"');   /* nazwa pliku PDF w Chrome */
+  setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); document.title=t0; setTimeout(()=>f.remove(),2000); },250);
+}
 function mxRender(){
   let sc=$('#mxScrim'), md=$('#mxModal');
   if(!mxM || !$('#calcPage')){ sc&&sc.remove(); md&&md.remove(); mxM=null; document.body.classList.remove('tr-lock'); return; }
@@ -94,6 +149,7 @@ document.addEventListener('click', e=>{
   const a=b.dataset.mxact;
   if(a==='open'){ mxM={set:b.dataset.set||'pawel', mode:'list'}; return mxRender(); }
   if(a==='close'){ mxM=null; return mxRender(); }
+  if(a==='pdf'){ return mxPdf(mxM.set, b.dataset.id||''); }
   if(a==='new'){ mxM={...mxM, mode:'edit', id:''}; return mxRender(); }
   if(a==='edit'){ mxM={...mxM, mode:'edit', id:b.dataset.id}; return mxRender(); }
   if(a==='back'){ mxM={set:mxM.set, mode:'list'}; return mxRender(); }
