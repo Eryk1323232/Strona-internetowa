@@ -145,6 +145,7 @@ function arkuszDb(url, klucz){
 }
 
 (async()=>{
+  if(PODGLAD) return;                              /* podgląd starej kopii — bez chmury */
   const ark = window.claude?.use ? null : arkuszUstawienia();
   if(!window.claude?.use && !ark) return;          /* brak chmury — zapis tylko w przeglądarce */
   syncState='wait';

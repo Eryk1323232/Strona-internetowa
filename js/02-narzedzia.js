@@ -17,4 +17,9 @@ const fmt = (n, d=0) => { n=Number(n); if(!isFinite(n)) return String(n);
 const zl = n => fmt(n,2)+' zł';
 const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dPL = iso => { const [y,m,d]=iso.split('-'); return `${d}.${m}.${y}`; };
-const store = { get(k,f){try{const v=localStorage.getItem(k);return v===null?f:v}catch(e){return f}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
+/* PODGLĄD KOPII (js/20-kopia-zapasowa.js): gdy w tej karcie wgrano starą kopię, strona czyta dane z niej,
+   zmiany trzyma tylko w pamięci, a chmura jest wyłączona — prawdziwe dane zostają nietknięte. */
+const PODGLAD = (()=>{ try{ const v=JSON.parse(sessionStorage.getItem('podglad')||'null'); return v&&v.d&&typeof v.d==='object'?v:null; }catch(e){ return null; } })();
+const store = PODGLAD
+  ? { get(k,f){ const v=PODGLAD.d[k]; return v===undefined||v===null?f:String(v); }, set(k,v){ PODGLAD.d[k]=String(v); } }
+  : { get(k,f){try{const v=localStorage.getItem(k);return v===null?f:v}catch(e){return f}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
