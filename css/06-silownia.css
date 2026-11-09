@@ -216,3 +216,35 @@ table.tr-ht td:first-child{padding-right:14px;width:42%}
   .tr-stats{gap:14px} .tr-stats b{font-size:18px}
   .tr-rest{bottom:96px}
 }
+
+/* plany: zwijane dni (strzałka przy nazwie, podsumowanie gdy zwinięty) */
+.pl-tg{flex:none;width:30px;height:30px;border:1px solid var(--line);border-radius:50%;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center;padding:0}
+.pl-tg svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transform:rotate(-90deg);transition:transform .15s}
+.day.open .pl-tg svg{transform:none}
+.pl-tg:hover{color:var(--ink);border-color:var(--ink)}
+.day:not(.open) .day-head{border-bottom-color:var(--line-soft)}
+.pl-sum{display:block;width:100%;text-align:left;background:none;border:0;padding:10px 14px 12px;color:var(--muted);font-family:var(--f-body);font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-sum:hover{color:var(--ink)}
+.pl-body[hidden]{display:none}
+#gymPlan .plan{align-items:start}
+#gymPlan .pl-addday{min-height:96px}
+
+/* trening: „Zmień” ćwiczenie */
+.tr-exh{align-items:center}
+.tr-chg{background:none;border:1px solid var(--line);border-radius:999px;padding:3px 11px;cursor:pointer;color:var(--muted);font-family:var(--f-body);font-size:12px;margin-right:auto}
+.tr-chg:hover,.tr-chg[aria-expanded=true]{border-color:var(--accent);color:var(--accent)}
+.tr-zam{margin:4px 0 0;font-size:12.5px;color:var(--muted)}
+.tr-zam button{background:none;border:0;padding:0 0 0 6px;color:var(--accent);cursor:pointer;font-family:var(--f-body);font-size:12.5px}
+.tr-swap{margin-top:10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--bg);padding:8px}
+.tr-swap[hidden]{display:none}
+.tr-sw-q{width:100%;height:40px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font-family:var(--f-body);font-size:15px;padding:0 12px}
+.tr-sw-q:focus{outline:none;border-color:var(--accent)}
+.tr-sw-l{max-height:240px;overflow-y:auto;margin-top:6px;display:flex;flex-direction:column}
+.tr-sw-it{display:flex;align-items:center;border-top:1px solid var(--line-soft)}
+.tr-sw-it:first-child{border-top:0}
+.tr-sw-pick{flex:1;text-align:left;background:none;border:0;padding:10px 8px;color:var(--ink);font-family:var(--f-body);font-size:14px;cursor:pointer;border-radius:var(--r-sm)}
+.tr-sw-pick:hover{background:var(--soft)}
+.tr-sw-del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:15px;padding:6px 10px}
+.tr-sw-del:hover{color:var(--bad)}
+.tr-sw-add{text-align:left;background:none;border:1px dashed var(--accent);color:var(--accent);border-radius:var(--r-sm);padding:9px 10px;font-family:var(--f-body);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:4px}
+.tr-sw-none{margin:8px 4px;font-size:13px;color:var(--muted)}

@@ -162,7 +162,7 @@ function arkuszDb(url, klucz){
         cloud(db=>db.collection('cfg').doc('zetony').set({free:S.tok.free, ulep:S.tok.ulep}));
         cloud(db=>db.collection('cfg').doc('bastion').set({rows:S.bast.map(x=>({lvl:x[0],k:x[1],s:x[2]}))}));
         if(store.get('quickNote','')) cloud(db=>db.collection('cfg').doc('szybkie').set({t:store.get('quickNote',''), u:Date.now()}));
-        return ok(); } cfF=false; s.docs.forEach(d=>{ if(d.id==='szybkie'){ quickNoteFromCloud((d.data()||{}).t); } if(d.id==='zetony'){const v=d.data()||{}; if(Array.isArray(v.free)&&Array.isArray(v.ulep)) S.tok={free:[...v.free],ulep:[...v.ulep]};}
+        return ok(); } cfF=false; s.docs.forEach(d=>{ if(d.id==='szybkie'){ quickNoteFromCloud((d.data()||{}).t); } if(d.id==='cwiczenia' && typeof cwlFromCloud==='function'){ cwlFromCloud((d.data()||{}).l); } if(d.id==='zetony'){const v=d.data()||{}; if(Array.isArray(v.free)&&Array.isArray(v.ulep)) S.tok={free:[...v.free],ulep:[...v.ulep]};}
       if(d.id==='bastion'){const v=d.data()||{}; if(Array.isArray(v.rows)) S.bast=v.rows.map(x=>[x.lvl, x.k??null, x.s??null]);} }); ok(); }, fail);
     gdb.collection('exp').onSnapshot(s=>{ if(exF&&s.empty&&wyslijLokalne()&&S.exp.length){ exF=false; fixExp(); S.exp.forEach(r=>{ const {id,...doc}=r; cloud(db=>db.collection('exp').doc(id).set(doc)); }); return ok(); } exF=false; if(!s.empty){ S.exp=s.docs.map(d=>{const v=d.data()||{}; return {id:d.id, nac:String(v.nac), br:+v.br||0, o:+v.o||0, n:String(v.n), mod:+v.mod||0, cz:+v.cz||0, zn:+v.zn||0, pos:+v.pos||0, modOk:!!v.modOk, czOk:!!v.czOk};});
       fixExp().forEach(r=>{ const {id,...doc}=r; cloud(db=>db.collection('exp').doc(id).set(doc)); }); } else fixExp(); ok(); }, fail);
