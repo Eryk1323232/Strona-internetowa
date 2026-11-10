@@ -6,7 +6,8 @@
    S         – stan WoT (garaż, magazyn, żetony, obligacje, expienie) zapisywany w przeglądarce.
    Expienie — „światełka” przy Modułach i Potrzebnym XP: czy starcza wolnego XP z konta (wotFxp):
      zielone = starcza, pomarańczowe = masz co najmniej FXP_PROG (80 %) brakującego XP, czerwone = mniej.
-     Liczone dla tego, co jeszcze zostało do zbadania (po odjęciu XP z czołgu i z poprzednika).
+     Każda rzecz osobno: XP z czołgu (Posiadane) + wolne XP. Moduły — XP na TYM czołgu; cena czołgu — XP na POPRZEDNIM
+     czołgu w gałęzi (dla pierwszego w gałęzi — na nim samym). Np. 20 000 na czołgu + 30 000 wolnego → stać na działo za 50 000.
    fixExp()  – poprawki gałęzi drzewek (Hirschkäfer, Bassotto, T-34-2, Fauteur/AX-XX).
    cloud(fn) – zapis do chmury (działa tylko w wersji na claude.ai, patrz 12-synchronizacja.js).
    pFs()     – podstrona Farming Simulator 25 (szkielet).
@@ -250,11 +251,17 @@ let wotFxp = toIntS(store.get('wotFxp','0'));
 function toIntS(v){ return Math.max(0, Math.round(+String(v).replace(/[\s\u00a0]/g,'').replace(',','.')||0)); }
 function setFxp(v){ wotFxp=v; store.set('wotFxp', String(v)); refreshWot(true); cloud(db=>db.collection('cfg').doc('wotFxp').set({v})); }
 function fxpFromCloud(v){ v=toIntS(v); if(v===wotFxp) return; wotFxp=v; store.set('wotFxp',String(v)); refreshWot(true); }
+function fxpNeed(r, f){   /* ile kosztuje rzecz i ile XP z czołgu można na nią wydać */
+  if(f==='mod') return {koszt:r.modOk?0:Math.max(0,+r.mod||0), zCz:Math.max(0,+r.pos||0), skad:r.n};
+  const rows=S.exp.filter(x=>x.br===r.br).sort((a,b)=>a.o-b.o), i=rows.findIndex(x=>x.id===r.id), src=i>0?rows[i-1]:r;
+  return {koszt:r.czOk?0:Math.round((+r.cz||0)*(1-Math.min(100,+r.zn||0)/100)), zCz:Math.max(0,+src.pos||0), skad:src.n};
+}
 function fxpLight(r, f){   /* f: 'mod' | 'cz' */
-  const c=expCalcAll().get(r.id)||{}, need=f==='mod'?c.modL:c.czL, ok=f==='mod'?r.modOk:r.czOk;
-  if(has(r.n) || ok || !(+r[f]>0) || !need) return '<span class="fxl none" aria-hidden="true"></span>';
-  const st=wotFxp>=need?'g':wotFxp>=need*FXP_PROG?'o':'r';
-  const t=st==='g'?`Starcza wolnego XP (potrzeba ${fmt(need)})`:`Brakuje ${fmt(need-wotFxp)} wolnego XP (masz ${fmt(Math.floor(wotFxp/need*100))} % z ${fmt(need)})`;
+  const ok=f==='mod'?r.modOk:r.czOk, N=fxpNeed(r,f), need=Math.max(0, N.koszt-N.zCz), ma=Math.min(N.koszt,N.zCz)+wotFxp;
+  if(has(r.n) || ok || !(N.koszt>0)) return '<span class="fxl none" aria-hidden="true"></span>';
+  const st=wotFxp>=need?'g':ma>=N.koszt*FXP_PROG?'o':'r';
+  const sklad=`${N.zCz?`${fmt(Math.min(N.koszt,N.zCz))} XP na ${N.skad} + `:''}${fmt(wotFxp)} wolnego`;
+  const t=st==='g'?`Stać cię: koszt ${fmt(N.koszt)}, masz ${sklad}`:`Brakuje ${fmt(need-wotFxp)} XP: koszt ${fmt(N.koszt)}, masz ${sklad} (${fmt(Math.floor(ma/N.koszt*100))} %)`;
   return `<span class="fxl ${st}" role="img" aria-label="${t}" title="${t}"></span>`;
 }
 const expLeft = r => has(r.n) ? 0 : expRaw(r);
