@@ -47,7 +47,7 @@ function render(){
   });
   document.querySelectorAll('li.dd').forEach(li=>li.classList.toggle('cur', !!li.querySelector('[aria-current]')));
   closeDD && closeDD();
-  $('#side').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded','false'); $('#menuBtn').textContent='Menu';
+  $('#side').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded','false'); document.body.classList.remove('side-open');
   if(key==='wot') setWotTab(wotTab);
   if(key==='todo') $('#tdSync').textContent=syncText();
   if(key!=='todo') tdRenaming=false;
@@ -78,12 +78,12 @@ function setWotTab(k){
   if(k==='moe'){ moeCalc(); document.querySelectorAll('.calc input, .calc select').forEach(i=>i.addEventListener('input',moeCalc)); }
 }
 document.addEventListener('click',e=>{ const b=e.target.closest('.tabs button'); if(b) setWotTab(b.dataset.tab); });
-$('#menuBtn').addEventListener('click',()=>{ const o=$('#side').classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded',o); $('#menuBtn').textContent=o?'Zamknij':'Menu'; });
+$('#menuBtn').addEventListener('click',()=>{ const o=$('#side').classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded',o); document.body.classList.toggle('side-open',o); });
 
 /* motyw */
 const THEMES=['auto','jasny','ciemny'];
 function applyTheme(t){ const r=document.documentElement; if(t==='jasny') r.setAttribute('data-theme','light'); else if(t==='ciemny') r.setAttribute('data-theme','dark'); else r.removeAttribute('data-theme'); const seg=$('.theme-seg'); seg.dataset.pos=['jasny','auto','ciemny'].indexOf(t); seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.th===t)); }
-let theme=store.get('motyw','ciemny'); applyTheme(theme);   /* wygląd „Skyline”: domyślnie ciemny */
+let theme=store.get('motyw','jasny'); applyTheme(theme);   /* wygląd „Pillio”: domyślnie jasny (zmiana na jasny raz — js/22-wyszukiwarka.js) */
 document.querySelectorAll('.theme-seg button').forEach(b=>b.addEventListener('click',()=>{ theme=b.dataset.th; store.set('motyw',theme); applyTheme(theme); }));
 /* rozwijane menu */
 const closeDD = () => document.querySelectorAll('li.dd.open').forEach(li=>{ li.classList.remove('open'); li.querySelector('.dd-btn').setAttribute('aria-expanded','false'); });

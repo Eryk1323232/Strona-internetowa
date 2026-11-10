@@ -3,15 +3,13 @@
   ════════════════════════════════════════════════════════════════════════
    PRACOWNIA — prywatna strona Eryka (budownictwo PB · gry · siłownia)
   ════════════════════════════════════════════════════════════════════════
-   Ten plik to tylko „szkielet”: nagłówek z menu i puste miejsce na treść.
+   Ten plik to tylko „szkielet”: boczne menu, górny pasek z wyszukiwarką i puste miejsce na treść.
    Treść każdej podstrony rysuje JavaScript (folder js/), wygląd — CSS (folder css/).
 
    Kolejność plików poniżej MA ZNACZENIE:
-   • css/14-wyglad.css musi być ostatni (nadpisuje wcześniejsze style),
-   • js/00-ustawienia.js i js/01-dane.js pierwsze, js/15-subskrypcje.js, js/16-pieniadze.js, js/17-finanse.js, js/18-cv.js, js/19-skrzynka.js, js/20-kopia-zapasowa.js i js/21-praca.js przed routerem, js/13-router.js uruchamia stronę, js/14-szkice-formularzy.js na samym końcu.
+   • css/14-wyglad.css i css/23-wyglad-pillio.css na końcu (nadpisują wcześniejsze style; 23 = obecny wygląd),
+   • js/00-ustawienia.js i js/01-dane.js pierwsze, js/15-subskrypcje.js, js/16-pieniadze.js, js/17-finanse.js, js/18-cv.js, js/19-skrzynka.js, js/20-kopia-zapasowa.js, js/21-praca.js i js/22-wyszukiwarka.js przed routerem, js/13-router.js uruchamia stronę, js/14-szkice-formularzy.js na samym końcu.
 
-   Menu: dopisujesz/usuwasz pozycje w <nav> niżej. Każdy link ma
-   href="#klucz" i data-r="klucz" — ten sam klucz musi być w ROUTES (js/13-router.js).
   ════════════════════════════════════════════════════════════════════════
 -->
 <html lang="pl">
@@ -19,84 +17,106 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pracownia Eryka</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23F7F2EA' stroke='%233A2622' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23E59A78'/%3E%3Cpath d='M16 9a7 7 0 0 1 0 14z' fill='%234E5FA6'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%231C1D2E' stroke='none'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23ECEBFE'/%3E%3Ccircle cx='16' cy='16' r='2.6' fill='%235B5BD6'/%3E%3C/svg%3E">
 
-<!-- czcionki: Fraunces (tytuły), DM Sans (tekst), DM Mono (liczby) -->
+<!-- czcionki: Inter (całość), DM Mono (liczby) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=DM+Mono:wght@400;500&family=Montserrat:wght@200;300;400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
 
 <!-- style — w tej kolejności -->
-<link rel="stylesheet" href="css/01-zmienne-i-podstawy.css?v=32">
-<link rel="stylesheet" href="css/02-naglowek-i-menu.css?v=32">
-<link rel="stylesheet" href="css/03-uklad-strony.css?v=32">
-<link rel="stylesheet" href="css/04-world-of-tanks.css?v=32">
-<link rel="stylesheet" href="css/05-cv.css?v=32">
-<link rel="stylesheet" href="css/06-silownia.css?v=32">
-<link rel="stylesheet" href="css/07-todo.css?v=32">
-<link rel="stylesheet" href="css/08-notatki.css?v=32">
-<link rel="stylesheet" href="css/09-telefon.css?v=32">
-<link rel="stylesheet" href="css/10-kalkulatory.css?v=32">
-<link rel="stylesheet" href="css/11-posiadowki.css?v=32">
-<link rel="stylesheet" href="css/12-dyski.css?v=32">
-<link rel="stylesheet" href="css/13-strona-glowna-i-pasek.css?v=32">
-<link rel="stylesheet" href="css/15-subskrypcje.css?v=32">
-<link rel="stylesheet" href="css/17-pieniadze.css?v=32">
-<link rel="stylesheet" href="css/18-finanse.css?v=32">
-<link rel="stylesheet" href="css/20-skrzynka.css?v=32">
-<link rel="stylesheet" href="css/21-kopia-zapasowa.css?v=32">
-<link rel="stylesheet" href="css/22-praca.css?v=32">
-<link rel="stylesheet" href="css/14-wyglad.css?v=32">
-<link rel="stylesheet" href="css/16-skyline.css?v=32">
+<link rel="stylesheet" href="css/01-zmienne-i-podstawy.css?v=33">
+<link rel="stylesheet" href="css/02-naglowek-i-menu.css?v=33">
+<link rel="stylesheet" href="css/03-uklad-strony.css?v=33">
+<link rel="stylesheet" href="css/04-world-of-tanks.css?v=33">
+<link rel="stylesheet" href="css/05-cv.css?v=33">
+<link rel="stylesheet" href="css/06-silownia.css?v=33">
+<link rel="stylesheet" href="css/07-todo.css?v=33">
+<link rel="stylesheet" href="css/08-notatki.css?v=33">
+<link rel="stylesheet" href="css/09-telefon.css?v=33">
+<link rel="stylesheet" href="css/10-kalkulatory.css?v=33">
+<link rel="stylesheet" href="css/11-posiadowki.css?v=33">
+<link rel="stylesheet" href="css/12-dyski.css?v=33">
+<link rel="stylesheet" href="css/13-strona-glowna-i-pasek.css?v=33">
+<link rel="stylesheet" href="css/15-subskrypcje.css?v=33">
+<link rel="stylesheet" href="css/17-pieniadze.css?v=33">
+<link rel="stylesheet" href="css/18-finanse.css?v=33">
+<link rel="stylesheet" href="css/20-skrzynka.css?v=33">
+<link rel="stylesheet" href="css/21-kopia-zapasowa.css?v=33">
+<link rel="stylesheet" href="css/22-praca.css?v=33">
+<link rel="stylesheet" href="css/14-wyglad.css?v=33">
+<link rel="stylesheet" href="css/23-wyglad-pillio.css?v=33">
 </head>
 <body>
 
-<!-- ═══════════ NAGŁÓWEK: logo · menu · motyw ═══════════ -->
-<header class="hdr">
-  <div class="hdr-in">
-    <a class="brand" href="#start" aria-label="Pracownia — strona główna"><span class="badge" aria-hidden="true"><svg class="ring" viewBox="0 0 100 100"><defs><path id="bdgPath" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0"/></defs><text><textPath href="#bdgPath" textLength="234" lengthAdjust="spacing">PRACOWNIA · ERYK · PB · </textPath></text></svg><span class="core"></span></span><span class="brand-word"><b>Pracownia</b><small>Eryk · Budownictwo PB</small></span></a>
-    <nav class="topnav" id="side" aria-label="Główna nawigacja">
+<!-- ═══════════ RAMA STRONY: boczne menu (aside) · górny pasek z wyszukiwarką · treść ═══════════
+     Menu: dopisujesz/usuwasz pozycje w <nav> niżej (li.grp = nazwa grupy). Każdy link ma href="#klucz" i data-r="klucz"
+     — ten sam klucz musi być w ROUTES (js/13-router.js). Ikony: <svg class="ni"> (24×24, sama linia).
+     Wygląd ramy: css/23-wyglad-pillio.css · wyszukiwarka: js/22-wyszukiwarka.js -->
+<div class="shell">
+  <aside class="side" id="side" aria-label="Menu">
+    <a class="brand" href="#start" aria-label="Pracownia — strona główna"><span class="logo" aria-hidden="true">P</span><span class="brand-word"><b>Pracownia</b><small>Eryk · Budownictwo PB</small></span></a>
+    <nav class="topnav" aria-label="Główna nawigacja">
       <ul class="navtree">
-        <li><a class="top" href="#start" data-r="start">Strona główna</a></li>
-        <li class="dd"><button type="button" class="top dd-btn" aria-expanded="false" aria-haspopup="true">O mnie</button>
-          <ul class="dd-menu"><li><a href="#cv" data-r="cv">CV</a></li></ul></li>
-        <li class="dd"><button type="button" class="top dd-btn" aria-expanded="false" aria-haspopup="true">Studia</button>
-          <ul class="dd-menu"><li><a href="#todo" data-r="todo">To-Do</a></li><li><a href="#notatki" data-r="notatki">Notatki</a></li><li><a href="#kalkulatory" data-r="kalkulatory">Kalkulatory</a></li><li><a href="#dyski" data-r="dyski">Dyski</a></li><li><a href="#praca" data-r="praca">Praca</a></li></ul></li>
-        <li class="dd"><button type="button" class="top dd-btn" aria-expanded="false" aria-haspopup="true">Gry</button>
-          <ul class="dd-menu"><li><a href="#wot" data-r="wot">World of Tanks</a></li><li><a href="#fs25" data-r="fs25">Farming Simulator 25</a></li></ul></li>
-        <li class="dd"><button type="button" class="top dd-btn" aria-expanded="false" aria-haspopup="true">Inne</button>
-          <ul class="dd-menu"><li><a href="#silownia" data-r="silownia">Siłownia</a></li><li><a href="#posiadowki" data-r="posiadowki">Posiadówki</a></li><li><a href="#pieniadze" data-r="pieniadze">Pieniądze</a></li></ul></li>
+        <li><a class="top" href="#start" data-r="start"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Strona główna</span></a></li>
+        <li class="grp" aria-hidden="true">O mnie</li>
+        <li><a class="top" href="#cv" data-r="cv"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span>CV</span></a></li>
+        <li class="grp" aria-hidden="true">Studia</li>
+        <li><a class="top" href="#todo" data-r="todo"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5l2 2 3.5-3.5M4 13.5l2 2 3.5-3.5M13 7h7M13 14h7M4 20h16"/></svg><span>To-Do</span></a></li>
+        <li><a class="top" href="#notatki" data-r="notatki"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 7h3"/></svg><span>Notatki</span></a></li>
+        <li><a class="top" href="#kalkulatory" data-r="kalkulatory"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h0M16 11h0M8 15h2M12 15h0M16 15h0M8 18h2M12 18h4"/></svg><span>Kalkulatory</span></a></li>
+        <li><a class="top" href="#dyski" data-r="dyski"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Dyski</span></a></li>
+        <li><a class="top" href="#praca" data-r="praca"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7 15h10"/></svg><span>Praca</span></a></li>
+        <li class="grp" aria-hidden="true">Gry</li>
+        <li><a class="top" href="#wot" data-r="wot"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15h14l2-3H5zM6 12l1-3h7l1 3M12 9V6h7"/><circle cx="6" cy="18" r="1.5"/><circle cx="10" cy="18" r="1.5"/><circle cx="14" cy="18" r="1.5"/></svg><span>World of Tanks</span></a></li>
+        <li><a class="top" href="#fs25" data-r="fs25"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16V9h7l2 4h5v3"/><circle cx="7" cy="17" r="2.5"/><circle cx="17" cy="17" r="2"/><path d="M8 9V6h3"/></svg><span>Farming Simulator 25</span></a></li>
+        <li class="grp" aria-hidden="true">Inne</li>
+        <li><a class="top" href="#silownia" data-r="silownia"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M6 8v8M18 8v8M3 10v4M21 10v4"/></svg><span>Siłownia</span></a></li>
+        <li><a class="top" href="#posiadowki" data-r="posiadowki"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8l-1 7a3 3 0 0 1-6 0zM12 13v6M8 21h8"/></svg><span>Posiadówki</span></a></li>
+        <li><a class="top" href="#pieniadze" data-r="pieniadze"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 16l3-3 2.5 2 4-4.5"/></svg><span>Pieniądze</span></a></li>
       </ul>
     </nav>
-    <div class="hdr-tools"><div class="theme-seg" role="group" aria-label="Motyw strony"><button type="button" data-th="jasny" aria-label="Jasny motyw" title="Jasny"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3 3l1.1 1.1M11.9 11.9 13 13M3 13l1.1-1.1M11.9 4.1 13 3"/></svg></button><button type="button" data-th="auto" aria-label="Motyw systemowy" title="Jak w systemie"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="2.5" width="13" height="9"/><path d="M5.5 14.5h5M8 11.5v3"/></svg></button><button type="button" data-th="ciemny" aria-label="Ciemny motyw" title="Ciemny"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 9.6A6 6 0 0 1 6.4 2.5a6 6 0 1 0 7.1 7.1z" stroke-linejoin="round"/></svg></button><span class="knob" aria-hidden="true"></span></div><button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="side">Menu</button></div>
-  </div>
-</header>
+    <div class="side-foot"><span class="grp">Motyw</span><div class="theme-seg" role="group" aria-label="Motyw strony"><button type="button" data-th="jasny" aria-label="Jasny motyw" title="Jasny"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3 3l1.1 1.1M11.9 11.9 13 13M3 13l1.1-1.1M11.9 4.1 13 3"/></svg></button><button type="button" data-th="auto" aria-label="Motyw systemowy" title="Jak w systemie"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="2.5" width="13" height="9"/><path d="M5.5 14.5h5M8 11.5v3"/></svg></button><button type="button" data-th="ciemny" aria-label="Ciemny motyw" title="Ciemny"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 9.6A6 6 0 0 1 6.4 2.5a6 6 0 1 0 7.1 7.1z" stroke-linejoin="round"/></svg></button><span class="knob" aria-hidden="true"></span></div></div>
+  </aside>
+  <div class="side-scrim" aria-hidden="true"></div>
 
-<!-- ═══════════ TREŚĆ: tu router wstawia aktualną podstronę ═══════════ -->
-<main id="main"><div class="page" id="page"></div></main>
+  <div class="mainc">
+    <header class="hdr">
+      <div class="hdr-in">
+        <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="side" aria-label="Menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+        <div class="srch" role="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg><input id="srchIn" type="search" placeholder="Szukaj" aria-label="Szukaj podstrony" autocomplete="off" spellcheck="false"><kbd class="srch-k">Ctrl K</kbd><div class="srch-pop" id="srchPop" role="listbox" hidden></div></div>
+        <div class="hdr-tools"></div>
+      </div>
+    </header>
+
+    <!-- ═══════════ TREŚĆ: tu router wstawia aktualną podstronę ═══════════ -->
+    <main id="main"><div class="page" id="page"></div></main>
+  </div>
+</div>
 
 <!-- skrypty — w tej kolejności (każdy plik ma na górze opis, co zawiera) -->
-<script src="js/00-ustawienia.js?v=32"></script>
-<script src="js/01-dane.js?v=32"></script>
-<script src="js/02-narzedzia.js?v=32"></script>
-<script src="js/03-strona-glowna-i-cv.js?v=32"></script>
-<script src="js/04-world-of-tanks.js?v=32"></script>
-<script src="js/05-todo.js?v=32"></script>
-<script src="js/06-notatki.js?v=32"></script>
-<script src="js/07-silownia.js?v=32"></script>
-<script src="js/08-posiadowki.js?v=32"></script>
-<script src="js/09-kalkulatory.js?v=32"></script>
-<script src="js/10-dyski.js?v=32"></script>
-<script src="js/11-pasek-dolny.js?v=32"></script>
-<script src="js/12-synchronizacja.js?v=32"></script>
-<script src="js/15-subskrypcje.js?v=32"></script>
-<script src="js/16-pieniadze.js?v=32"></script>
-<script src="js/17-finanse.js?v=32"></script>
-<script src="js/18-cv.js?v=32"></script>
-<script src="js/19-skrzynka.js?v=32"></script>
-<script src="js/20-kopia-zapasowa.js?v=32"></script>
-<script src="js/21-praca.js?v=32"></script>
-<script src="js/13-router.js?v=32"></script>
-<script src="js/14-szkice-formularzy.js?v=32"></script>
+<script src="js/00-ustawienia.js?v=33"></script>
+<script src="js/01-dane.js?v=33"></script>
+<script src="js/02-narzedzia.js?v=33"></script>
+<script src="js/03-strona-glowna-i-cv.js?v=33"></script>
+<script src="js/04-world-of-tanks.js?v=33"></script>
+<script src="js/05-todo.js?v=33"></script>
+<script src="js/06-notatki.js?v=33"></script>
+<script src="js/07-silownia.js?v=33"></script>
+<script src="js/08-posiadowki.js?v=33"></script>
+<script src="js/09-kalkulatory.js?v=33"></script>
+<script src="js/10-dyski.js?v=33"></script>
+<script src="js/11-pasek-dolny.js?v=33"></script>
+<script src="js/12-synchronizacja.js?v=33"></script>
+<script src="js/15-subskrypcje.js?v=33"></script>
+<script src="js/16-pieniadze.js?v=33"></script>
+<script src="js/17-finanse.js?v=33"></script>
+<script src="js/18-cv.js?v=33"></script>
+<script src="js/19-skrzynka.js?v=33"></script>
+<script src="js/20-kopia-zapasowa.js?v=33"></script>
+<script src="js/21-praca.js?v=33"></script>
+<script src="js/22-wyszukiwarka.js?v=33"></script>
+<script src="js/13-router.js?v=33"></script>
+<script src="js/14-szkice-formularzy.js?v=33"></script>
 </body>
 </html>
