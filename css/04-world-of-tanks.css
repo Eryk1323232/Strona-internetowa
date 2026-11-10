@@ -141,3 +141,14 @@ s.struck{color:var(--muted);text-decoration-thickness:1.5px;font-weight:400}
 .ph b{color:var(--ink);font-weight:600}
 .fill{background:var(--line-soft);color:var(--muted);padding:0 6px;font-family:var(--f-mono);font-size:.88em}
 table.exp-t small.xp-carry{display:block;font-family:var(--f-body);font-size:11.5px;color:var(--ok);margin-top:2px;white-space:nowrap}
+
+/* Expienie: światełka „czy starcza wolnego XP” (js/04-world-of-tanks.js → fxpLight) */
+.fxl{display:inline-block;width:11px;height:11px;border-radius:50%;flex:none;vertical-align:middle}
+.fxl.g{background:#2FB36B;box-shadow:0 0 0 3px color-mix(in srgb,#2FB36B 20%,transparent),0 0 8px #2FB36B80}
+.fxl.o{background:#F29A2E;box-shadow:0 0 0 3px color-mix(in srgb,#F29A2E 20%,transparent),0 0 8px #F29A2E80}
+.fxl.r{background:#E04848;box-shadow:0 0 0 3px color-mix(in srgb,#E04848 18%,transparent)}
+.fxl.none{background:none;box-shadow:none}
+.fxp-cell p{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fxp-big{display:flex;align-items:baseline;gap:6px}
+input.fxp-in{width:100%;max-width:200px;font:inherit;color:inherit;letter-spacing:inherit;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:2px 10px;text-align:left}
+input.fxp-in:focus{outline:none;border-color:var(--accent);background:var(--surface)}

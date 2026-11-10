@@ -4,6 +4,9 @@
    WOT_TABS  – lista zakładek WoT (przepustka, obligacje, magazyn, expienie, MOE, Ostatni Bastion).
    wotPanel(k) – rysuje zawartość zakładki k; wotSummary(k) – kafle z liczbami nad nią.
    S         – stan WoT (garaż, magazyn, żetony, obligacje, expienie) zapisywany w przeglądarce.
+   Expienie — „światełka” przy Modułach i Potrzebnym XP: czy starcza wolnego XP z konta (wotFxp):
+     zielone = starcza, pomarańczowe = masz co najmniej FXP_PROG (80 %) brakującego XP, czerwone = mniej.
+     Liczone dla tego, co jeszcze zostało do zbadania (po odjęciu XP z czołgu i z poprzednika).
    fixExp()  – poprawki gałęzi drzewek (Hirschkäfer, Bassotto, T-34-2, Fauteur/AX-XX).
    cloud(fn) – zapis do chmury (działa tylko w wersji na claude.ai, patrz 12-synchronizacja.js).
    pFs()     – podstrona Farming Simulator 25 (szkielet).
@@ -50,10 +53,14 @@ function wotSummary(k){
   if(k==='exp'){
     const nonzero=S.exp.filter(r=>expLeft(r)>0), eIn=S.exp.filter(r=>has(r.n)).length;
     const brs=[...new Set(S.exp.map(r=>r.br))].map(b=>({b, xp:S.exp.filter(r=>r.br===b).reduce((a,r)=>a+expLeft(r),0), last:S.exp.filter(r=>r.br===b).sort((x,y)=>x.o-y.o).pop()})).filter(x=>x.xp>0).sort((a,b)=>a.xp-b.xp);
-    return cells([
-      ['Do zdobycia', `${fmt(expAll()/1e6,2)}<small>mln XP</small>`, `${nonzero.length} czołgów z brakującym XP`],
+    let ng=0, no=0; S.exp.forEach(r=>['mod','cz'].forEach(f=>{ const l=fxpLight(r,f); if(l.includes('fxl g')) ng++; else if(l.includes('fxl o')) no++; }));
+    return `<div class="grid g4 sum-strip">
+      <div class="cell fxp-cell"><label class="label" for="fxpIn">Wolne XP na koncie</label>
+        <span class="big fxp-big"><input id="fxpIn" class="num-in grp fxp-in" type="text" inputmode="numeric" autocomplete="off" value="${grp(wotFxp)}" aria-label="Wolne XP na koncie"><small>XP</small></span>
+        <p><span class="fxl g" aria-hidden="true"></span> ${ng} starcza · <span class="fxl o" aria-hidden="true"></span> ${no} prawie</p></div>
+      ${[['Do zdobycia', `${fmt(expAll()/1e6,2)}<small>mln XP</small>`, `${nonzero.length} czołgów z brakującym XP`],
       ['Skończone', `${eIn}<small>/ ${S.exp.length}</small>`, 'czołgów na liście'],
-      ['Najbliższa gałąź', brs[0]?esc(brs[0].last.n):'—', brs[0]?`${fmt(brs[0].xp)} XP do końca gałęzi`:'brak danych']]);
+      ['Najbliższa gałąź', brs[0]?esc(brs[0].last.n):'—', brs[0]?`${fmt(brs[0].xp)} XP do końca gałęzi`:'brak danych']].map(c=>`<div class="cell"><span class="label">${c[0]}</span><span class="big">${c[1]}</span><p>${c[2]}</p></div>`).join('')}</div>`;
   }
   return '';
 }
@@ -115,7 +122,7 @@ function wotPanel(k){
         const gd=rs.filter(r=>has(r.n)).length;
         const xin=(r,f,lbl,extra='')=>numIn('ex xp'+(f==='zn'?' pct':''),'data-id="'+esc(r.id)+'" data-f="'+f+'"'+extra,r[f],r.n+' '+lbl);
         /* pole XP + przycisk „zbadane” — zbadana wartość nie wlicza się do sumy */
-        const xok=(r,f,ok,lbl)=>`<span class="xpcell${r[ok]?' ok':''}">${xin(r,f,lbl)}<button type="button" class="zb" data-zb="${esc(r.id)}" data-f="${ok}" aria-pressed="${!!r[ok]}" title="${r[ok]?'Zbadane — kliknij, żeby cofnąć':'Oznacz jako zbadane'}">${r[ok]?'✓ zbadane':'zbadane'}</button></span>`;
+        const xok=(r,f,ok,lbl)=>`<span class="xpcell${r[ok]?' ok':''}">${fxpLight(r,f)}${xin(r,f,lbl)}<button type="button" class="zb" data-zb="${esc(r.id)}" data-f="${ok}" aria-pressed="${!!r[ok]}" title="${r[ok]?'Zbadane — kliknij, żeby cofnąć':'Oznacz jako zbadane'}">${r[ok]?'✓ zbadane':'zbadane'}</button></span>`;
         return `<div class="branch"><div class="branch-top"><div class="branch-ttl"><span class="label">Gałąź ${bi+1} · ${gd}/${rs.length} skończonych</span>
             <h3>${rs.map(r=>`<span class="${has(r.n)?'got':''}">${esc(r.n)}</span>`).join('<i>→</i>')}</h3></div>
           <div class="branch-sum"><span class="label">Do zdobycia</span><b>${fmt(bt)}</b><small>XP</small></div></div>
@@ -231,12 +238,25 @@ function expCalcAll(){
       if(i===0){ const u=Math.min(czP,pos); czL=czP-u; pos-=u; }
       else { zPoprzed=Math.min(czP,zPopr); czL=czP-zPoprzed; }
       const um=Math.min(modP,pos); pos-=um; zPopr=pos;               /* reszta XP przechodzi na następny czołg */
-      m.set(r.id,{left:Math.max(0,Math.round(czL+modP-um)), zPopr:Math.round(zPoprzed)});
+      m.set(r.id,{left:Math.max(0,Math.round(czL+modP-um)), zPopr:Math.round(zPoprzed), czL:Math.max(0,Math.round(czL)), modL:Math.max(0,Math.round(modP-um))});
     }); });
   _expSrc=S.exp; _expMap=m; return m;
 }
 const expRaw = r => (expCalcAll().get(r.id)||{left:0}).left;
 const expZPopr = r => (expCalcAll().get(r.id)||{zPopr:0}).zPopr;
+/* wolne XP na koncie + światełko: brakujące XP danej rzeczy vs. wolne XP */
+const FXP_PROG = 0.8;
+let wotFxp = toIntS(store.get('wotFxp','0'));
+function toIntS(v){ return Math.max(0, Math.round(+String(v).replace(/[\s\u00a0]/g,'').replace(',','.')||0)); }
+function setFxp(v){ wotFxp=v; store.set('wotFxp', String(v)); refreshWot(true); cloud(db=>db.collection('cfg').doc('wotFxp').set({v})); }
+function fxpFromCloud(v){ v=toIntS(v); if(v===wotFxp) return; wotFxp=v; store.set('wotFxp',String(v)); refreshWot(true); }
+function fxpLight(r, f){   /* f: 'mod' | 'cz' */
+  const c=expCalcAll().get(r.id)||{}, need=f==='mod'?c.modL:c.czL, ok=f==='mod'?r.modOk:r.czOk;
+  if(has(r.n) || ok || !(+r[f]>0) || !need) return '<span class="fxl none" aria-hidden="true"></span>';
+  const st=wotFxp>=need?'g':wotFxp>=need*FXP_PROG?'o':'r';
+  const t=st==='g'?`Starcza wolnego XP (potrzeba ${fmt(need)})`:`Brakuje ${fmt(need-wotFxp)} wolnego XP (masz ${fmt(Math.floor(wotFxp/need*100))} % z ${fmt(need)})`;
+  return `<span class="fxl ${st}" role="img" aria-label="${t}" title="${t}"></span>`;
+}
 const expLeft = r => has(r.n) ? 0 : expRaw(r);
 const expAll = () => S.exp.reduce((a,r)=>a+expLeft(r),0);
 const expOpen = () => { try{ return JSON.parse(store.get('expOpen','[]'))||[]; }catch(e){ return []; } };
@@ -269,11 +289,11 @@ function syncText(){
            wait:'Łączenie z zapisem w chmurze…', cloud:(typeof gdb!=='undefined'&&gdb&&gdb.arkusz)?'Zapisywane w Arkuszu Google, widoczne na każdym urządzeniu.':'Zapisywane na koncie, widoczne na każdym urządzeniu.',
            err:'Nie udało się zapisać w chmurze. Zmiana jest zapisana w tej przeglądarce.' }[syncState];
 }
-function refreshWot(){
+function refreshWot(force){
   if(!$('#wotPanel')) return;
   $('#syncNote').textContent = syncText();
   const a=document.activeElement;
-  if(a && a.closest && a.closest('#wotPanel') && a.matches('input:not([type=checkbox])')) return; // nie przerywaj wpisywania
+  if(!force && a && a.closest && a.closest('#wotPanel') && a.matches('input:not([type=checkbox])')) return; // nie przerywaj wpisywania
   if(['przep','oblig','mag','exp','bast'].includes(wotTab)){ const y=window.scrollY; $('#wotPanel').innerHTML = wotPanel(wotTab); window.scrollTo(0,y); }
 }
 async function cloud(fn){
@@ -310,6 +330,7 @@ document.addEventListener('change', e=>{
   if(t.matches('input.sq[data-t]')) return toggleTank(t.dataset.t, t.checked);
   if(t.matches('input.mq')) { t.blur(); return setMag(t.dataset.n, toInt(t.value)); }
   if(t.matches('input.tok')) { t.blur(); return setTok(t.dataset.k, +t.dataset.i, toInt(t.value)); }
+  if(t.matches('input.fxp-in')) { t.blur(); return setFxp(toInt(t.value)); }
   if(t.matches('input.ex')) { t.blur(); const v=t.dataset.f==='zn'?Math.min(100,Math.max(0,+t.value||0)):toInt(t.value); return setExp(t.dataset.id, t.dataset.f, v); }
   if(t.matches('input.ed-name')) { t.blur(); const v=t.value.trim(); if(v) return setExp(t.dataset.id, 'n', v); t.value=(S.exp.find(r=>r.id===t.dataset.id)||{}).n||''; return; }
   if(t.matches('input.bs')) { t.blur(); return setBast(+t.dataset.i, +t.dataset.c, t.value.trim()===''?null:toInt(t.value)); }
