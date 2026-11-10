@@ -31,7 +31,7 @@ const FIN_KAT_WYD = ['Jedzenie','Transport','Mieszkanie','Studia','Zakupy','Rozr
 const FIN_KAT_WPL = ['Stypendium','Praca','Od rodziców','Inne'];
 /* lista <option> kategorii dla rodzaju operacji; nietypowa kategoria ze starszego wpisu zostaje na liście */
 const finKatOpts = (t, cur='') => { const L=t==='wpl'?FIN_KAT_WPL:FIN_KAT_WYD; return (cur&&!L.includes(cur)?[cur,...L]:L).map(x=>`<option value="${esc(x)}"${x===cur?' selected':''}>${esc(x)}</option>`).join(''); };
-const FIN_OKRES = {d:['Dziennie','dzień',1], t:['Tygodniowo','tydzień',7], m:['Miesięcznie','miesiąc',365.25/12]};
+const FIN_OKRES = {d:['Dziennie','dzień',1], t:['Tygodniowo','tydzień',7], m:['Miesięcznie','miesiąc',30]};   /* [2] używane tylko dla d/t — miesiąc liczy finAvg z pełnych miesięcy */
 const finIso = v => /^\d{4}-\d{2}-\d{2}$/.test(v);
 const finR = v => Math.round((+v||0)*100)/100;
 const finCfgNorm = (v={}) => ({od:finIso(v.od)?v.od:todayISO(), sg:finR(v.sg), so:finR(v.so), zak:v.zak!==false, sub:v.sub!==false, u:+v.u||0});
@@ -111,14 +111,21 @@ function finCalc(){
   const planStale=plan.filter(o=>o.auto==='stale'&&o.k==='glowne').reduce((s,o)=>s+(o.t==='wpl'?o.a:-o.a),0);
   const planInne=po.glowne-saldo.glowne+planSub-planStale;
   const dniDoKonca=finDni(td,eom)+1;
-  /* średnie: wydatki i wpływy bez przelewów, od dnia „od” do dziś */
-  const przeplyw=liczone.filter(o=>o.t!=='prz'), dni=Math.max(1, finDni(od,td)+1);
+  /* średnie: wydatki i wpływy bez przelewów (od dnia „od” do dziś), dzielone przez PEŁNE miesiące kalendarzowe
+     — od miesiąca dnia „od” do bieżącego włącznie. Np. 3000 zł wydane 1 listopada → 3000 zł / miesiąc, 100 zł / dzień (30 dni). */
+  const przeplyw=liczone.filter(o=>o.t!=='prz');
+  let mies=0, dni=0; for(let y=+od.slice(0,4), m=+od.slice(5,7); y*12+m <= +td.slice(0,4)*12+ +td.slice(5,7); m++){ if(m>12){ m=1; y++; } mies++; dni+=new Date(y,m,0).getDate(); }
+  mies=Math.max(1,mies); dni=Math.max(1,dni);
   const wyd=przeplyw.filter(o=>o.t==='wyd').reduce((s,o)=>s+o.a,0), wpl=przeplyw.filter(o=>o.t==='wpl').reduce((s,o)=>s+o.a,0);
-  return {all, liczone, plan, saldo, poMies, przMies, po, zostaje:po.glowne, planSub, planStale, planInne, dniDoKonca, eom, td, od, dni, wyd, wpl};
+  return {all, liczone, plan, saldo, poMies, przMies, po, zostaje:po.glowne, planSub, planStale, planInne, dniDoKonca, eom, td, od, dni, mies, wyd, wpl};
 }
+/* opis okresu średnich, np. „listopad 2026 · 30 dni” albo „wrz 2026 – lis 2026 · 3 mies. · 91 dni” */
+function finZakres(F){ const M=(iso,o)=>new Date(iso.slice(0,7)+'-01T12:00').toLocaleDateString('pl-PL',o);
+  return F.mies===1 ? `${M(F.td,{month:'long', year:'numeric'})} · ${F.dni} dni` : `${M(F.od,{month:'short', year:'numeric'})} – ${M(F.td,{month:'short', year:'numeric'})} · ${F.mies} mies. · ${F.dni} dni`; }
 const finSign = v => (v>0.004?'+':v<-0.004?'−':'')+fmt(Math.abs(v),2);
 const finCls = v => v>0.004?'bk-plus':v<-0.004?'bk-minus':'';
-const finAvg = (tot,dni,k) => tot/dni*FIN_OKRES[k][2];
+/* średnia: miesięcznie = suma / liczba miesięcy, dziennie = suma / dni tych miesięcy, tygodniowo = dziennie × 7 */
+const finAvg = (tot,F,k) => k==='m' ? tot/F.mies : tot/F.dni*FIN_OKRES[k][2];
 
 /* ——— wykres: wydatki i wpływy w kolejnych dniach / tygodniach / miesiącach ——— */
 function finKoszyki(F){
@@ -137,7 +144,7 @@ function finChart(F){
   const hi0=Math.max(1,...B.map(k=>Math.max(k.wyd,k.wpl))), raw=hi0/4, mag=Math.pow(10,Math.floor(Math.log10(raw))), step=[1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw), hi=Math.ceil(hi0/step)*step;
   const Y=v=>T+(hi-v)/hi*(H-T-Bm), cw=(W-L-R)/B.length, bw=Math.max(2,Math.min(16,cw*0.34));
   let g=''; for(let v=0; v<=hi+step/2; v+=step) g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" class="${v?'bk-grid':'fin-base'}"/><text x="${L-8}" y="${(Y(v)+3.5).toFixed(1)}" text-anchor="end">${fmt(v, step<1?2:0)}</text>`;
-  const avg=finAvg(F.wyd,F.dni,finOkres), ay=Y(Math.min(avg,hi)).toFixed(1);
+  const avg=finAvg(F.wyd,F,finOkres), ay=Y(Math.min(avg,hi)).toFixed(1);
   const bars=B.map((k,i)=>{ const x=L+cw*i+cw/2;
     return `<rect class="fin-bw" x="${(x-bw-1).toFixed(1)}" y="${Y(k.wyd).toFixed(1)}" width="${bw.toFixed(1)}" height="${(Y(0)-Y(k.wyd)).toFixed(1)}"/>`
       + `<rect class="fin-bp" x="${(x+1).toFixed(1)}" y="${Y(k.wpl).toFixed(1)}" width="${bw.toFixed(1)}" height="${(Y(0)-Y(k.wpl)).toFixed(1)}"/>`
@@ -160,10 +167,10 @@ function finModalHtml(){
       <p>${F.zostaje>0?`≈ ${fmt(naDzien,2)} zł na dzień (${F.dniDoKonca} ${F.dniDoKonca===1?'dzień':'dni'})`:'na koncie głównym zabraknie pieniędzy'}${Math.abs(F.planStale)>0.004?` · ${finSign(F.planStale)} stałe`:''}${F.planSub?` · −${fmt(F.planSub,2)} subskrypcje`:''}${Math.abs(F.planInne)>0.004?` · ${finSign(F.planInne)} zaplanowane`:''}</p></div></div>`;
 
   /* średnie */
-  const avgCell=(lab,tot,cls)=>{ const v=finAvg(tot,F.dni,finOkres), tip=Object.keys(FIN_OKRES).map(q=>`${FIN_OKRES[q][0]}: ${fmt(finAvg(tot,F.dni,q),2)} zł`).join('\n');
-    return `<div class="cell" title="${esc(tip)}"><span class="label">${lab}</span><span class="big ${cls}">${fmt(Math.abs(v),2)}<small>zł / ${FIN_OKRES[finOkres][1]}</small></span><p>${Object.keys(FIN_OKRES).filter(q=>q!==finOkres).map(q=>`${fmt(finAvg(tot,F.dni,q),2)} zł / ${FIN_OKRES[q][1]}`).join(' · ')}</p></div>`; };
-  const bil=F.wpl-F.wyd, bilAvg=finAvg(bil,F.dni,finOkres);
-  const avg=`<div class="fin-avgbar"><div class="seg fin-seg" role="tablist">${Object.entries(FIN_OKRES).map(([q,w])=>`<button type="button" data-fino="${q}" aria-selected="${finOkres===q}">${w[0]}</button>`).join('')}</div><span class="fin-from">z ${F.dni} ${F.dni===1?'dnia':'dni'} · od ${dPL(F.od)}</span></div>
+  const avgCell=(lab,tot,cls)=>{ const v=finAvg(tot,F,finOkres), tip=Object.keys(FIN_OKRES).map(q=>`${FIN_OKRES[q][0]}: ${fmt(finAvg(tot,F,q),2)} zł`).join('\n');
+    return `<div class="cell" title="${esc(tip)}"><span class="label">${lab}</span><span class="big ${cls}">${fmt(Math.abs(v),2)}<small>zł / ${FIN_OKRES[finOkres][1]}</small></span><p>${Object.keys(FIN_OKRES).filter(q=>q!==finOkres).map(q=>`${fmt(finAvg(tot,F,q),2)} zł / ${FIN_OKRES[q][1]}`).join(' · ')}</p></div>`; };
+  const bil=F.wpl-F.wyd, bilAvg=finAvg(bil,F,finOkres);
+  const avg=`<div class="fin-avgbar"><div class="seg fin-seg" role="tablist">${Object.entries(FIN_OKRES).map(([q,w])=>`<button type="button" data-fino="${q}" aria-selected="${finOkres===q}">${w[0]}</button>`).join('')}</div><span class="fin-from" title="Suma wydatków / wpływów od ${dPL(F.od)} podzielona przez pełne miesiące (${F.dni} dni). Tydzień = 7 dni.">${finZakres(F)}</span></div>
     <div class="grid g3 px-cells fin-avgcells">${avgCell('Średnie wydatki',F.wyd,'')}${avgCell('Średnie wpływy',F.wpl,'')}
       <div class="cell"><span class="label">Średni bilans</span><span class="big ${finCls(bilAvg)}">${finSign(bilAvg)}<small>zł / ${FIN_OKRES[finOkres][1]}</small></span><p>${bilAvg>=0?'odkładasz':'wydajesz więcej, niż zarabiasz'}</p></div></div>
     <div class="chart fin-chart">${finChart(F)}<div class="w-tip fin-tip" id="finTip" hidden></div></div>
