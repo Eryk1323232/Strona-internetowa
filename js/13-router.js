@@ -13,6 +13,7 @@
 const ROUTES = {
   /* klucz (adres po #) : tytuł, dział nadrzędny (do podświetlenia w menu), funkcja rysująca stronę */
   'start':   {title:'Strona główna', parent:null, render:pStart},
+  'kalendarz':{title:'Kalendarz', parent:null, render:pKalendarz},
   'cv':      {title:'CV', parent:'o-mnie', render:pCV},
   'wot':     {title:'World of Tanks', parent:'gry', render:pWot},
   'fs25':    {title:'Farming Simulator 25', parent:'gry', render:pFs},

@@ -12,6 +12,7 @@ if(!store.get('wygladPillio','')){ store.set('motyw','jasny'); store.set('wyglad
 
 const SZ_SLOWA = {
   start:'główna dom start pulpit widżety pogoda zegar szybki wydatek',
+  kalendarz:'kalendarz terminy daty miesiąc plan dzień płatności',
   cv:'o mnie życiorys praca kariera pdf',
   todo:'zadania lista plan działania do zrobienia',
   notatki:'notes zapiski',
