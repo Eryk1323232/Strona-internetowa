@@ -51,12 +51,12 @@ function pStart(){
   const dzien=n.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
   return `<section class="hello" aria-label="Powitanie"><div><span class="label">${esc(dzien)}</span><h1 class="hello-t">${esc((g1+g2).replace(/\s+/g,' ').trim())}${store.get('imie','Eryk')?', '+esc(store.get('imie','Eryk')):''}</h1></div>
     <div class="hello-time"><span class="label">Teraz</span><b id="heroTime">${n.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</b></div></section>
-  <section class="home-recent" aria-label="Ostatnio odwiedzane"><div class="home-tiles">${homeRecent().map(homeTile).join('')}</div></section>
+  ${typeof homeDash==='function'?homeDash():''}
   <section class="home-widgets">
-    ${widgetClock()}
+    ${typeof widgetFin==='function'?widgetFin():''}
+    ${typeof hdCeleWrap==='function'?hdCeleWrap():''}
     ${widgetWeather()}
     ${widgetQuick()}
-    ${typeof widgetFin==='function'?widgetFin():''}
   </section>`;
 }
 
