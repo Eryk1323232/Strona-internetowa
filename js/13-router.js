@@ -29,7 +29,7 @@ const ROUTES = {
 /* ——— router ——— */
 let wotTab = store.get('wotTab','przep');
 function render(){
-  let key=(location.hash||'#start').slice(1);
+  let key=(location.hash||'#'+store.get('startStrona','start')).slice(1);   /* strona po otwarciu: Ustawienia → Ogólne */
   const RD0={'o-mnie':1,'studia':1,'gry':1,'inne':1,'subskrypcje':1};
   /* Subskrypcje są teraz okienkiem w Pieniądzach — stary adres otwiera to okienko */
   if(key==='subskrypcje'){ history.replaceState(null,'','#pieniadze'); key='pieniadze'; setTimeout(()=>{ sbM=true; sbRender(); },0); }
@@ -82,7 +82,7 @@ $('#menuBtn').addEventListener('click',()=>{ const o=$('#side').classList.toggle
 
 /* motyw */
 const THEMES=['auto','jasny','ciemny'];
-function applyTheme(t){ const r=document.documentElement; if(t==='jasny') r.setAttribute('data-theme','light'); else if(t==='ciemny') r.setAttribute('data-theme','dark'); else r.removeAttribute('data-theme'); const seg=$('.theme-seg'); seg.dataset.pos=['jasny','auto','ciemny'].indexOf(t); seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.th===t)); }
+function applyTheme(t){ const r=document.documentElement; if(t==='jasny') r.setAttribute('data-theme','light'); else if(t==='ciemny') r.setAttribute('data-theme','dark'); else r.removeAttribute('data-theme'); document.querySelectorAll('.theme-seg').forEach(seg=>{ seg.dataset.pos=['jasny','auto','ciemny'].indexOf(t); seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.th===t)); }); }
 let theme=store.get('motyw','jasny'); applyTheme(theme);   /* wygląd „Pillio”: domyślnie jasny (zmiana na jasny raz — js/22-wyszukiwarka.js) */
 document.querySelectorAll('.theme-seg button').forEach(b=>b.addEventListener('click',()=>{ theme=b.dataset.th; store.set('motyw',theme); applyTheme(theme); }));
 /* rozwijane menu */

@@ -8,10 +8,10 @@
      nic nie trafia do chmury ani nie nadpisuje obecnych danych. „Zakończ podgląd” wraca do aktualnych.
      (Mechanizm podglądu: PODGLAD w js/02-narzedzia.js, wyłączenie chmury w js/12-synchronizacja.js.)
    ════════════════════════════════════════════════════════════════════════ */
-const KOPIA_DNI = 7;
+let KOPIA_DNI = 7;   /* zmieniane w Ustawieniach → Dane i kopie (store „kopiaDni”, 0 = bez przypomnień) */
 const KOPIA_POMIN = k => /^(arkusz|szkic:|kopiaT$|podglad)/.test(k);   /* hasło do Arkusza, kolejka, szkice formularzy */
 const kopiaT = () => { try{ return +localStorage.getItem('kopiaT')||0; }catch(e){ return 0; } };
-const kopiaDue = () => !PODGLAD && Date.now()-kopiaT() > KOPIA_DNI*864e5;
+const kopiaDue = () => { KOPIA_DNI=+store.get('kopiaDni','7')||0; return !PODGLAD && KOPIA_DNI>0 && Date.now()-kopiaT() > KOPIA_DNI*864e5; };
 const kopiaDzien = t => new Date(t).toLocaleDateString('pl-PL',{day:'numeric', month:'long', year:'numeric'});
 
 function kopiaDane(){ const d={}; try{ Object.keys(localStorage).forEach(k=>{ if(!KOPIA_POMIN(k)) d[k]=localStorage.getItem(k); }); }catch(e){} return d; }
@@ -50,7 +50,7 @@ function kopiaRender(msg, err){
       <div class="kp-card${due?' due':''}">
         <span class="label">Ostatnia kopia</span>
         <b class="kp-when">${t?kopiaDzien(t):'jeszcze nie zrobiona'}</b>
-        <p>${due?(t?`Minęło ${Math.floor((Date.now()-t)/864e5)} dni — czas na nową.`:'Zrób pierwszą kopię.'):'Kolejna za '+Math.max(1,Math.ceil((t+KOPIA_DNI*864e5-Date.now())/864e5))+' dni.'} Plik zawiera wszystkie dane strony: finanse, treningi, plany, notatki, To-Do, CV, gry i resztę.</p>
+        <p>${due?(t?`Minęło ${Math.floor((Date.now()-t)/864e5)} dni — czas na nową.`:'Zrób pierwszą kopię.'):(KOPIA_DNI?'Kolejna za ':'Przypomnienia wyłączone.')+(KOPIA_DNI?Math.max(1,Math.ceil((t+KOPIA_DNI*864e5-Date.now())/864e5))+' dni.':'')} Plik zawiera wszystkie dane strony: finanse, treningi, plany, notatki, To-Do, CV, gry i resztę.</p>
         <button type="button" class="kp-main" data-kp="get"${PODGLAD?' disabled title="Najpierw zakończ podgląd"':''}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg>Pobierz kopię</button>
       </div>
       <div class="kp-card">

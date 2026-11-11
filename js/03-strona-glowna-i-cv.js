@@ -58,7 +58,7 @@ function heroRays(){ let s=''; [30,60,90,120,150,180,210,240,270,300,330].forEac
 function pStart(){
   const [g1,g2]=homeGreeting(), n=new Date();
   const dzien=n.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
-  return `<section class="hello" aria-label="Powitanie"><div><span class="label">${esc(dzien)}</span><h1 class="hello-t">${esc((g1+g2).replace(/\s+/g,' ').trim())}, Eryk</h1></div>
+  return `<section class="hello" aria-label="Powitanie"><div><span class="label">${esc(dzien)}</span><h1 class="hello-t">${esc((g1+g2).replace(/\s+/g,' ').trim())}${store.get('imie','Eryk')?', '+esc(store.get('imie','Eryk')):''}</h1></div>
     <div class="hello-time"><span class="label">Teraz</span><b id="heroTime">${n.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</b></div></section>
   <section class="home-recent" aria-label="Ostatnio odwiedzane"><div class="home-tiles">${homeRecent().map(homeTile).join('')}</div></section>
   <section class="home-widgets">

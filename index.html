@@ -8,7 +8,7 @@
 
    Kolejność plików poniżej MA ZNACZENIE:
    • css/14-wyglad.css i css/23-wyglad-pillio.css na końcu (nadpisują wcześniejsze style; 23 = obecny wygląd),
-   • js/00-ustawienia.js i js/01-dane.js pierwsze, js/15-subskrypcje.js, js/16-pieniadze.js, js/17-finanse.js, js/18-cv.js, js/19-skrzynka.js, js/20-kopia-zapasowa.js, js/21-praca.js, js/22-wyszukiwarka.js i js/23-wot-cele.js przed routerem, js/13-router.js uruchamia stronę, js/14-szkice-formularzy.js na samym końcu.
+   • js/00-ustawienia.js i js/01-dane.js pierwsze, js/15-subskrypcje.js, js/16-pieniadze.js, js/17-finanse.js, js/18-cv.js, js/19-skrzynka.js, js/20-kopia-zapasowa.js, js/21-praca.js, js/22-wyszukiwarka.js, js/23-wot-cele.js i js/24-ustawienia.js przed routerem, js/13-router.js uruchamia stronę, js/14-szkice-formularzy.js na samym końcu.
 
   ════════════════════════════════════════════════════════════════════════
 -->
@@ -26,28 +26,29 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
 
 <!-- style — w tej kolejności -->
-<link rel="stylesheet" href="css/01-zmienne-i-podstawy.css?v=39">
-<link rel="stylesheet" href="css/02-naglowek-i-menu.css?v=39">
-<link rel="stylesheet" href="css/03-uklad-strony.css?v=39">
-<link rel="stylesheet" href="css/04-world-of-tanks.css?v=39">
-<link rel="stylesheet" href="css/05-cv.css?v=39">
-<link rel="stylesheet" href="css/06-silownia.css?v=39">
-<link rel="stylesheet" href="css/07-todo.css?v=39">
-<link rel="stylesheet" href="css/08-notatki.css?v=39">
-<link rel="stylesheet" href="css/09-telefon.css?v=39">
-<link rel="stylesheet" href="css/10-kalkulatory.css?v=39">
-<link rel="stylesheet" href="css/11-posiadowki.css?v=39">
-<link rel="stylesheet" href="css/12-dyski.css?v=39">
-<link rel="stylesheet" href="css/13-strona-glowna-i-pasek.css?v=39">
-<link rel="stylesheet" href="css/15-subskrypcje.css?v=39">
-<link rel="stylesheet" href="css/17-pieniadze.css?v=39">
-<link rel="stylesheet" href="css/18-finanse.css?v=39">
-<link rel="stylesheet" href="css/20-skrzynka.css?v=39">
-<link rel="stylesheet" href="css/21-kopia-zapasowa.css?v=39">
-<link rel="stylesheet" href="css/22-praca.css?v=39">
-<link rel="stylesheet" href="css/24-wot-cele.css?v=39">
-<link rel="stylesheet" href="css/14-wyglad.css?v=39">
-<link rel="stylesheet" href="css/23-wyglad-pillio.css?v=39">
+<link rel="stylesheet" href="css/01-zmienne-i-podstawy.css?v=40">
+<link rel="stylesheet" href="css/02-naglowek-i-menu.css?v=40">
+<link rel="stylesheet" href="css/03-uklad-strony.css?v=40">
+<link rel="stylesheet" href="css/04-world-of-tanks.css?v=40">
+<link rel="stylesheet" href="css/05-cv.css?v=40">
+<link rel="stylesheet" href="css/06-silownia.css?v=40">
+<link rel="stylesheet" href="css/07-todo.css?v=40">
+<link rel="stylesheet" href="css/08-notatki.css?v=40">
+<link rel="stylesheet" href="css/09-telefon.css?v=40">
+<link rel="stylesheet" href="css/10-kalkulatory.css?v=40">
+<link rel="stylesheet" href="css/11-posiadowki.css?v=40">
+<link rel="stylesheet" href="css/12-dyski.css?v=40">
+<link rel="stylesheet" href="css/13-strona-glowna-i-pasek.css?v=40">
+<link rel="stylesheet" href="css/15-subskrypcje.css?v=40">
+<link rel="stylesheet" href="css/17-pieniadze.css?v=40">
+<link rel="stylesheet" href="css/18-finanse.css?v=40">
+<link rel="stylesheet" href="css/20-skrzynka.css?v=40">
+<link rel="stylesheet" href="css/21-kopia-zapasowa.css?v=40">
+<link rel="stylesheet" href="css/22-praca.css?v=40">
+<link rel="stylesheet" href="css/24-wot-cele.css?v=40">
+<link rel="stylesheet" href="css/25-ustawienia.css?v=40">
+<link rel="stylesheet" href="css/14-wyglad.css?v=40">
+<link rel="stylesheet" href="css/23-wyglad-pillio.css?v=40">
 </head>
 <body>
 
@@ -57,7 +58,7 @@
      Wygląd ramy: css/23-wyglad-pillio.css · wyszukiwarka: js/22-wyszukiwarka.js -->
 <div class="shell">
   <aside class="side" id="side" aria-label="Menu">
-    <a class="brand" href="#start" aria-label="Pracownia — strona główna"><span class="logo-img" aria-hidden="true"><img class="lg-jasne" src="img/logo-jasne-192.png" alt="" width="58" height="58"><img class="lg-ciemne" src="img/logo-192.png" alt="" width="58" height="58"></span><span class="brand-word"><b>Pracownia</b></span></a>
+    <div class="brand-row"><a class="brand" href="#start" aria-label="Pracownia — strona główna"><span class="logo-img" aria-hidden="true"><img class="lg-jasne" src="img/logo-jasne-192.png" alt="" width="58" height="58"><img class="lg-ciemne" src="img/logo-192.png" alt="" width="58" height="58"></span><span class="brand-word"><b>Pracownia</b></span></a><button type="button" class="set-btn" id="setBtn" aria-label="Ustawienia" title="Ustawienia"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
     <nav class="topnav" aria-label="Główna nawigacja">
       <ul class="navtree">
         <li><a class="top" href="#start" data-r="start"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg><span>Strona główna</span></a></li>
@@ -78,7 +79,8 @@
         <li><a class="top" href="#pieniadze" data-r="pieniadze"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 16l3-3 2.5 2 4-4.5"/></svg><span>Pieniądze</span></a></li>
       </ul>
     </nav>
-    <div class="side-foot"><span class="grp">Motyw</span><div class="theme-seg" role="group" aria-label="Motyw strony"><button type="button" data-th="jasny" aria-label="Jasny motyw" title="Jasny"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3 3l1.1 1.1M11.9 11.9 13 13M3 13l1.1-1.1M11.9 4.1 13 3"/></svg></button><button type="button" data-th="auto" aria-label="Motyw systemowy" title="Jak w systemie"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="2.5" width="13" height="9"/><path d="M5.5 14.5h5M8 11.5v3"/></svg></button><button type="button" data-th="ciemny" aria-label="Ciemny motyw" title="Ciemny"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 9.6A6 6 0 0 1 6.4 2.5a6 6 0 1 0 7.1 7.1z" stroke-linejoin="round"/></svg></button><span class="knob" aria-hidden="true"></span></div></div>
+    <!-- motyw, kopie, synchronizacja: ⚙ Ustawienia obok logo (js/24-ustawienia.js); ukryty przełącznik zostaje dla js/13-router.js -->
+    <div class="side-foot" hidden><span class="grp">Motyw</span><div class="theme-seg" role="group" aria-label="Motyw strony"><button type="button" data-th="jasny" aria-label="Jasny motyw" title="Jasny"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3 3l1.1 1.1M11.9 11.9 13 13M3 13l1.1-1.1M11.9 4.1 13 3"/></svg></button><button type="button" data-th="auto" aria-label="Motyw systemowy" title="Jak w systemie"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="2.5" width="13" height="9"/><path d="M5.5 14.5h5M8 11.5v3"/></svg></button><button type="button" data-th="ciemny" aria-label="Ciemny motyw" title="Ciemny"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13.5 9.6A6 6 0 0 1 6.4 2.5a6 6 0 1 0 7.1 7.1z" stroke-linejoin="round"/></svg></button><span class="knob" aria-hidden="true"></span></div></div>
   </aside>
   <div class="side-scrim" aria-hidden="true"></div>
 
@@ -97,29 +99,30 @@
 </div>
 
 <!-- skrypty — w tej kolejności (każdy plik ma na górze opis, co zawiera) -->
-<script src="js/00-ustawienia.js?v=39"></script>
-<script src="js/01-dane.js?v=39"></script>
-<script src="js/02-narzedzia.js?v=39"></script>
-<script src="js/03-strona-glowna-i-cv.js?v=39"></script>
-<script src="js/04-world-of-tanks.js?v=39"></script>
-<script src="js/05-todo.js?v=39"></script>
-<script src="js/06-notatki.js?v=39"></script>
-<script src="js/07-silownia.js?v=39"></script>
-<script src="js/08-posiadowki.js?v=39"></script>
-<script src="js/09-kalkulatory.js?v=39"></script>
-<script src="js/10-dyski.js?v=39"></script>
-<script src="js/11-pasek-dolny.js?v=39"></script>
-<script src="js/12-synchronizacja.js?v=39"></script>
-<script src="js/15-subskrypcje.js?v=39"></script>
-<script src="js/16-pieniadze.js?v=39"></script>
-<script src="js/17-finanse.js?v=39"></script>
-<script src="js/18-cv.js?v=39"></script>
-<script src="js/19-skrzynka.js?v=39"></script>
-<script src="js/20-kopia-zapasowa.js?v=39"></script>
-<script src="js/21-praca.js?v=39"></script>
-<script src="js/22-wyszukiwarka.js?v=39"></script>
-<script src="js/23-wot-cele.js?v=39"></script>
-<script src="js/13-router.js?v=39"></script>
-<script src="js/14-szkice-formularzy.js?v=39"></script>
+<script src="js/00-ustawienia.js?v=40"></script>
+<script src="js/01-dane.js?v=40"></script>
+<script src="js/02-narzedzia.js?v=40"></script>
+<script src="js/03-strona-glowna-i-cv.js?v=40"></script>
+<script src="js/04-world-of-tanks.js?v=40"></script>
+<script src="js/05-todo.js?v=40"></script>
+<script src="js/06-notatki.js?v=40"></script>
+<script src="js/07-silownia.js?v=40"></script>
+<script src="js/08-posiadowki.js?v=40"></script>
+<script src="js/09-kalkulatory.js?v=40"></script>
+<script src="js/10-dyski.js?v=40"></script>
+<script src="js/11-pasek-dolny.js?v=40"></script>
+<script src="js/12-synchronizacja.js?v=40"></script>
+<script src="js/15-subskrypcje.js?v=40"></script>
+<script src="js/16-pieniadze.js?v=40"></script>
+<script src="js/17-finanse.js?v=40"></script>
+<script src="js/18-cv.js?v=40"></script>
+<script src="js/19-skrzynka.js?v=40"></script>
+<script src="js/20-kopia-zapasowa.js?v=40"></script>
+<script src="js/21-praca.js?v=40"></script>
+<script src="js/22-wyszukiwarka.js?v=40"></script>
+<script src="js/23-wot-cele.js?v=40"></script>
+<script src="js/24-ustawienia.js?v=40"></script>
+<script src="js/13-router.js?v=40"></script>
+<script src="js/14-szkice-formularzy.js?v=40"></script>
 </body>
 </html>
