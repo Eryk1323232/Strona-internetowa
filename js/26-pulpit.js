@@ -13,11 +13,11 @@ const hdDni = d => { const x=Math.round((new Date(d+'T12:00')-new Date(todayISO(
 
 function hdTodo(){
   if(typeof T!=='object') return '';
-  const td=todayISO(), L=T.tasks.filter(t=>!t.done && (t.myDay===td || (t.due && t.due<=td))).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')||b.c-a.c);
+  const td=todayISO(), L=T.tasks.filter(t=>!t.done && (t.myDay===td || (t.due && t.due<=td))).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')||(a.tm||'99').localeCompare(b.tm||'99')||b.c-a.c);
   const zr=T.tasks.filter(t=>t.done && (t.myDay===td || t.due===td)).length;
   return `<article class="widget hd-card hd-todo"><div class="w-head"><span class="label">Na dziś</span><a class="w-sub hd-go" href="#todo">To-Do →</a></div>
     <div class="hd-big"><b>${L.length}</b><span>${L.length?hdIle(L.length,'zadanie do zrobienia','zadania do zrobienia','zadań do zrobienia'):'wszystko zrobione'}${zr?` · ${zr} ${hdIle(zr,'zrobione','zrobione','zrobionych')}`:''}</span></div>
-    ${L.length?`<ul class="hd-list">${L.slice(0,6).map(t=>`<li><button type="button" class="td-chk sm" data-hdtodo="${esc(t.id)}" aria-pressed="false" aria-label="Zrobione"></button><span class="hd-t">${esc(t.t)}</span>${t.due&&t.due<td?`<span class="hd-late">${hdDni(t.due)}</span>`:t.imp?'<span class="hd-imp">★</span>':''}</li>`).join('')}${L.length>6?`<li class="hd-more"><a href="#todo">+${L.length-6} więcej</a></li>`:''}</ul>`:''}
+    ${L.length?`<ul class="hd-list">${L.slice(0,6).map(t=>`<li><button type="button" class="td-chk sm" data-hdtodo="${esc(t.id)}" aria-pressed="false" aria-label="Zrobione"></button>${t.tm&&t.due===td?`<span class="hd-tm">${t.tm}</span>`:''}<span class="hd-t">${esc(t.t)}</span>${t.due&&t.due<td?`<span class="hd-late">${hdDni(t.due)}</span>`:t.imp?'<span class="hd-imp">★</span>':''}</li>`).join('')}${L.length>6?`<li class="hd-more"><a href="#todo">+${L.length-6} więcej</a></li>`:''}</ul>`:''}
     <form class="hd-add"><input name="t" placeholder="+ Dodaj na dziś" aria-label="Nowe zadanie na dziś" autocomplete="off" maxlength="200"></form></article>`;
 }
 function hdTrening(){
@@ -41,7 +41,7 @@ function hdNajblizsze(){
   const od=isoAdd(todayISO(),1), doI=isoAdd(todayISO(),14), M=kalZbierz(od,doI);
   const L=Object.entries(M).sort((a,b)=>a[0].localeCompare(b[0])).flatMap(([d,E])=>E.filter(e=>!e.done && e.k!=='tren' && e.k!=='bad').map(e=>({d,...e})));
   return `<article class="widget hd-card hd-next"><div class="w-head"><span class="label">Najbliższe 2 tygodnie</span><a class="w-sub hd-go" href="#kalendarz">Kalendarz →</a></div>
-    ${L.length?`<ul class="hd-list hd-ev">${L.slice(0,7).map(e=>`<li class="k-${e.k}"><span class="hd-date"><b>${new Date(e.d+'T12:00').getDate()}</b><small>${new Date(e.d+'T12:00').toLocaleDateString('pl-PL',{weekday:'short'})}</small></span><span class="hd-t"><i class="kal-dot"></i>${esc(e.n)}<small>${hdDni(e.d)}${e.sub?' · '+esc(e.sub):''}</small></span>${e.kw?`<b class="${e.wpl?'plus':'minus'}">${e.wpl?'+':'−'}${fmt(e.kw,Number.isInteger(e.kw)?0:2)} zł</b>`:''}</li>`).join('')}</ul>${L.length>7?`<a class="hd-more" href="#kalendarz">+${L.length-7} więcej w kalendarzu</a>`:''}`
+    ${L.length?`<ul class="hd-list hd-ev">${L.slice(0,7).map(e=>`<li class="k-${e.k}"><span class="hd-date"><b>${new Date(e.d+'T12:00').getDate()}</b><small>${new Date(e.d+'T12:00').toLocaleDateString('pl-PL',{weekday:'short'})}</small></span><span class="hd-t"><i class="kal-dot"></i>${esc(e.n)}<small>${hdDni(e.d)}${e.tm?', '+e.tm:''}${e.sub?' · '+esc(e.sub):''}</small></span>${e.kw?`<b class="${e.wpl?'plus':'minus'}">${e.wpl?'+':'−'}${fmt(e.kw,Number.isInteger(e.kw)?0:2)} zł</b>`:''}</li>`).join('')}</ul>${L.length>7?`<a class="hd-more" href="#kalendarz">+${L.length-7} więcej w kalendarzu</a>`:''}`
       :`<p class="w-sub">Nic nie zaplanowano. Terminy zadań, opłaty stałe i subskrypcje pojawią się tutaj.</p>`}</article>`;
 }
 function hdCele(){

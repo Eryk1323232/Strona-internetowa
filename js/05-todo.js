@@ -32,7 +32,7 @@ const REPS = [['','Nie powtarzaj'],['d','Codziennie'],['wd','Dni robocze'],['w',
 const SORTS = [['dom','Kolejność dodania'],['due','Termin'],['imp','Ważność'],['az','Alfabetycznie']];
 
 const tdNorm = (id,v={}) => ({id, t:String(v.t||''), l:String(v.l||'zadania'), done:!!v.done, imp:!!v.imp, myDay:String(v.myDay||''), due:String(v.due||''),
-  note:String(v.note||''), steps:Array.isArray(v.steps)?v.steps.map(s=>({t:String(s&&s.t||''), d:!!(s&&s.d)})):[], rep:String(v.rep||''), c:+v.c||0, dn:+v.dn||0});
+  tm:/^\d{2}:\d{2}$/.test(v.tm||'')?v.tm:'', note:String(v.note||''), steps:Array.isArray(v.steps)?v.steps.map(s=>({t:String(s&&s.t||''), d:!!(s&&s.d)})):[], rep:String(v.rep||''), c:+v.c||0, dn:+v.dn||0});
 const tdDoc = t => { const {id,...rest}=t; return rest; };
 let T = {lists:[], tasks:[]};
 try{ const c=JSON.parse(store.get('todoState','null')); if(c && Array.isArray(c.tasks)) T={lists:Array.isArray(c.lists)?c.lists:[], tasks:c.tasks.map(t=>tdNorm(t.id,t))}; }catch(e){}
@@ -121,7 +121,7 @@ function tdRow(t, showList){
   if(showList) m.push(`<span>${esc(tdListName(t.l))}</span>`);
   if(t.myDay===td && tdView!=='dzien') m.push(`<span>${ico('sun')}Mój dzień</span>`);
   if(t.steps.length) m.push(`<span>${ico('step')}${t.steps.filter(s=>s.d).length} z ${t.steps.length}</span>`);
-  if(t.due){ const c=!t.done&&t.due<td?'late':t.due===td&&!t.done?'now':''; m.push(`<span class="${c}">${ico('cal')}${esc(dueLabel(t.due))}${t.rep?' '+ico('rep'):''}</span>`); }
+  if(t.due){ const c=!t.done&&t.due<td?'late':t.due===td&&!t.done?'now':''; m.push(`<span class="${c}">${ico('cal')}${esc(dueLabel(t.due))}${t.tm?' · '+t.tm:''}${t.rep?' '+ico('rep'):''}</span>`); }
   if(t.note.trim()) m.push(`<span>${ico('note')}notatka</span>`);
   return `<div class="td-row${t.done?' done':''}${tdSel===t.id?' sel':''}" data-id="${esc(t.id)}">
     <button type="button" class="td-chk" data-act="done" aria-pressed="${t.done}" aria-label="${t.done?'Oznacz jako nieukończone':'Oznacz jako ukończone'}"></button>
@@ -187,7 +187,7 @@ function tdDrawerHtml(t){
   <div class="tdd-sec">
     <div class="tdd-field"><span class="label"><span>Termin</span>${t.due?`<span>${esc(dueLabel(t.due))}</span>`:''}</span>
       <div class="tdd-row"><button type="button" class="td-btn${t.due===td?' on':''}" data-act="due" data-v="0">Dziś</button><button type="button" class="td-btn${t.due===isoAdd(td,1)?' on':''}" data-act="due" data-v="1">Jutro</button><button type="button" class="td-btn${t.due===isoAdd(td,7)?' on':''}" data-act="due" data-v="7">Za tydzień</button>${t.due?'<button type="button" class="td-btn" data-act="nodue">Usuń</button>':''}</div>
-      <div class="tdd-row"><input type="date" class="tdd-date tdd-due" value="${esc(t.due)}" aria-label="Wybierz datę"></div></div>
+      <div class="tdd-row"><input type="date" class="tdd-date tdd-due" value="${esc(t.due)}" aria-label="Wybierz datę"><input type="time" class="tdd-date tdd-tm" value="${esc(t.tm)}" aria-label="Godzina (opcjonalnie)" title="Godzina (opcjonalnie)"${t.due?'':' disabled'}></div></div>
     <div class="tdd-field"><label class="label" for="tddRep">Powtarzaj</label><select id="tddRep" class="td-sel tdd-rep">${REPS.map(r=>`<option value="${r[0]}"${r[0]===t.rep?' selected':''}>${r[1]}</option>`).join('')}</select></div>
     <div class="tdd-field"><label class="label" for="tddList">Lista</label><select id="tddList" class="td-sel tdd-list">${lists.map(l=>`<option value="${esc(l[0])}"${l[0]===t.l?' selected':''}>${esc(l[1])}</option>`).join('')}</select></div></div>
   <div class="tdd-sec"><label class="label" for="tddNote" style="display:block;margin-bottom:6px">Notatka</label><textarea id="tddNote" class="tdd-note" placeholder="Szczegóły, linki, numery sal…">${esc(t.note)}</textarea></div>
@@ -256,7 +256,7 @@ document.addEventListener('click', e=>{
     case 'adddue': { const i=$('.td-add input[name=due]'); if(i){ try{ i.showPicker(); }catch(err){ i.focus(); i.click(); } } return; }
     case 'adddueclr': { const i=$('.td-add input[name=due]'); if(i){ i.value=''; tdDueLbl(); } return; }
     case 'due': if(t) tdSet(id,{due:isoAdd(td,+b.dataset.v)}); break;
-    case 'nodue': if(t) tdSet(id,{due:'',rep:''}); break;
+    case 'nodue': if(t) tdSet(id,{due:'',rep:'',tm:''}); break;
     case 'step': if(t){ const i=+b.dataset.i; tdSet(id,{steps:t.steps.map((s,j)=>j===i?{...s,d:!s.d}:s)}); } break;
     case 'delstep': if(t){ const i=+b.dataset.i; tdSet(id,{steps:t.steps.filter((s,j)=>j!==i)}); } break;
     case 'del': if(t) tdDel(id); break;
@@ -282,7 +282,8 @@ document.addEventListener('change', e=>{
   if(el.matches('.tdd-title')){ const v=el.value.trim(); if(v&&v!==t.t) tdSet(id,{t:v}); else el.value=t.t; return; }
   if(el.matches('.tdd-stepin')){ const i=+el.dataset.i, v=el.value.trim();
     tdSet(id,{steps:v?t.steps.map((s,j)=>j===i?{...s,t:v}:s):t.steps.filter((s,j)=>j!==i)}); return; }
-  if(el.matches('.tdd-due')) return tdSet(id,{due:el.value||'', ...(el.value?{}:{rep:''})});
+  if(el.matches('.tdd-due')) return tdSet(id,{due:el.value||'', ...(el.value?{}:{rep:'',tm:''})});
+  if(el.matches('.tdd-tm')) return tdSet(id,{tm:el.value||''});
   if(el.matches('.tdd-rep')) return tdSet(id,{rep:el.value});
   if(el.matches('.tdd-list')) return tdSet(id,{l:el.value});
   if(el.matches('.tdd-note')){ clearTimeout(tdNoteTimer); if(el.value!==t.note) tdSet(id,{note:el.value}); }

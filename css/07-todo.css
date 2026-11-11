@@ -170,3 +170,4 @@ select.td-sel{font-family:var(--f-mono);font-size:11px;padding:5px 6px;border:1p
   .td-add .td-adddue{margin:0 0 8px 14px}
   .td-add button[type=submit]{margin:0 8px 8px auto;height:36px;border-radius:10px;align-self:center}
 }
+.tdd-row .tdd-tm{max-width:120px} .tdd-row .tdd-tm:disabled{opacity:.45}
