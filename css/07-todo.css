@@ -152,3 +152,21 @@ select.td-sel{font-family:var(--f-mono);font-size:11px;padding:5px 6px;border:1p
   .td-main{padding:16px 14px 22px}
   .td-row{padding-left:4px;gap:0 10px}
 }
+
+/* termin przy dodawaniu zadania (przycisk z kalendarzem otwiera wybór daty) */
+.td-add .td-adddue{position:relative;display:flex;align-items:center;gap:2px;align-self:center}
+.td-add .td-duebtn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 10px;border:1px solid transparent;border-radius:10px;background:none;color:var(--muted);cursor:pointer;font:500 13px var(--f-body);white-space:nowrap}
+.td-add .td-duebtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4}
+.td-add .td-duebtn:hover{color:var(--ink);background:var(--soft)}
+.td-add .td-duebtn.on{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.td-duelbl:empty{display:none}
+.td-add .td-dueclr{border:0;border-radius:8px;background:none;color:var(--muted);cursor:pointer;font:400 16px/1 var(--f-body);padding:6px 7px;height:auto}
+.td-add .td-dueclr:hover{color:var(--bad);background:none}
+.td-add .td-dueclr[hidden]{display:none}
+.td-duein{position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0}
+@media (max-width:560px){   /* telefon: zadanie w pierwszym wierszu, termin i „Dodaj” pod spodem */
+  .td-add{flex-wrap:wrap;padding:0 0 0 12px}
+  .td-add input[name=t]{flex:1 1 calc(100% - 40px)}
+  .td-add .td-adddue{margin:0 0 8px 14px}
+  .td-add button[type=submit]{margin:0 8px 8px auto;height:36px;border-radius:10px;align-self:center}
+}

@@ -70,9 +70,10 @@ function tdNext(iso, rep){
 }
 
 /* — zmiany — */
-function tdAdd(title){
+/* due — termin wybrany przy dodawaniu (pole daty obok „Dodaj”); bez wyboru w „Zaplanowane” = dziś */
+function tdAdd(title, due){
   const td=todayISO(), v=tdView, custom=T.lists.some(l=>l.id===v);
-  const t=tdNorm(uid('t'), {t:title, l:custom?v:'zadania', imp:v==='wazne', myDay:v==='dzien'?td:'', due:v==='plan'?td:'', c:Date.now()});
+  const t=tdNorm(uid('t'), {t:title, l:custom?v:'zadania', imp:v==='wazne', myDay:v==='dzien'?td:'', due:due||(v==='plan'?td:''), c:Date.now()});
   T.tasks=[t,...T.tasks]; saveTodo(); tdRefresh();
   cloud(db=>db.collection('todo').doc(t.id).set(tdDoc(t)));
 }
@@ -161,7 +162,9 @@ function tdApp(){
   const doneHtml=done.length?`<button type="button" class="td-donetoggle" data-act="donetoggle" aria-expanded="${tdShowDone}">Ukończone <span class="ct">${done.length}</span></button>
     ${tdShowDone?`<div class="td-items">${done.map(t=>tdRow(t,showList)).join('')}</div>`:''}`:'';
   return `${rail}<div class="td-main"><div class="td-head"><div style="min-width:0">${title}<div class="td-sub">${esc(sub)}</div></div><div class="td-tools">${tools}</div></div>
-    <form class="td-add"><span class="plus" aria-hidden="true">+</span><input name="t" placeholder="Dodaj zadanie${v==='dzien'?' na dziś':v==='wazne'?' (ważne)':v==='plan'?' (termin: dziś)':''}" aria-label="Nowe zadanie" autocomplete="off" maxlength="200"><button type="submit">Dodaj</button></form>
+    <form class="td-add"><span class="plus" aria-hidden="true">+</span><input name="t" placeholder="Dodaj zadanie${v==='dzien'?' na dziś':v==='wazne'?' (ważne)':v==='plan'?' (termin: dziś)':''}" aria-label="Nowe zadanie" autocomplete="off" maxlength="200">
+      <span class="td-adddue"><button type="button" class="td-duebtn" data-act="adddue" aria-label="Wybierz termin" title="Termin">${ico('cal')}<span class="td-duelbl"></span></button><button type="button" class="td-dueclr" data-act="adddueclr" aria-label="Usuń termin" hidden>×</button><input type="date" name="due" class="td-duein" tabindex="-1" aria-hidden="true"></span>
+      <button type="submit">Dodaj</button></form>
     <div class="td-items">${body}</div>${doneHtml}</div>`;
 }
 function tdTodayHtml(){
@@ -202,15 +205,18 @@ function tdDrawerRender(force){
   const st=dr.scrollTop; dr.dataset.id=t.id; dr.innerHTML=tdDrawerHtml(t); dr.scrollTop=fresh?0:st;
 }
 function tdClose(){ tdSel=null; tdRefresh(); }
+/* napis na przycisku terminu w polu dodawania (np. „Jutro”, „pt, 14 lis”) */
+function tdDueLbl(){ const i=$('.td-add input[name=due]'), l=$('.td-duelbl'), x=$('.td-dueclr'), b=$('.td-duebtn'); if(!i||!l) return;
+  l.textContent=i.value?dueLabel(i.value):''; if(x) x.hidden=!i.value; if(b) b.classList.toggle('on',!!i.value); }
 function tdRefresh(){
   const app=$('#todoApp');
   if(app){
     const a=document.activeElement, keep=['.td-add input','.td-newlist input'].find(s=>a&&a.matches&&a.matches(s));
-    const vals={add:($('.td-add input')||{}).value||'', nl:($('.td-newlist input')||{}).value||''};
+    const vals={add:($('.td-add input[name=t]')||{}).value||'', due:($('.td-add input[name=due]')||{}).value||'', nl:($('.td-newlist input')||{}).value||''};
     if(!(a&&a.matches&&a.matches('.td-rename'))){
       app.innerHTML=tdApp();
-      const ai=$('.td-add input'), ni=$('.td-newlist input');
-      if(ai) ai.value=vals.add; if(ni) ni.value=vals.nl;
+      const ai=$('.td-add input[name=t]'), ni=$('.td-newlist input'), di=$('.td-add input[name=due]');
+      if(ai) ai.value=vals.add; if(ni) ni.value=vals.nl; if(di){ di.value=vals.due; tdDueLbl(); }
       if(keep) $(keep)&&$(keep).focus();
       const rn=$('.td-rename'); if(rn){ rn.focus(); rn.select(); }
     }
@@ -247,6 +253,8 @@ document.addEventListener('click', e=>{
       break;
     case 'close': tdClose(); break;
     case 'myday': if(t) tdSet(id,{myDay:t.myDay===td?'':td}); break;
+    case 'adddue': { const i=$('.td-add input[name=due]'); if(i){ try{ i.showPicker(); }catch(err){ i.focus(); i.click(); } } return; }
+    case 'adddueclr': { const i=$('.td-add input[name=due]'); if(i){ i.value=''; tdDueLbl(); } return; }
     case 'due': if(t) tdSet(id,{due:isoAdd(td,+b.dataset.v)}); break;
     case 'nodue': if(t) tdSet(id,{due:'',rep:''}); break;
     case 'step': if(t){ const i=+b.dataset.i; tdSet(id,{steps:t.steps.map((s,j)=>j===i?{...s,d:!s.d}:s)}); } break;
@@ -259,7 +267,7 @@ document.addEventListener('click', e=>{
 });
 document.addEventListener('submit', e=>{
   const f=e.target;
-  if(f.matches('form.td-add')){ e.preventDefault(); const v=f.t.value.trim(); if(!v) return; f.t.value=''; tdAdd(v); return; }
+  if(f.matches('form.td-add')){ e.preventDefault(); const v=f.t.value.trim(); if(!v) return; const d=f.due.value; f.t.value=''; f.due.value=''; tdDueLbl(); tdAdd(v, d); return; }
   if(f.matches('form.td-newlist')){ e.preventDefault(); const v=f.n.value.trim(); if(!v) return; f.n.value=''; tdAddList(v); return; }
   if(f.matches('form.tdd-addstep')){ e.preventDefault(); const v=f.s.value.trim(), t=T.tasks.find(x=>x.id===tdSel); if(!v||!t) return;
     f.s.value=''; f.s.blur(); tdSet(t.id,{steps:[...t.steps,{t:v,d:false}]}); const ni=$('.tdd-addstep input'); ni&&ni.focus(); }
@@ -268,6 +276,7 @@ document.addEventListener('change', e=>{
   const el=e.target;
   if(el.matches('.td-sort')){ tdSort=el.value; store.set('tdSort',tdSort); return tdRefresh(); }
   if(el.matches('.td-rename')){ const v=el.value.trim(); tdRenaming=false; el.blur(); if(v&&T.lists.some(l=>l.id===tdView)) tdRenameList(tdView,v); else tdRefresh(); return; }
+  if(el.matches('.td-duein')){ tdDueLbl(); const ti=$('.td-add input[name=t]'); ti&&ti.focus(); return; }
   const dr=el.closest('#tdDrawer'); if(!dr) return;
   const id=dr.dataset.id, t=T.tasks.find(x=>x.id===id); if(!t) return;
   if(el.matches('.tdd-title')){ const v=el.value.trim(); if(v&&v!==t.t) tdSet(id,{t:v}); else el.value=t.t; return; }
