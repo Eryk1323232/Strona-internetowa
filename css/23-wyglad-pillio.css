@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════════════════
    WYGLĄD „PILLIO” — jasna lawenda, białe zaokrąglone karty, boczne menu
    ════════════════════════════════════════════════════════════════════════
-   Ładuje się NA SAMYM KOŃCU i nadpisuje wcześniejsze style (01 … 22 i 14-wyglad.css).
+   Ładuje się NA SAMYM KOŃCU i nadpisuje wcześniejsze style (01 … 25). To jedyna warstwa wyglądu (stare 14-wyglad i 16-skyline usunięte).
    Rama strony (index.html):  .shell = cała „szyba” · .side = boczne menu · .mainc = prawa część
      · .hdr = górny pasek (wyszukiwarka, kopia, skrzynka) · main/.page = treść podstrony.
    Kolory: trzy bloki :root niżej (jasny · ciemny wg systemu · ciemny z przycisku).
@@ -9,7 +9,7 @@
      --bg        tło treści (pod kartami)            --surface karty
      --accent    fiolet (zaznaczenia, linki)         --mark    koral (drugi akcent)
      --band / --band-2  pastelowe tła (lawenda / róż) w kaflach i nagłówkach
-   Poprzedni wygląd (czarny „Skyline”) jest w css/16-skyline.css — żeby wrócić, podmień link w index.html.
+   Poprzednie wyglądy (kremowy, czarny „Skyline”) są w historii repozytorium na GitHubie.
    ════════════════════════════════════════════════════════════════════════ */
 
 :root{
@@ -72,6 +72,7 @@ main::before,main::after{display:none}
 .side-foot{display:flex;flex-direction:column;gap:4px;padding-top:8px}
 .side-foot .grp{padding:6px 12px 6px}
 .side-scrim{display:none}
+.side-foot[hidden]{display:none}
 
 /* przełącznik motywu (w bocznym menu) */
 .theme-seg{display:grid;grid-template-columns:repeat(3,1fr);height:38px;width:auto;margin:0 6px;padding:3px;border:0;border-radius:12px;background:color-mix(in srgb,var(--ink) 6%,transparent)}
@@ -250,3 +251,20 @@ h1.hello-t{margin:0;font-size:clamp(26px,3.2vw,36px)}
   :root:not([data-theme="light"]) .logo-img .lg-ciemne{display:block}
 }
 .brand-word b{font-size:19px}
+
+/* ——— cienkie linie podziału (przeniesione ze starego 14-wyglad.css) ——— */
+.tier-head,.branch-top{border-bottom:1px solid var(--line)}
+.nat-body,.td-head,.td-items,.nt-ed,.nt-aside{border-top:1px solid var(--line)}
+.td-tabs{border-bottom:0}
+details.nation[open]{border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
+details.nation summary::before{border-color:var(--muted)}
+.calc{gap:0;overflow:hidden} .calc>div+div{border-left:1px solid var(--line)}
+.cv{gap:0;overflow:hidden}
+.nt-tile.pin{box-shadow:inset 0 3px 0 var(--accent),var(--shadow)}
+/* pastelowe tła co drugiej karty podsumowania (jak kafle na wzorze) */
+.grid .cell:nth-child(4n+1){background:linear-gradient(160deg,color-mix(in srgb,var(--band) 60%,var(--surface)),var(--surface) 70%)}
+.grid .cell:nth-child(4n+3){background:linear-gradient(160deg,color-mix(in srgb,var(--band-2) 75%,var(--surface)),var(--surface) 70%)}
+.tier.wide{background:linear-gradient(170deg,color-mix(in srgb,var(--band) 40%,var(--surface)),var(--surface) 40%)}
+
+/* pola wyboru: delikatna ramka zamiast czarnej */
+input.sq,.td-chk,.md-chk{border-color:color-mix(in srgb,var(--muted) 75%,transparent)}

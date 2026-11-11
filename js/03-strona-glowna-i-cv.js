@@ -46,15 +46,6 @@ function homeTile(x,i){ const r=ROUTES[x.k];
 function homeGreeting(){ const h=new Date().getHours();
   return h<5?['Dobranoc','']:h<12?['Dzień ','dobry']:h<18?['Dzień ','dobry']:['Dobry ','wieczór']; }
 
-/* ——— (nieużywane od wyglądu „Pillio” — powitanie to teraz karta .hello w pStart) baner powitalny: ciemne „rozmyte w ruchu” tło (rysowane w kodzie, bez zdjęcia), promienie, czerwona linia ——— */
-function heroStreaks(){
-  let r='', seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
-  for(let i=0;i<46;i++){ const y=rnd()*100, h=0.4+rnd()*rnd()*9, x=rnd()*80-20, w=30+rnd()*90, l=Math.round(18+rnd()*rnd()*120), o=(0.25+rnd()*0.6).toFixed(2);
-    r+=`<rect x="${x.toFixed(1)}%" y="${y.toFixed(1)}%" width="${w.toFixed(1)}%" height="${h.toFixed(2)}%" fill="rgb(${l},${l},${l+4})" opacity="${o}"/>`; }
-  return r;
-}
-function heroRays(){ let s=''; [30,60,90,120,150,180,210,240,270,300,330].forEach(a=>{ if(a===0) return; const t=a*Math.PI/180, r1=a%90?150:162, r2=r1+(a%90?22:30);
-    s+=`<line x1="${(200+r1*Math.sin(t)).toFixed(1)}" y1="${(200-r1*Math.cos(t)*0.78).toFixed(1)}" x2="${(200+r2*Math.sin(t)).toFixed(1)}" y2="${(200-r2*Math.cos(t)*0.78).toFixed(1)}"/>`; }); return s; }
 function pStart(){
   const [g1,g2]=homeGreeting(), n=new Date();
   const dzien=n.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});

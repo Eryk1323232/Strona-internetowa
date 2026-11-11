@@ -151,31 +151,4 @@ form.fin-qadd .tr-err{flex-basis:100%} form.fin-qadd .tr-err:empty{display:none}
   .sb-btn{padding:0 9px}
 }
 
-/* ——— baner powitalny (strona główna): czarno-biały, „rozmyty ruch”, promienie i czerwona linia ——— */
-body.is-home{overflow-x:clip}
-body.is-home main::before,body.is-home main::after{display:none}
-body.is-home .page{padding-top:0}
-.hero{position:relative;margin:0 calc(50% - 50vw) 48px;height:clamp(440px,74vh,780px);background:#0b0b0c;color:#f4f2ee;overflow:hidden;display:grid;place-items:center;isolation:isolate}
-.hero-bg{position:absolute;inset:0;width:100%;height:100%;z-index:-2}
-.hero-streaks{animation:heroDrift 28s linear infinite alternate}
-@keyframes heroDrift{from{transform:translateX(-3%)}to{transform:translateX(3%)}}
-.hero-grain{opacity:.16;mix-blend-mode:overlay}
-.hero::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 60% 55% at 50% 50%,rgba(0,0,0,.05),rgba(0,0,0,.72) 100%),linear-gradient(180deg,rgba(0,0,0,.55),transparent 22%,transparent 70%,rgba(0,0,0,.8))}
-.hero::after{content:"";position:absolute;left:0;right:0;bottom:16%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14) 30%,rgba(255,255,255,.14) 70%,transparent);z-index:-1}
-.hero-mark{position:absolute;left:50%;top:50%;width:min(560px,118vw);aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none}
-.hero-mark svg{width:100%;height:100%;overflow:visible}
-.hero-rays line{stroke:rgba(244,242,238,.85);stroke-width:1.1;stroke-linecap:round}
-.hero-red{stroke:#c8252b;stroke-width:1.3}
-.hero-diag{stroke:rgba(244,242,238,.75);stroke-width:1}
-.hero-txt{position:relative;display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center}
-.hero-small{font-family:"Montserrat",var(--f-body);font-weight:400;font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:rgba(244,242,238,.85)}
-.hero-small b{font-weight:400}
-h1.hero-title{margin:0;font-family:"Montserrat",var(--f-body);font-weight:200;font-size:clamp(40px,7vw,84px);line-height:1.08;letter-spacing:.2em;text-transform:uppercase;color:#f4f2ee;padding-left:.2em;font-variation-settings:normal}
-.hero-foot{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-family:"Montserrat",var(--f-body);font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:rgba(244,242,238,.55);white-space:nowrap}
-@media (prefers-reduced-motion:reduce){.hero-streaks{animation:none}}
-@media (max-width:760px){
-  .hero{height:clamp(380px,62vh,560px);margin-bottom:28px}
-  h1.hero-title{letter-spacing:.14em}
-  .hero-small{font-size:10px;letter-spacing:.24em}
-}
-h1.hero-title br{display:inline}
+

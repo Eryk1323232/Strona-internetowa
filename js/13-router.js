@@ -45,8 +45,6 @@ function render(){
     if(r===key) a.setAttribute('aria-current','page');
     else if(ROUTES[key].parent===r) a.setAttribute('aria-current','page');
   });
-  document.querySelectorAll('li.dd').forEach(li=>li.classList.toggle('cur', !!li.querySelector('[aria-current]')));
-  closeDD && closeDD();
   $('#side').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded','false'); document.body.classList.remove('side-open');
   if(key==='wot') setWotTab(wotTab);
   if(key==='todo') $('#tdSync').textContent=syncText();
@@ -85,17 +83,7 @@ const THEMES=['auto','jasny','ciemny'];
 function applyTheme(t){ const r=document.documentElement; if(t==='jasny') r.setAttribute('data-theme','light'); else if(t==='ciemny') r.setAttribute('data-theme','dark'); else r.removeAttribute('data-theme'); document.querySelectorAll('.theme-seg').forEach(seg=>{ seg.dataset.pos=['jasny','auto','ciemny'].indexOf(t); seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.th===t)); }); }
 let theme=store.get('motyw','jasny'); applyTheme(theme);   /* wygląd „Pillio”: domyślnie jasny (zmiana na jasny raz — js/22-wyszukiwarka.js) */
 document.querySelectorAll('.theme-seg button').forEach(b=>b.addEventListener('click',()=>{ theme=b.dataset.th; store.set('motyw',theme); applyTheme(theme); }));
-/* rozwijane menu */
-const closeDD = () => document.querySelectorAll('li.dd.open').forEach(li=>{ li.classList.remove('open'); li.querySelector('.dd-btn').setAttribute('aria-expanded','false'); });
-document.addEventListener('click', e=>{
-  const b=e.target.closest('.dd-btn');
-  if(b){ const li=b.closest('li.dd'), o=!li.classList.contains('open'); closeDD(); li.classList.remove('shut'); if(o){ li.classList.add('open'); b.setAttribute('aria-expanded','true'); } return; }
-  const a=e.target.closest('.navtree a');
-  if(a){ const li=a.closest('li.dd'); closeDD(); if(li){ li.classList.add('shut'); a.blur(); } return; }
-  if(!e.target.closest('li.dd')) closeDD();
-});
-document.querySelectorAll('li.dd').forEach(li=>{ li.addEventListener('mouseleave',()=>li.classList.remove('shut')); li.addEventListener('mouseenter',()=>{ document.querySelectorAll('li.dd.open').forEach(o=>{ if(o!==li){ o.classList.remove('open'); o.querySelector('.dd-btn').setAttribute('aria-expanded','false'); } }); if(document.activeElement && document.activeElement.closest && document.activeElement.closest('li.dd')!==li && document.activeElement.closest('li.dd')) document.activeElement.blur(); }); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeDD(); });
+
 
 window.addEventListener('hashchange',render);
 render();

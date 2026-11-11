@@ -10,7 +10,7 @@
 .day td.n{white-space:nowrap}
 .plan{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;align-items:start}
 .day{border:1px solid var(--line);background:var(--surface);min-width:0}
-.day-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--ink)}
+.day-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
 .day-head .tag{font-family:var(--f-mono);font-size:10.5px;padding:2px 8px;color:var(--accent-ink);background:var(--accent)}
 .day-head .tag.low{background:var(--ink);color:var(--bg)}
 .day table{font-size:13.5px}
@@ -88,7 +88,7 @@ button.g-del.armed{color:var(--surface);background:var(--bad);border-color:var(-
 .g-form input{font-family:var(--f-body);font-size:15px;padding:9px 10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%;min-width:0;height:42px}
 .g-form input[type=date]{font-family:var(--f-mono);font-size:14px}
 .g-form input:focus{outline:none;border-color:var(--accent)}
-.g-form button{height:42px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);padding:0 18px;cursor:pointer;font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.g-form button{height:42px;border:1px solid var(--line);background:var(--ink);color:var(--bg);padding:0 18px;cursor:pointer;font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
 .g-form button:hover{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 table.g-t td{vertical-align:middle;padding:5px 10px}
 input.g-in{font-family:var(--f-body);font-size:14.5px;padding:6px 8px;border:1px solid transparent;background:transparent;color:var(--ink);min-width:0;height:36px}

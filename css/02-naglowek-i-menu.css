@@ -2,18 +2,18 @@
    NAGŁÓWEK I ROZWIJANE MENU
    ════════════════════════════════════════════════════════════════════════
    Pasek u góry: logo, menu z listami rozwijanymi, przełącznik motywu.
-   Kolory i zaokrąglenia nadpisuje później 14-wyglad.css (sekcja "nagłówek").
+   Obecny wygląd ramy, menu i nagłówka: css/23-wyglad-pillio.css (nadpisuje te reguły).
    ════════════════════════════════════════════════════════════════════════ */
 
 /* ——— Rama: górny pasek nawigacji ——— */
-.hdr{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid var(--ink);padding-top:env(safe-area-inset-top,0px);
+.hdr{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .hdr-in{max-width:2400px;margin:0 auto;padding:0 clamp(0px,1.6vw,36px);display:flex;align-items:center;gap:36px;min-height:62px}
 .brand{display:flex;gap:12px;align-items:center;text-decoration:none;flex:none}
 .brand-mark{width:30px;height:30px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px}
 .brand-mark i{display:block;background:var(--ink)}
 .brand-mark i:nth-child(2){background:var(--accent)}
-.brand-mark i:nth-child(3){background:transparent;border:2px solid var(--ink)}
+.brand-mark i:nth-child(3){background:transparent;border: 1px solid var(--line)}
 .brand-mark i:nth-child(4){background:var(--mark);border-radius:50% 0 0 0}
 .brand b{font-family:var(--f-display);font-stretch:118%;font-weight:800;font-size:15px;letter-spacing:.02em;text-transform:uppercase;line-height:1.1;display:block}
 .brand small{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);letter-spacing:.04em}
@@ -29,7 +29,7 @@
 .navtree .top:hover,.dd-btn:hover{color:var(--accent)}
 .navtree .top[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
 .navtree li.cur .dd-btn{border-bottom-color:var(--accent);color:var(--accent)}
-.dd-menu{list-style:none;margin:0;padding:6px 0;position:absolute;top:100%;left:0;min-width:230px;background:var(--surface);border:1px solid var(--ink);border-top:3px solid var(--accent);
+.dd-menu{list-style:none;margin:0;padding:6px 0;position:absolute;top:100%;left:0;min-width:230px;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);
   box-shadow:0 14px 30px rgba(0,0,0,.18);display:none;z-index:31}
 .dd-menu a{display:flex;align-items:center;gap:10px;text-decoration:none;font-size:14px;padding:9px 16px;color:var(--ink);white-space:nowrap}
 .dd-menu a::before{content:"";width:7px;height:7px;border:1px solid var(--muted);flex:none}
@@ -49,7 +49,7 @@ li.dd:not(.shut):hover .dd-btn::after,li.dd.open .dd-btn::after{transform:transl
 .theme-seg[data-pos="2"] .knob{transform:translateX(64px)}
 .theme-btn{background:none;border:1px solid var(--line);padding:5px 10px;cursor:pointer;font-family:var(--f-mono);font-size:11px;white-space:nowrap}
 .theme-btn:hover{border-color:var(--ink)}
-.menu-btn{display:none;background:none;border:1px solid var(--ink);padding:6px 12px;font-family:var(--f-mono);font-size:12px;cursor:pointer}
+.menu-btn{display:none;background:none;border:1px solid var(--line);padding:6px 12px;font-family:var(--f-mono);font-size:12px;cursor:pointer}
 
 main{min-width:0;padding-block:0 0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .page{max-width:2400px;margin:0 auto;padding-block:30px 40px;padding-inline:clamp(0px,1.6vw,36px)}

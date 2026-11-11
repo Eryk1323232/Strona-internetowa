@@ -8,7 +8,7 @@
 
 /* ——— To-Do ——— */
 .ic{width:1em;height:1em;vertical-align:-2px;flex:none}
-.td{display:grid;grid-template-columns:230px minmax(0,1fr);border:1px solid var(--ink);background:var(--surface);min-height:540px}
+.td{display:grid;grid-template-columns:230px minmax(0,1fr);border:1px solid var(--line);background:var(--surface);min-height:540px}
 .td-rail{border-right:1px solid var(--line);padding:12px 0 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .td-rail ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
 .td-nav{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-left:3px solid transparent;padding:8px 14px 8px 13px;cursor:pointer;text-align:left;font-size:14px;color:var(--ink)}
@@ -23,7 +23,7 @@
 .td-newlist input,.tdd-date{width:100%;min-width:0;font-family:var(--f-body);font-size:13.5px;padding:7px 9px;border:1px dashed var(--line);background:none;color:var(--ink)}
 .td-newlist input:focus{outline:none;border-style:solid;border-color:var(--accent);background:var(--bg)}
 .td-main{padding:20px 24px 28px;min-width:0}
-.td-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:2px solid var(--ink)}
+.td-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom: 1px solid var(--line)}
 .td-head h2{font-size:26px;font-stretch:120%;line-height:1.05;overflow-wrap:anywhere}
 .td-head .td-rename{font-family:var(--f-display);font-stretch:120%;font-weight:750;font-size:24px;text-transform:uppercase}
 .td-sub{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);margin-top:6px}
@@ -62,7 +62,7 @@ select.td-sel{font-family:var(--f-mono);font-size:11px;padding:5px 6px;border:1p
 .td-star:hover{color:var(--ink)}
 .td-star[aria-pressed="true"]{color:var(--mark)}
 .td-star[aria-pressed="true"] .ic{fill:currentColor}
-.td-group{display:flex;justify-content:space-between;margin-top:20px;padding:0 0 6px;border-bottom:1px solid var(--ink)}
+.td-group{display:flex;justify-content:space-between;margin-top:20px;padding:0 0 6px;border-bottom:1px solid var(--line)}
 .td-group:first-child{margin-top:6px}
 .td-group.late .label:first-child{color:var(--bad)}
 .td-donetoggle{margin-top:24px;background:none;border:0;cursor:pointer;display:flex;align-items:center;gap:10px;padding:6px 0;font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
@@ -79,9 +79,9 @@ select.td-sel{font-family:var(--f-mono);font-size:11px;padding:5px 6px;border:1p
 .td-more{display:block;padding:10px 12px;font-family:var(--f-mono);font-size:11.5px;color:var(--accent);text-decoration:none;border-top:1px solid var(--line-soft)}
 /* panel szczegółów */
 .td-scrim{position:fixed;inset:0;background:rgba(10,12,14,.28);z-index:59}
-.td-drawer{position:fixed;top:0;right:0;bottom:0;width:min(400px,100%);background:var(--surface);border-left:2px solid var(--ink);z-index:60;display:flex;flex-direction:column;overflow-y:auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px);box-shadow:-16px 0 40px rgba(0,0,0,.14)}
+.td-drawer{position:fixed;top:0;right:0;bottom:0;width:min(400px,100%);background:var(--surface);border-left: 1px solid var(--line);z-index:60;display:flex;flex-direction:column;overflow-y:auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px);box-shadow:-16px 0 40px rgba(0,0,0,.14)}
 @media (prefers-reduced-motion:no-preference){.td-drawer.in{animation:tdIn .18s ease-out}@keyframes tdIn{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}}
-.tdd-top{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--ink)}
+.tdd-top{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line)}
 .tdd-sec{padding:16px 18px;border-bottom:1px solid var(--line)}
 .tdd-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
 .tdd-head .td-star{padding:4px}
@@ -111,7 +111,7 @@ select.td-sel{font-family:var(--f-mono);font-size:11px;padding:5px 6px;border:1p
 .tdd-date:focus{outline:none;border-color:var(--accent)}
 .tdd-note{width:100%;min-height:130px;resize:vertical;font-family:var(--f-body);font-size:14px;line-height:1.55;padding:10px 12px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
 .tdd-note:focus{outline:none;border-color:var(--accent)}
-.tdd-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;border-top:1px solid var(--ink);font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.tdd-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;border-top:1px solid var(--line);font-family:var(--f-mono);font-size:11px;color:var(--muted)}
 /* ——— To-Do: spójnie ze stroną ——— */
 .ptabs .ct{font-family:var(--f-mono);font-weight:500;font-size:10.5px;color:var(--muted);margin-left:7px;letter-spacing:0}
 .td{display:block;border:0;background:none;min-height:0}
@@ -125,11 +125,11 @@ select.td-sel{font-family:var(--f-mono);font-size:11px;padding:5px 6px;border:1p
 .td-tabs .td-newlist input{border:0;border-bottom:1px dashed var(--muted);background:none;padding:6px 2px;font-size:13px;width:100%}
 .td-tabs .td-newlist input:focus{border-bottom:1px solid var(--accent);background:none}
 .td-main{padding:22px 0 0}
-.td-head{border-top:2px solid var(--ink);border-bottom:0;padding:14px 0 0}
+.td-head{border-top: 1px solid var(--line);border-bottom:0;padding:14px 0 0}
 .td-head h2{font-size:22px;font-stretch:115%}
 .td-add{margin:16px 0 10px;background:var(--surface);min-height:50px}
 .td-add input{font-size:15.5px}
-.td-items{border-top:1px solid var(--ink)}
+.td-items{border-top:1px solid var(--line)}
 .td-items .td-group:first-child{margin-top:12px}
 .td-row{background:none;border-bottom:1px solid var(--line);padding:2px 4px 2px 6px}
 .td-row:hover{background:var(--surface)}

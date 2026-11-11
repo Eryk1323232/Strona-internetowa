@@ -28,7 +28,7 @@
 @media (min-width:2200px){.tier.wide{grid-column:span 3;grid-row:auto}.tier.wide ul{columns:3}}
 .tier:not(.wide) form.addrow{grid-template-columns:minmax(0,1fr) auto}.tier:not(.wide) form.addrow input[name=n]{grid-column:1/-1}
 .tier{border:1px solid var(--line);background:var(--surface);min-width:0}
-.tier-head{display:flex;justify-content:space-between;align-items:baseline;padding:10px 12px;border-bottom:1px solid var(--ink)}
+.tier-head{display:flex;justify-content:space-between;align-items:baseline;padding:10px 12px;border-bottom:1px solid var(--line)}
 .tier-head b{font-family:var(--f-display);font-stretch:125%;font-weight:800;font-size:22px}
 .tier ul{list-style:none;margin:0;padding:6px 0}
 .tier li{display:flex;justify-content:space-between;gap:8px;padding:3px 12px;font-size:13.5px}
@@ -68,7 +68,7 @@ form.addrow{display:grid;grid-template-columns:minmax(0,1fr) 74px auto;gap:6px;p
 form.addrow input{min-width:0;font-family:var(--f-body);font-size:13px;padding:5px 7px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
 form.addrow input[type=number]{font-family:var(--f-mono)}
 form.addrow input:focus{outline:none;border-color:var(--accent)}
-form.addrow button{border:1px solid var(--ink);background:var(--ink);color:var(--bg);font-family:var(--f-mono);font-size:11.5px;padding:0 9px;cursor:pointer}
+form.addrow button{border:1px solid var(--line);background:var(--ink);color:var(--bg);font-family:var(--f-mono);font-size:11.5px;padding:0 9px;cursor:pointer}
 form.addrow button:hover{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 
 /* expienie */
@@ -86,13 +86,13 @@ details.nation summary:hover .nat-name{color:var(--accent)}
 .nat-name{font-family:var(--f-display);font-stretch:115%;font-weight:750;font-size:17px;text-transform:uppercase;letter-spacing:.02em;margin-right:auto}
 .nat-meta{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
 .nat-xp{font-family:var(--f-mono);font-size:14px;font-weight:500;font-variant-numeric:tabular-nums}
-.nat-body{border-top:1px solid var(--ink);padding:14px 16px 16px;display:flex;flex-direction:column;gap:18px}
+.nat-body{border-top:1px solid var(--line);padding:14px 16px 16px;display:flex;flex-direction:column;gap:18px}
 .branch-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
 .branch .tbl-wrap{border-color:var(--line)}
 .branch form.addrow{grid-template-columns:minmax(0,1fr) auto;border:1px dashed var(--line);border-top:0;padding:8px}
 form.addbranch{grid-template-columns:minmax(0,1fr) auto;border:1px dashed var(--muted);padding:10px}
 .branch{border:1px solid var(--line);background:var(--bg)}
-.branch-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:14px 16px 12px;border-bottom:1px solid var(--ink)}
+.branch-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:14px 16px 12px;border-bottom:1px solid var(--line)}
 .branch-ttl{min-width:0;display:flex;flex-direction:column;gap:6px}
 .branch-ttl h3{font-size:15px;letter-spacing:.03em;line-height:1.35;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}
 .branch-ttl h3 i{font-style:normal;color:var(--accent);font-family:var(--f-mono);font-weight:500}
