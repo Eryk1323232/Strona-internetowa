@@ -18,7 +18,7 @@ const SZ_SLOWA = {
   kalkulatory:'mma mieszanki wyniki pawła moje lepiszcze asfalt sbs olej liczenie',
   dyski:'drive google linki semestr materiały',
   praca:'inżynierska badania dziennik laboratorium wyniki weryfikacja ai mma',
-  wot:'world of tanks czołgi obligacje gry',
+  wot:'world of tanks czołgi obligacje gry cele expienie free xp',
   fs25:'farming simulator farma gry',
   silownia:'trening siłownia plan ćwiczenia waga serie gymrun',
   posiadowki:'imprezy domówki rozliczenie znajomi',

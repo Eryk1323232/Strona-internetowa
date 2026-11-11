@@ -1,0 +1,23 @@
+/* WORLD OF TANKS → Cele (js/23-wot-cele.js) */
+.wc-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.wc-nav{display:flex;align-items:center;gap:8px}
+.wc-nav .td-btn{min-width:38px;height:38px;font-size:15px}
+.wc-name{min-width:170px;text-align:center;font-size:17px;font-weight:600}
+.wc-name::first-letter{text-transform:uppercase}
+.wc-prog{height:6px;border-radius:999px;background:var(--soft);overflow:hidden;margin-top:12px}
+.wc-prog i{display:block;height:100%;border-radius:inherit;background:var(--ok);transition:width .3s}
+.wc-add{margin:20px 0 10px}
+.wc-carry{margin-bottom:10px}
+.wc-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.wc-it{display:flex;align-items:center;gap:12px;padding:8px 10px 8px 14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.wc-chk{display:flex}
+.wc-t{flex:1;min-width:0;border:1px solid transparent;border-radius:8px;background:none;color:var(--ink);font:500 15px var(--f-body);padding:7px 8px}
+.wc-t:hover{border-color:var(--line)} .wc-t:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.wc-it.done .wc-t{text-decoration:line-through;color:var(--muted)}
+.wc-it.done{background:color-mix(in srgb,var(--ok) 5%,var(--surface))}
+.wc-months{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.wc-mon{text-align:left;display:flex;flex-direction:column;gap:4px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);cursor:pointer;color:var(--ink);font-family:var(--f-body);box-shadow:var(--shadow)}
+.wc-mon:hover{border-color:var(--accent)}
+.wc-mon .label::first-letter{text-transform:uppercase}
+.wc-mon b{font-size:20px;font-weight:600}
+.wc-mon .wc-prog{margin-top:6px}

@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════════════════
    WORLD OF TANKS + FARMING SIMULATOR
    ════════════════════════════════════════════════════════════════════════
-   WOT_TABS  – lista zakładek WoT (przepustka, obligacje, magazyn, expienie, MOE, Ostatni Bastion).
+   WOT_TABS  – lista zakładek WoT (przepustka, obligacje, magazyn, expienie, MOE, Ostatni Bastion, Cele → js/23-wot-cele.js).
    wotPanel(k) – rysuje zawartość zakładki k; wotSummary(k) – kafle z liczbami nad nią.
    S         – stan WoT (garaż, magazyn, żetony, obligacje, expienie) zapisywany w przeglądarce.
    Expienie — „światełka” przy Modułach i Potrzebnym XP: czy starcza wolnego XP z konta (wotFxp):
@@ -13,7 +13,7 @@
    pFs()     – podstrona Farming Simulator 25 (szkielet).
    ════════════════════════════════════════════════════════════════════════ */
 
-const WOT_TABS = [['przep','Przepustka'],['oblig','Obligacje'],['mag','Magazyn'],['exp','Expienie'],['moe','Kalkulator MOE'],['bast','Ostatni Bastion']];
+const WOT_TABS = [['przep','Przepustka'],['oblig','Obligacje'],['mag','Magazyn'],['exp','Expienie'],['moe','Kalkulator MOE'],['bast','Ostatni Bastion'],['cele','Cele']];
 const TIERS = ['V','VI','VII','VIII','IX','X'];
 
 /* liczniki wyliczane ze stanu */
@@ -83,6 +83,7 @@ document.addEventListener('input', e=>{ const t=e.target; if(!t.matches||!t.matc
   const raw=t.value.replace(/\D/g,''); const out=grp(raw); if(out===t.value) return; t.value=out;
   let k=0, c=0; while(c<out.length && k<digBefore){ if(/\d/.test(out[c])) k++; c++; } t.setSelectionRange(c,c); });
 function wotPanel(k){
+  if(k==='cele') return celeHtml();
   const top = wotSummary(k);
   if(k==='przep'){
     const rows=D.przep.map(x=>`<tr class="${has(x[2])?'':'dim'}"><td>${box(x[2])}</td><td class="mono">${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td><td class="n">${x[3]}</td></tr>`).join('');

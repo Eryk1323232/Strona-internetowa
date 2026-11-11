@@ -171,6 +171,9 @@ function arkuszDb(url, klucz){
     let dkF=true;
     gdb.collection('dyski').onSnapshot(s=>{ if(dkF&&s.empty&&wyslijLokalne()&&DK.length){ dkF=false; DK.forEach(d=>{ const {id,...v}=d; cloud(db=>db.collection('dyski').doc(id).set(v)); }); return ok(); }
       dkF=false; DK=s.docs.map(d=>dkNorm(d.id,d.data())); saveDk(); ok(); }, fail);
+    let wcF=true;   /* WoT → Cele (js/23-wot-cele.js) */
+    gdb.collection('wotCele').onSnapshot(s=>{ if(wcF&&s.empty&&wyslijLokalne()&&WC.length){ wcF=false; WC.forEach(wcPush); return ok(); }
+      wcF=false; WC=s.docs.map(d=>wcNorm(d.id,d.data())); saveWc(); wcRefresh(); ok(); }, fail);
     let bdF=true;   /* Praca — dziennik badań (js/21-praca.js) */
     gdb.collection('badania').onSnapshot(s=>{ if(bdF&&s.empty&&wyslijLokalne()&&PR.length){ bdF=false; PR.forEach(prPush); return ok(); }
       bdF=false; PR=s.docs.map(d=>prNorm(d.id,d.data())); savePr(); if(!prM) prRefresh(); ok(); }, fail);
