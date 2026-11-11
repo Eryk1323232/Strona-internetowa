@@ -1,0 +1,45 @@
+/* ════════════════════════════════════════════════════════════════════════
+   WYKRESY (js/27-wykresy.js) + Siłownia → Postępy (js/28) + Praca → Wykresy (js/21)
+   Jedna seria = jeden kolor (--accent); siatka i osie wycofane; liczby w kolorach tekstu.
+   ════════════════════════════════════════════════════════════════════════ */
+.wy-wrap{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.wy-box{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 10px 6px}
+.wy-box svg{display:block;width:100%;height:auto}
+.wy-grid{stroke:var(--line-soft);stroke-width:1}
+.wy-base{stroke:var(--line);stroke-width:1}
+.wy-ax{fill:var(--muted);font:500 11px var(--f-body)}
+.wy-xl{fill:var(--ink);font-weight:600} .wy-xl2{font-size:10px}
+.wy-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.wy-area{fill:var(--accent);opacity:.08}
+.wy-dot{fill:var(--surface);stroke:var(--accent);stroke-width:2}
+.wy-dot.last,.wy-dot.best{fill:var(--accent)}
+.wy-lbl{fill:var(--ink);font:600 12px var(--f-body)}
+.wy-bar{fill:var(--accent);opacity:.85}
+.wy-err{stroke:var(--ink);stroke-width:1.4;opacity:.55}
+.wy-val{fill:var(--ink);font:600 11.5px var(--f-body)}
+.wy-hit{fill:transparent;cursor:pointer;outline:none}
+.wy-hit:focus-visible{stroke:var(--accent);stroke-width:2}
+.wy-box:has(.wy-bar) .wy-hit:hover{fill:color-mix(in srgb,var(--accent) 6%,transparent)}
+.wy-tip{position:absolute;z-index:3;transform:translate(-50%,calc(-100% - 14px));background:var(--ink);color:var(--bg);border-radius:10px;padding:7px 11px;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px -10px rgba(0,0,0,.4)}
+.wy-tip.below{transform:translate(-50%,16px)}
+.wy-tip b{display:block;font-size:16px;font-weight:700;line-height:1.2}
+.wy-tip span{display:block;font-size:11.5px;opacity:.75;margin-top:2px}
+.wy-acts{display:flex;justify-content:flex-end}
+.wy-empty{padding:40px 16px;text-align:center;color:var(--muted);font-size:13.5px}
+.pg-bar{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.pg-sel{display:flex;flex-direction:column;gap:5px;min-width:min(320px,100%)}
+.pg-sel select{height:40px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:500 14px var(--f-body);padding:0 10px}
+.pg-sel select:focus{outline:none;border-color:var(--accent)}
+.pg-up{color:var(--ok)} .pg-down{color:var(--bad)}
+.pg-rek{margin-top:16px}
+.pg-rek summary{cursor:pointer;font-weight:600;font-size:14.5px;padding:8px 0;color:var(--ink)}
+.pg-rek .tbl-wrap{margin-top:8px}
+.pg-rek tr.on td{background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.pg-go{border:0;background:none;padding:0;color:var(--ink);font:600 14px var(--f-body);cursor:pointer;text-align:left}
+.pg-go:hover{color:var(--accent)}
+.pg-note{font-size:12px;color:var(--muted);margin:8px 2px 0}
+/* 🏆 w okienku treningu przy serii z nowym rekordem */
+.tr-sn{position:relative}
+.tr-sn.pr{background:#F2B33D;color:#3B2A00}
+.tr-sn.pr::after{content:"🏆";position:absolute;right:-10px;top:-10px;font-size:13px}
+.pr-wy .wy-wrap{margin-top:0}

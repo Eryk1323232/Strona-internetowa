@@ -108,6 +108,7 @@ function prHtml(){
   return `<div class="pr-bar"><button type="button" class="dk-plus" data-pract="new"><span aria-hidden="true">+</span>Nowy wpis</button>
       <div class="pr-io"><button type="button" class="td-btn" data-pract="wklej">Wklej wyniki</button>${PR.length?`<button type="button" class="td-btn" data-pract="kopiuj">Kopiuj wyniki</button>`:''}</div>
       ${B.length>1?`<div class="seg pr-seg" role="tablist"><button type="button" data-prf="" aria-selected="${!prF}">Wszystkie</button>${B.map(b=>`<button type="button" data-prf="${esc(b)}" aria-selected="${prK(prF)===prK(b)}">${esc(b)}</button>`).join('')}</div>`:''}</div>
+    ${PR.length?`<section class="block pr-wy"><div class="block-head"><h2>Wykresy</h2></div>${prWyHtml()}</section>`:''}
     ${L.length?Object.entries(dni).map(([d,X])=>`<section class="block pr-day"><div class="block-head"><h2>${d?esc(new Date(d+'T12:00').toLocaleDateString('pl-PL',{weekday:'long', day:'numeric', month:'long', year:'numeric'})):'Bez daty'}</h2>
         ${X.length>1?`<button type="button" class="pr-ai" data-pract="aiday" data-d="${esc(d)}">Weryfikacja AI całego dnia</button>`:''}</div>
       <div class="pr-grid">${X.map(prKarta).join('')}</div></section>`).join('')
@@ -254,3 +255,34 @@ function prKopiujHtml(){ const L=prKopiujLista();
       <button type="button" class="pr-kpb" data-pract="kpt"><b>Jako tabela</b><span>Wklejasz do Excela, Arkusza Google albo drugiej strony — każdy pomiar w osobnej kolumnie, plus średnia.</span></button>
       <button type="button" class="pr-kpb" data-pract="kpj"><b>Jako JSON</b><span>Pełne dane (z warunkami, uwagami i wnioskami AI) — do wczytania w drugiej stronie albo z powrotem tutaj.</span></button>
     </div>`; }
+
+/* ——— WYKRESY wyników (rysuje js/27-wykresy.js) ———
+   Badanie: z listy. Widok „Mieszanki”: średnia ± odchylenie dla każdej mieszanki MMA (ostatnie wyniki łączone),
+   widok „W czasie”: średnia z każdego wpisu po dacie (opcjonalnie tylko jedna mieszanka). „Pobierz PNG” — do pracy. */
+let prWyB=store.get('prWyB',''), prWyW=store.get('prWyW','m'), prWyP=store.get('prWyP','');
+function prWyHtml(){
+  const B=[...new Map(PR.filter(x=>x.w.length).map(x=>[prK(x.b),x.b])).values()].sort((a,b)=>a.localeCompare(b,'pl')); if(!B.length) return '';
+  if(!B.some(b=>prK(b)===prK(prWyB))) prWyB=B[0];
+  const X=PR.filter(x=>prK(x.b)===prK(prWyB) && x.w.length), u=(X.find(x=>x.u)||{}).u||'';
+  let svg, tytul;
+  if(prWyW==='m'){
+    const G=new Map(); X.forEach(x=>{ const k=prK(x.p)||'—'; if(!G.has(k)) G.set(k,{n:x.p||'bez nazwy', l:x.l, w:[], ile:0}); const g=G.get(k); g.w.push(...x.w); g.ile++; if(x.l) g.l=x.l; });
+    const Bs=[...G.values()].sort((a,b)=>a.n.localeCompare(b.n,'pl',{numeric:true})).map(g=>{ const S=prStat(g.w); return {n:g.n, n2:g.l?'lep. '+g.l:'', y:S.sr, sd:S.n>1?S.sd:0, tip:`${prF2(S.sr)} ${u}`, sub:`${g.n}${g.l?' · '+g.l:''} · n = ${S.n}${S.n>1?', s = '+prF2(S.sd):''}`}; });
+    svg=wyBars(Bs,{u, label:prWyB}); tytul=`${prWyB} — porównanie mieszanek`;
+  } else {
+    const P=[...new Set(X.map(x=>x.p).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pl',{numeric:true}));
+    if(prWyP && !P.some(p=>prK(p)===prK(prWyP))) prWyP='';
+    const Y=X.filter(x=>!prWyP||prK(x.p)===prK(prWyP)).sort((a,b)=>a.d.localeCompare(b.d)||a.c-b.c);
+    svg=wyLine(Y.map(x=>{ const S=prStat(x.w); return {x:x.d, y:S.sr, tip:`${prF2(S.sr)} ${u}`, sub:`${dPL(x.d)}${x.p?' · '+x.p:''}${S.n>1?' · s = '+prF2(S.sd):''}`}; }),{u, label:prWyB});
+    if(Y.length<2) svg=`<div class="wy-empty">Potrzebne są co najmniej 2 wpisy tego badania${prWyP?' dla tej mieszanki':''}, żeby narysować przebieg w czasie.</div>`;
+    tytul=`${prWyB}${prWyP?' — '+prWyP:''} — w czasie`;
+    var pSel=`<label class="pg-sel"><span class="label">Mieszanka</span><select class="pr-wyp"><option value="">Wszystkie</option>${P.map(p=>`<option value="${esc(p)}"${prK(p)===prK(prWyP)?' selected':''}>${esc(p)}</option>`).join('')}</select></label>`;
+  }
+  return `<div class="pg-bar"><label class="pg-sel"><span class="label">Badanie</span><select class="pr-wyb">${B.map(b=>`<option value="${esc(b)}"${prK(b)===prK(prWyB)?' selected':''}>${esc(b)}</option>`).join('')}</select></label>
+      <div class="seg" role="tablist"><button type="button" data-prwyw="m" aria-selected="${prWyW==='m'}">Mieszanki</button><button type="button" data-prwyw="t" aria-selected="${prWyW==='t'}">W czasie</button></div>${prWyW==='t'?pSel:''}</div>
+    ${wyBox(svg, tytul+(u?` [${u}]`:''))}`;
+}
+document.addEventListener('change', e=>{ const t=e.target; if(!t.matches) return;
+  if(t.matches('.pr-wyb')){ prWyB=t.value; store.set('prWyB',prWyB); t.blur(); prRefresh(); }
+  if(t.matches('.pr-wyp')){ prWyP=t.value; store.set('prWyP',prWyP); t.blur(); prRefresh(); } });
+document.addEventListener('click', e=>{ const b=e.target.closest&&e.target.closest('[data-prwyw]'); if(b){ prWyW=b.dataset.prwyw; store.set('prWyW',prWyW); prRefresh(); } });

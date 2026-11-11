@@ -12,6 +12,7 @@ function pGym(){
   return `<h1>Siłow<span class="acc">nia</span></h1>
   <div class="grid g4" id="gymCells">${gymCellsHtml()}</div>
   <section class="block"><div class="block-head"><h2>Trening</h2></div><div id="gymTr">${trBar()}</div></section>
+  <section class="block"><div class="block-head"><h2>Postępy</h2></div><div id="gymPg">${typeof pgHtml==='function'?pgHtml():''}</div></section>
   <section class="block"><div class="block-head"><h2>Plany treningowe</h2></div><div id="gymPlan">${planHtml()}</div></section>
   <section class="block"><div class="block-head"><h2>Masa ciała</h2></div><div id="gymW">${gymWeightHtml()}</div></section>
   <section class="block"><div class="block-head"><h2>Zakupy</h2></div><div id="gymZ">${gymShopHtml()}</div></section>`;
@@ -255,7 +256,7 @@ function trBar(){ const o=trOpen(), n=TR.length;
   return `<div class="tr-bar">${o?`<button type="button" class="tr-btn tr-main" data-tract="edit" data-tid="${esc(o.id)}"><span aria-hidden="true">▶</span> Kontynuuj trening · ${esc(o.dn||'Trening')}<small>zrobione serie: ${trSetsDone(o)}</small></button>`
       :`<button type="button" class="tr-btn tr-main" data-tract="plans"><span aria-hidden="true">▶</span> Rozpocznij trening</button>`}
     <button type="button" class="tr-btn" data-tract="hist">Historia${n?` <span class="ct">${n}</span>`:''}</button></div>`; }
-function trBarRefresh(){ const b=$('#gymTr'); if(b) b.innerHTML=trBar(); }
+function trBarRefresh(){ const b=$('#gymTr'); if(b) b.innerHTML=trBar(); if(typeof pgRefresh==='function') pgRefresh(); }   /* + Postępy (js/28) */
 
 function trModalHtml(){
   const close=`<button type="button" class="tr-x" data-tract="close" aria-label="Zamknij">✕</button>`;
@@ -349,7 +350,7 @@ function trRender(){
   if(!md){ sc=document.createElement('div'); sc.id='trScrim'; sc.className='tr-scrim'; document.body.appendChild(sc);
     md=document.createElement('div'); md.id='trModal'; md.className='tr-modal'; md.setAttribute('role','dialog'); md.setAttribute('aria-modal','true'); document.body.appendChild(md); }
   document.body.classList.add('tr-lock'); md.classList.toggle('tr-sess', trM.mode==='log'); md.classList.toggle('tr-wide', trM.mode==='pedit'); md.innerHTML=`<div class="tr-panel">${trModalHtml()}</div>`; md.scrollTop=0;
-  if(trM.mode==='log'){ const ins=[...md.querySelectorAll('.tr-set input')], f=ins.find(i=>!i.value)||ins[0]; if(f && !matchMedia('(pointer:coarse)').matches) setTimeout(()=>f.focus(),30); trTick(); }
+  if(trM.mode==='log'){ const ins=[...md.querySelectorAll('.tr-set input')], f=ins.find(i=>!i.value)||ins[0]; if(f && !matchMedia('(pointer:coarse)').matches) setTimeout(()=>f.focus(),30); trTick(); if(typeof pgPrCheck==='function') pgPrCheck(md.querySelector('form.tr-log')); }
 }
 function trRefresh(){ if(trM && trM.mode==='hist') trRender(); trBarRefresh(); }
 /* zegar treningu i przerwy (co sekundę, tylko gdy okienko treningu jest otwarte) */
@@ -425,7 +426,7 @@ document.addEventListener('click', e=>{
 });
 document.addEventListener('input', e=>{
   if(e.target.classList&&e.target.classList.contains('tr-sw-q')){ const box=e.target.closest('.tr-swap'); box.querySelector('.tr-sw-l').innerHTML=trSwapList(box, e.target.value); return; }
-  const f=e.target.closest&&e.target.closest('form.tr-log'); if(f) trSoon(f); });
+  const f=e.target.closest&&e.target.closest('form.tr-log'); if(f){ trSoon(f); if(typeof pgPrCheck==='function') pgPrCheck(f); } });
 document.addEventListener('submit', e=>{
   const f=e.target; if(!f.matches('form.tr-log')) return; e.preventDefault();
   clearTimeout(trTimer); trTimer=null;
