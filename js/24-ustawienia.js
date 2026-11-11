@@ -17,9 +17,13 @@ const SET_KAT = [
   ['sync','Synchronizacja','<path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/>'],
   ['info','O stronie','<circle cx="12" cy="12" r="8.5"/><path d="M12 11v6M12 7.5v.5"/>']
 ];
-const SET_WERSJA = 'v40';
+const SET_WERSJA = 'v41';
 const SET_ROZM = [['0.9','Mały'],['1','Normalny'],['1.1','Duży'],['1.2','Bardzo duży']];
 let setOpen=false, setKat=store.get('setKat','ogolne');
+/* instalacja jako aplikacja: Chrome/Android wysyła „beforeinstallprompt” — zapamiętujemy i pokazujemy przycisk */
+let setInstal=null; const setJestApka = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); setInstal=e; if(setOpen) setRender(); });
+addEventListener('appinstalled', ()=>{ setInstal=null; if(setOpen) setRender(); });
 
 /* rozmiar strony — od razu przy wczytaniu */
 const setRozmiar = v => { document.documentElement.style.zoom = (+v && +v!==1) ? v : ''; };
@@ -33,6 +37,7 @@ function setTresc(k){
   if(k==='ogolne') return `<h3>Ogólne</h3>
     ${setRow('Imię w powitaniu','Na stronie głównej: „Dzień dobry, …”',`<input class="set-in" data-setin="imie" value="${esc(store.get('imie','Eryk'))}" maxlength="30" placeholder="Eryk">`)}
     ${setRow('Strona po otwarciu','Co ma się pokazać, gdy wchodzisz na stronę bez konkretnego adresu',`<select class="set-in" data-setin="startStrona">${setNav().map(([r,n])=>`<option value="${r}"${store.get('startStrona','start')===r?' selected':''}>${esc(n)}</option>`).join('')}</select>`)}
+    ${setRow('Aplikacja na telefon i komputer', setJestApka()?'Działa jako zainstalowana aplikacja — także bez internetu.':setInstal?'Ikona na ekranie głównym, pełny ekran, działa też bez internetu.':'W Chrome: menu ⋮ → „Dodaj do ekranu głównego” / „Zainstaluj aplikację”. Działa też bez internetu.', setJestApka()?'<span class="set-ok">✓ Zainstalowana</span>':setInstal?`<button type="button" class="set-main" data-setact="instaluj">Zainstaluj</button>`:'')}
     ${setRow('Skróty klawiszowe','<kbd>Ctrl</kbd> + <kbd>K</kbd> lub <kbd>/</kbd> — wyszukiwarka · <kbd>Esc</kbd> — zamyka okienka','')}`;
   if(k==='wyglad'){ const m=store.get('motyw','jasny');
     return `<h3>Wygląd</h3>
@@ -90,6 +95,7 @@ document.addEventListener('click', e=>{
   if(act==='zamknij'){ setOpen=false; return setRender(); }
   if(act==='eksport' && typeof kopiaPobierz==='function'){ kopiaPobierz(); return setRender(); }
   if(act==='odswiez'){ location.reload(); return; }
+  if(act==='instaluj' && setInstal){ setInstal.prompt(); setInstal.userChoice.finally(()=>{ setInstal=null; setRender(); }); return; }
   if(act==='rozlacz'){ if(!a.dataset.armed){ a.dataset.armed='1'; a.textContent='Na pewno? Kliknij jeszcze raz'; a.classList.add('armed'); return; }
     try{ localStorage.removeItem('arkuszUrl'); localStorage.removeItem('arkuszKlucz'); }catch(err){} location.reload(); }
 });

@@ -92,3 +92,4 @@
   .set-cards{grid-template-columns:1fr}
   .set-themes{gap:8px} .set-prev{height:56px}
 }
+.set-ok{font:600 13.5px var(--f-body);color:var(--ok)}
