@@ -19,7 +19,6 @@ const HOME_ICONS={
   dyski:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   praca:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7 15h10"/>',
   wot:'<path d="M3 15h14l2-3H5zM6 12l1-3h7l1 3M12 9V6h7"/><circle cx="6" cy="18" r="1.5"/><circle cx="10" cy="18" r="1.5"/><circle cx="14" cy="18" r="1.5"/>',
-  fs25:'<path d="M4 16V9h7l2 4h5v3"/><circle cx="7" cy="17" r="2.5"/><circle cx="17" cy="17" r="2"/><path d="M8 9V6h3"/>',
   silownia:'<path d="M3 12h18M6 8v8M18 8v8M3 10v4M21 10v4"/>',
   posiadowki:'<path d="M8 3h8l-1 7a3 3 0 0 1-6 0zM12 13v6M8 21h8"/>',
   subskrypcje:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/><path d="M16 14.5a1.8 1.8 0 1 0 0 .01"/>',

@@ -16,9 +16,8 @@ const ROUTES = {
   'kalendarz':{title:'Kalendarz', parent:null, render:pKalendarz},
   'cv':      {title:'CV', parent:'o-mnie', render:pCV},
   'wot':     {title:'World of Tanks', parent:'gry', render:pWot},
-  'fs25':    {title:'Farming Simulator 25', parent:'gry', render:pFs},
   'silownia':{title:'Siłownia', parent:'inne', render:pGym},
-  'posiadowki':{title:'Posiadówki', parent:'inne', render:pPos},
+  'pozostale':{title:'Pozostałe', parent:'inne', render:pPozostale},   /* Posiadówki są tu w okienku (js/29-pozostale.js) */
   'pieniadze':{title:'Pieniądze', parent:'inne', render:pPieniadze},
   'todo':    {title:'To-Do', parent:'studia', render:pTodo},
   'notatki': {title:'Notatki', parent:'studia', render:pNotes},
@@ -54,6 +53,7 @@ function render(){
   if(key==='notatki') ntGrow(); else { ntFlush(); ntSel=''; }
   if(key!=='silownia' && trM){ trM=null; trRender(); }
   if(key!=='kalkulatory' && mxM){ mxM=null; mxRender(); }
+  if(key!=='pozostale' && pozM){ pozM=null; pozRender(); }
   if(key!=='dyski' && dkM){ dkM=null; dkRender(); }
   if(key!=='praca' && prM){ prM=null; prRender(); }
   if(key!=='pieniadze' && bkM){ bkM=false; bkRender(); }

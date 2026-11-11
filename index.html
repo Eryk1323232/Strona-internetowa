@@ -7,7 +7,7 @@
    Treść każdej podstrony rysuje JavaScript (folder js/), wygląd — CSS (folder css/).
 
    Kolejność plików poniżej MA ZNACZENIE:
-   • js/00-ustawienia.js i js/01-dane.js pierwsze, js/15-subskrypcje.js, js/16-pieniadze.js, js/17-finanse.js, js/18-cv.js, js/19-skrzynka.js, js/20-kopia-zapasowa.js, js/21-praca.js, js/22-wyszukiwarka.js, js/23-wot-cele.js, js/24-ustawienia.js, js/25-kalendarz.js, js/26-pulpit.js, js/27-wykresy.js i js/28-postepy.js przed routerem, js/13-router.js uruchamia stronę, js/14-szkice-formularzy.js na samym końcu.
+   • js/00-ustawienia.js i js/01-dane.js pierwsze, js/15-subskrypcje.js, js/16-pieniadze.js, js/17-finanse.js, js/18-cv.js, js/19-skrzynka.js, js/20-kopia-zapasowa.js, js/21-praca.js, js/22-wyszukiwarka.js, js/23-wot-cele.js, js/24-ustawienia.js, js/25-kalendarz.js, js/26-pulpit.js, js/27-wykresy.js, js/28-postepy.js i js/29-pozostale.js przed routerem, js/13-router.js uruchamia stronę, js/14-szkice-formularzy.js na samym końcu.
 
   ════════════════════════════════════════════════════════════════════════
 -->
@@ -30,31 +30,31 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
 
 <!-- style — w tej kolejności -->
-<link rel="stylesheet" href="css/01-zmienne-i-podstawy.css?v=47">
-<link rel="stylesheet" href="css/02-naglowek-i-menu.css?v=47">
-<link rel="stylesheet" href="css/03-uklad-strony.css?v=47">
-<link rel="stylesheet" href="css/04-world-of-tanks.css?v=47">
-<link rel="stylesheet" href="css/05-cv.css?v=47">
-<link rel="stylesheet" href="css/06-silownia.css?v=47">
-<link rel="stylesheet" href="css/07-todo.css?v=47">
-<link rel="stylesheet" href="css/08-notatki.css?v=47">
-<link rel="stylesheet" href="css/09-telefon.css?v=47">
-<link rel="stylesheet" href="css/10-kalkulatory.css?v=47">
-<link rel="stylesheet" href="css/11-posiadowki.css?v=47">
-<link rel="stylesheet" href="css/12-dyski.css?v=47">
-<link rel="stylesheet" href="css/13-strona-glowna-i-pasek.css?v=47">
-<link rel="stylesheet" href="css/15-subskrypcje.css?v=47">
-<link rel="stylesheet" href="css/17-pieniadze.css?v=47">
-<link rel="stylesheet" href="css/18-finanse.css?v=47">
-<link rel="stylesheet" href="css/20-skrzynka.css?v=47">
-<link rel="stylesheet" href="css/21-kopia-zapasowa.css?v=47">
-<link rel="stylesheet" href="css/22-praca.css?v=47">
-<link rel="stylesheet" href="css/24-wot-cele.css?v=47">
-<link rel="stylesheet" href="css/25-ustawienia.css?v=47">
-<link rel="stylesheet" href="css/26-kalendarz.css?v=47">
-<link rel="stylesheet" href="css/27-pulpit.css?v=47">
-<link rel="stylesheet" href="css/28-wykresy.css?v=47">
-<link rel="stylesheet" href="css/23-wyglad-pillio.css?v=47">
+<link rel="stylesheet" href="css/01-zmienne-i-podstawy.css?v=48">
+<link rel="stylesheet" href="css/02-naglowek-i-menu.css?v=48">
+<link rel="stylesheet" href="css/03-uklad-strony.css?v=48">
+<link rel="stylesheet" href="css/04-world-of-tanks.css?v=48">
+<link rel="stylesheet" href="css/05-cv.css?v=48">
+<link rel="stylesheet" href="css/06-silownia.css?v=48">
+<link rel="stylesheet" href="css/07-todo.css?v=48">
+<link rel="stylesheet" href="css/08-notatki.css?v=48">
+<link rel="stylesheet" href="css/09-telefon.css?v=48">
+<link rel="stylesheet" href="css/10-kalkulatory.css?v=48">
+<link rel="stylesheet" href="css/11-posiadowki.css?v=48">
+<link rel="stylesheet" href="css/12-dyski.css?v=48">
+<link rel="stylesheet" href="css/13-strona-glowna-i-pasek.css?v=48">
+<link rel="stylesheet" href="css/15-subskrypcje.css?v=48">
+<link rel="stylesheet" href="css/17-pieniadze.css?v=48">
+<link rel="stylesheet" href="css/18-finanse.css?v=48">
+<link rel="stylesheet" href="css/20-skrzynka.css?v=48">
+<link rel="stylesheet" href="css/21-kopia-zapasowa.css?v=48">
+<link rel="stylesheet" href="css/22-praca.css?v=48">
+<link rel="stylesheet" href="css/24-wot-cele.css?v=48">
+<link rel="stylesheet" href="css/25-ustawienia.css?v=48">
+<link rel="stylesheet" href="css/26-kalendarz.css?v=48">
+<link rel="stylesheet" href="css/27-pulpit.css?v=48">
+<link rel="stylesheet" href="css/28-wykresy.css?v=48">
+<link rel="stylesheet" href="css/23-wyglad-pillio.css?v=48">
 </head>
 <body>
 
@@ -79,10 +79,9 @@
         <li><a class="top" href="#praca" data-r="praca"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7 15h10"/></svg><span>Praca</span></a></li>
         <li class="grp" aria-hidden="true">Gry</li>
         <li><a class="top" href="#wot" data-r="wot"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15h14l2-3H5zM6 12l1-3h7l1 3M12 9V6h7"/><circle cx="6" cy="18" r="1.5"/><circle cx="10" cy="18" r="1.5"/><circle cx="14" cy="18" r="1.5"/></svg><span>World of Tanks</span></a></li>
-        <li><a class="top" href="#fs25" data-r="fs25"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16V9h7l2 4h5v3"/><circle cx="7" cy="17" r="2.5"/><circle cx="17" cy="17" r="2"/><path d="M8 9V6h3"/></svg><span>Farming Simulator 25</span></a></li>
         <li class="grp" aria-hidden="true">Inne</li>
         <li><a class="top" href="#silownia" data-r="silownia"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M6 8v8M18 8v8M3 10v4M21 10v4"/></svg><span>Siłownia</span></a></li>
-        <li><a class="top" href="#posiadowki" data-r="posiadowki"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8l-1 7a3 3 0 0 1-6 0zM12 13v6M8 21h8"/></svg><span>Posiadówki</span></a></li>
+        <li><a class="top" href="#pozostale" data-r="pozostale"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><path d="M17 13.5v7M13.5 17h7"/></svg><span>Pozostałe</span></a></li>
         <li><a class="top" href="#pieniadze" data-r="pieniadze"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 16l3-3 2.5 2 4-4.5"/></svg><span>Pieniądze</span></a></li>
       </ul>
     </nav>
@@ -106,35 +105,36 @@
 </div>
 
 <!-- skrypty — w tej kolejności (każdy plik ma na górze opis, co zawiera) -->
-<script src="js/00-ustawienia.js?v=47"></script>
-<script src="js/01-dane.js?v=47"></script>
-<script src="js/02-narzedzia.js?v=47"></script>
-<script src="js/03-strona-glowna-i-cv.js?v=47"></script>
-<script src="js/04-world-of-tanks.js?v=47"></script>
-<script src="js/05-todo.js?v=47"></script>
-<script src="js/06-notatki.js?v=47"></script>
-<script src="js/07-silownia.js?v=47"></script>
-<script src="js/08-posiadowki.js?v=47"></script>
-<script src="js/09-kalkulatory.js?v=47"></script>
-<script src="js/10-dyski.js?v=47"></script>
-<script src="js/11-pasek-dolny.js?v=47"></script>
-<script src="js/12-synchronizacja.js?v=47"></script>
-<script src="js/15-subskrypcje.js?v=47"></script>
-<script src="js/16-pieniadze.js?v=47"></script>
-<script src="js/17-finanse.js?v=47"></script>
-<script src="js/18-cv.js?v=47"></script>
-<script src="js/19-skrzynka.js?v=47"></script>
-<script src="js/20-kopia-zapasowa.js?v=47"></script>
-<script src="js/21-praca.js?v=47"></script>
-<script src="js/22-wyszukiwarka.js?v=47"></script>
-<script src="js/23-wot-cele.js?v=47"></script>
-<script src="js/24-ustawienia.js?v=47"></script>
-<script src="js/25-kalendarz.js?v=47"></script>
-<script src="js/26-pulpit.js?v=47"></script>
-<script src="js/27-wykresy.js?v=47"></script>
-<script src="js/28-postepy.js?v=47"></script>
-<script src="js/13-router.js?v=47"></script>
-<script src="js/14-szkice-formularzy.js?v=47"></script>
+<script src="js/00-ustawienia.js?v=48"></script>
+<script src="js/01-dane.js?v=48"></script>
+<script src="js/02-narzedzia.js?v=48"></script>
+<script src="js/03-strona-glowna-i-cv.js?v=48"></script>
+<script src="js/04-world-of-tanks.js?v=48"></script>
+<script src="js/05-todo.js?v=48"></script>
+<script src="js/06-notatki.js?v=48"></script>
+<script src="js/07-silownia.js?v=48"></script>
+<script src="js/08-posiadowki.js?v=48"></script>
+<script src="js/09-kalkulatory.js?v=48"></script>
+<script src="js/10-dyski.js?v=48"></script>
+<script src="js/11-pasek-dolny.js?v=48"></script>
+<script src="js/12-synchronizacja.js?v=48"></script>
+<script src="js/15-subskrypcje.js?v=48"></script>
+<script src="js/16-pieniadze.js?v=48"></script>
+<script src="js/17-finanse.js?v=48"></script>
+<script src="js/18-cv.js?v=48"></script>
+<script src="js/19-skrzynka.js?v=48"></script>
+<script src="js/20-kopia-zapasowa.js?v=48"></script>
+<script src="js/21-praca.js?v=48"></script>
+<script src="js/22-wyszukiwarka.js?v=48"></script>
+<script src="js/23-wot-cele.js?v=48"></script>
+<script src="js/24-ustawienia.js?v=48"></script>
+<script src="js/25-kalendarz.js?v=48"></script>
+<script src="js/26-pulpit.js?v=48"></script>
+<script src="js/27-wykresy.js?v=48"></script>
+<script src="js/28-postepy.js?v=48"></script>
+<script src="js/29-pozostale.js?v=48"></script>
+<script src="js/13-router.js?v=48"></script>
+<script src="js/14-szkice-formularzy.js?v=48"></script>
 <!-- aplikacja (PWA): sw.js trzyma kopię strony do pracy offline i zawsze pobiera świeże pliki, gdy jest internet -->
 <script>if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')) addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 </body>

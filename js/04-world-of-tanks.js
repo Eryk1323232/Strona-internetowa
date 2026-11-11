@@ -10,7 +10,6 @@
      czołgu w gałęzi (dla pierwszego w gałęzi — na nim samym). Np. 20 000 na czołgu + 30 000 wolnego → stać na działo za 50 000.
    fixExp()  – poprawki gałęzi drzewek (Hirschkäfer, Bassotto, T-34-2, Fauteur/AX-XX).
    cloud(fn) – zapis do chmury (działa tylko w wersji na claude.ai, patrz 12-synchronizacja.js).
-   pFs()     – podstrona Farming Simulator 25 (szkielet).
    ════════════════════════════════════════════════════════════════════════ */
 
 const WOT_TABS = [['przep','Przepustka'],['oblig','Obligacje'],['mag','Magazyn'],['exp','Expienie'],['moe','Kalkulator MOE'],['bast','Ostatni Bastion'],['cele','Cele']];
@@ -188,12 +187,6 @@ function moeCalc(){
     <div class="row"><span class="label">Łączony, by nie spaść</span><span class="v">${fmt(c)}</span></div>`;
 }
 
-function pFs(){
-  const mods=[['Gospodarstwo','Mapa, budynki, zwierzęta, produkcja.'],['Pola i uprawy','Numery pól, hektary, płodozmian, nawożenie i wapnowanie.'],['Maszyny','Flota, ceny, leasing, co dokupić.'],['Finanse','Kredyt, dochód z upraw, ceny skupu.']];
-  return `<h1>Farming<br>Simulator <span class="acc">25</span></h1>
-  <div class="grid g2">${mods.map((m,i)=>`<div class="cell" style="min-height:130px"><h3>${m[0]}</h3><p>${m[1]}</p><span class="chip off" style="margin-top:auto;align-self:flex-start">brak danych</span></div>`).join('')}</div>
-`;
-}
 
 
 /* ——— stan WoT: garaż, magazyn, żetony, obligacje (chmura przez db, kopia w przeglądarce) ——— */

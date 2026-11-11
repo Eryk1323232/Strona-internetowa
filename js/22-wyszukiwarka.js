@@ -20,9 +20,8 @@ const SZ_SLOWA = {
   dyski:'drive google linki semestr materiały',
   praca:'inżynierska badania dziennik laboratorium wyniki weryfikacja ai mma',
   wot:'world of tanks czołgi obligacje gry cele expienie free xp',
-  fs25:'farming simulator farma gry',
   silownia:'trening siłownia plan ćwiczenia waga serie gymrun',
-  posiadowki:'imprezy domówki rozliczenie znajomi',
+  pozostale:'pozostałe posiadówki imprezy domówki rozliczenie znajomi',
   pieniadze:'finanse wydatki przychody konto oszczędności zakłady bukmacher subskrypcje kasa budżet'
 };
 const szK = s => String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ł/g,'l');
