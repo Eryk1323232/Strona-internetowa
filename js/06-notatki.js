@@ -243,6 +243,7 @@ const NT_I = {
   tbl:'<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M1.5 6.5h13M1.5 10h13M6 2.5v11M10.5 2.5v11"/></svg>',
   hl:'<svg viewBox="0 0 16 16"><path d="m9.5 2.5 4 4-6 6H3.5v-4z"/><path d="M2 14.5h12" stroke-width="2.2" class="nt-hlbar"/></svg>',
   undo:'<svg viewBox="0 0 16 16"><path d="M5 3 2 6l3 3"/><path d="M2 6h7.5a4 4 0 0 1 0 8H6"/></svg>', redo:'<svg viewBox="0 0 16 16"><path d="m11 3 3 3-3 3"/><path d="M14 6H6.5a4 4 0 0 0 0 8H10"/></svg>',
+  pages:'<svg viewBox="0 0 16 16"><path d="M3.5 1.5h9v5h-9zM3.5 9.5h9v5h-9z"/><path d="M1 8h2M5 8h2M9 8h2M13 8h2"/></svg>',
   img:'<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.5" cy="6.3" r="1.3"/><path d="m1.8 12 4-4 3 3 2-2 3.4 3.4"/></svg>',
   clr:'<svg viewBox="0 0 16 16"><path d="M3 3h9M7.5 3 5.5 13"/><path d="m10 9 4 4M14 9l-4 4"/></svg>', open:'<svg viewBox="0 0 16 16"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M11.5 9.5v4h-9v-9h4"/></svg>'
 };
@@ -251,7 +252,7 @@ function ntToolbarHtml(){
   return `<div class="nt-tbw"><div class="nt-tb" role="toolbar" aria-label="Formatowanie" id="ntTb">
     <label class="nt-style" title="Styl akapitu"><select id="ntStyle" aria-label="Styl akapitu"><option value="h1">Tytuł</option><option value="h2">Nagłówek</option><option value="h3">Podnagłówek</option><option value="div" selected>Tekst</option><option value="pre">Monospace</option></select></label>
     <span class="nt-tb-sep"></span>
-    ${b('img',NT_I.img,'Wstaw zdjęcie (można też wkleić Ctrl+V lub przeciągnąć)')}
+    ${b('img',NT_I.img,'Wstaw zdjęcie (można też wkleić Ctrl+V lub przeciągnąć)')}${b('pages',NT_I.pages,'Pokaż koniec stron A4 (jak w wydruku PDF)','nt-tb-pages')}
     <span class="nt-tb-sep"></span>
     ${b('bold','<b>B</b>','Pogrubienie (Ctrl+B)')}${b('italic','<i>I</i>','Kursywa (Ctrl+I)')}${b('underline','<u>U</u>','Podkreślenie (Ctrl+U)')}${b('strikeThrough','<s>S</s>','Przekreślenie (Ctrl+Shift+S)')}${b('hl',NT_I.hl,'Zakreślacz','nt-tb-hl')}
     <span class="nt-tb-sep"></span>
@@ -365,6 +366,7 @@ function ntExec(cmd, val){
   const r=ntRich(); if(!r) return;
   if(document.activeElement!==r){ r.focus(); if(ntLastRange){ const s=getSelection(); s.removeAllRanges(); s.addRange(ntLastRange); } }
   try{ document.execCommand('styleWithCSS', false, cmd==='hiliteColor'); }catch(e){}
+  if(cmd==='pages'){ if(typeof a4Przelacz==='function') a4Przelacz(); return; }
   if(cmd==='img'){ if(typeof ntZdjWybierz==='function') ntZdjWybierz(); return; }
   if(cmd==='ck'){ const ul=ntClosest('ul');
     if(ul && ul.classList.contains('nt-ck')){ document.execCommand('insertUnorderedList'); }   /* wyłącz */
@@ -414,14 +416,18 @@ function ntDownload(name, text, type){
 }
 function ntPrint(n){
   const f=pdfRamkaIframe();
-  const d=f.contentDocument; d.open(); d.write(pdfPrzygotuj(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${esc(ntTitle(n))}</title><style>
+  const d=f.contentDocument; d.open(); d.write(pdfPrzygotuj(ntPrintHtml(n))); d.close();
+  setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); setTimeout(()=>f.remove(),1500); },150);
+}
+/* dokument do druku (używa go też podgląd końca stron A4 w js/33-strony-a4.js) */
+function ntPrintHtml(n){
+  return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${esc(ntTitle(n))}</title><style>
     body{font:15px/1.65 -apple-system,"Segoe UI",Inter,Arial,sans-serif;color:#111;max-width:720px;margin:32px auto;padding:0 20px}
     h1.t{font-size:26px;margin:0 0 4px} .d{color:#777;font-size:12px;margin-bottom:22px} h1{font-size:22px}h2{font-size:18px}h3{font-size:16px}
     ul.nt-ck{list-style:none;padding-left:4px} ul.nt-ck li::before{content:"☐ "} ul.nt-ck li.done::before{content:"☑ "} ul.nt-ck li.done{color:#888;text-decoration:line-through}
     blockquote{border-left:3px solid #c8252b;margin:6px 0;padding-left:12px;color:#444} pre{background:#f4f4f4;padding:10px;white-space:pre-wrap}
     img{max-width:100%;max-height:120mm;width:auto;height:auto;border-radius:6px;display:block;margin:4px 0} table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} a{color:#c8252b}</style></head>
-    <body><h1 class="t">${esc(ntTitle(n))}</h1><div class="d">${esc(n.cat?n.cat+' · ':'')}${ntWhen(n.u,true)}</div>${(ntSel===n.id&&ntRich())?ntClean(ntRich().innerHTML).replace(/<img ([^>]*)data-zid="([\w-]+)"/g,(m,x,z)=>`<img ${x}data-zid="${z}" src="${(typeof NTZ_URL!=='undefined'&&NTZ_URL[z])||''}"`):ntHtml(n)}</body></html>`)); d.close();
-  setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); setTimeout(()=>f.remove(),1500); },150);
+    <body><h1 class="t">${esc(ntTitle(n))}</h1><div class="d">${esc(n.cat?n.cat+' · ':'')}${ntWhen(n.u,true)}</div><div class="nt-pc">${(ntSel===n.id&&ntRich())?ntClean(ntRich().innerHTML).replace(/<img ([^>]*)data-zid="([\w-]+)"/g,(m,x,z)=>`<img ${x}data-zid="${z}" src="${(typeof NTZ_URL!=='undefined'&&NTZ_URL[z])||''}"`):ntHtml(n)}</div></body></html>`;
 }
 function ntOpen(id){ ntFlush(); ntSel=id; ntMenu=''; ntRefresh(true); if(!ntWide()) window.scrollTo(0,0); }
 
