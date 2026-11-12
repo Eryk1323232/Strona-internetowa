@@ -24,7 +24,14 @@ function pCalcs(){
 const MX_UNITS=['%','g','kg','ml','cz. mas.'];
 const mxNorm = (id,v={}) => ({id, n:String(v.n||''), note:String(v.note||''), c:+v.c||0, u:+v.u||+v.c||0,
   parts:(Array.isArray(v.parts)?v.parts:[]).map(p=>({n:String(p.n||''), v:+p.v||0, unit:MX_UNITS.includes(p.unit)?p.unit:'%'})),
-  tests:(Array.isArray(v.tests)?v.tests:[]).map(t=>({n:String(t.n||''), r:String(t.r||''), note:String(t.note||'')})), base:String(v.base||''), o:(v.o===undefined||v.o===null||v.o==='')?null:+v.o, z:(Array.isArray(v.z)?v.z:[]).map(String).filter(x=>/^[\w-]{1,60}$/.test(x))});
+  tests:mxTestsNorm(v), base:String(v.base||''), o:(v.o===undefined||v.o===null||v.o==='')?null:+v.o});
+const mxZ = X => (Array.isArray(X)?X:[]).map(String).filter(x=>/^[\w-]{1,60}$/.test(x));
+/* zdjęcia należą do badań (t.z); starsze zdjęcia całej mieszanki (v.z) trafiają do pierwszego badania */
+function mxTestsNorm(v){
+  const T=(Array.isArray(v.tests)?v.tests:[]).map(t=>({n:String(t.n||''), r:String(t.r||''), note:String(t.note||''), z:mxZ(t.z)}));
+  const stare=mxZ(v.z); if(stare.length){ if(!T.length) T.push({n:'Zdjęcia', r:'', note:'', z:[]}); T[0].z=[...new Set([...T[0].z, ...stare])]; }
+  return T;
+}
 const MXC={
   pawel:{title:'Wyniki Pawła', col:'mieszanki', key:'mxState', label:'Praca inżynierska · mieszanki lepiszczy',
     rows:[['Asfalt'],['SBS'],['Olej']], ph:'np. Mieszanka 3 — 5% SBS, 2% oleju', tn:'np. Penetracja w 25 °C', tr:'np. 52 ×0,1 mm'},
@@ -84,9 +91,9 @@ function mxModalHtml(){
           ${m.base?(b=>b?`<p class="mx-base">Lepiszcze: <b>${esc(b.n)}</b></p>`:'')(MXS.pawel.find(x=>x.id===m.base)):''}
           ${mxBar(m)}
           <table class="mx-t"><tbody>${m.parts.map((p,i)=>`<tr><td><span class="mx-dot" style="background:${MX_COL[i%MX_COL.length]}"></span>${esc(p.n)}</td><td class="n">${fmt(p.v, Number.isInteger(p.v)?0:2)} ${esc(p.unit)}</td><td class="n mx-pct">${tot?fmt(p.v/tot*100,1)+'%':''}</td></tr>`).join('')}</tbody></table>
-          ${m.tests.length?`<div class="mx-tt"><span class="label">Badania</span><table class="mx-bt"><thead><tr><th>Badanie</th><th>Wynik</th><th>Uwagi</th></tr></thead><tbody>${m.tests.map(t=>`<tr><td><b>${esc(t.n)}</b></td><td class="mx-res">${esc(t.r)}</td><td class="mx-tn">${esc(t.note)}</td></tr>`).join('')}</tbody></table></div>`:''}
+          ${m.tests.length?`<div class="mx-tt"><span class="label">Badania</span><table class="mx-bt"><thead><tr><th>Badanie</th><th>Wynik</th><th>Uwagi</th></tr></thead><tbody>${m.tests.map(t=>`<tr${t.z.length?' class="mx-hasph"':''}><td><b>${esc(t.n)}</b></td><td class="mx-res">${esc(t.r)}</td><td class="mx-tn">${esc(t.note)}</td></tr>${t.z.length?`<tr class="mx-trph"><td colspan="3"><div class="mx-gal">${t.z.map(z=>`<img class="nt-img mx-img" data-zid="${esc(z)}" alt="Zdjęcie — kliknij, aby powiększyć">`).join('')}</div></td></tr>`:''}`).join('')}</tbody></table></div>`:''}
           ${m.note.trim()?`<p class="mx-note">${esc(m.note)}</p>`:''}
-          ${m.z.length?`<div class="mx-gal">${m.z.map(z=>`<img class="nt-img mx-img" data-zid="${esc(z)}" alt="Zdjęcie — kliknij, aby powiększyć">`).join('')}</div>`:''}</article>`; }).join('')}</div>`
+</article>`; }).join('')}</div>`
         :`<div class="nt-blank"><p>Nie ma jeszcze żadnej mieszanki. Kliknij „+ Dodaj mieszankę”.</p></div>`}`; }
   const m=MX.find(x=>x.id===mxM.id) || mxNorm('',{parts:C.rows.map(r=>({n:r[0],v:0,unit:'%'}))});
   const row=(p,i)=>`<div class="mx-row"><span class="mx-dot" style="background:${MX_COL[i%MX_COL.length]}"></span><input name="pn" value="${esc(p.n)}" placeholder="Składnik" aria-label="Składnik" autocomplete="off">
@@ -100,14 +107,12 @@ function mxModalHtml(){
       <button type="button" class="mx-addrow" data-mxact="addrow">+ składnik</button><div class="mx-sum" id="mxSum"></div></div>
     <div class="mx-f"><span class="label">Badania</span><div class="mx-tests">${(m.tests.length?m.tests:[{n:'',r:'',note:''}]).map(t=>mxTestRow(t,C)).join('')}</div>
       <button type="button" class="mx-addrow" data-mxact="addtest">+ badanie</button></div>
-    <div class="mx-f"><span class="label">Zdjęcia</span><div class="mx-phs">${m.z.map(mxPhHtml).join('')}<button type="button" class="mx-phadd" data-mxact="addph"><span aria-hidden="true">+</span>Dodaj zdjęcie</button></div>
-      <p class="mx-phhint">Zdjęcia próbek, wyników z aparatu, wydruków… Można też wkleić Ctrl+V.</p></div>
     <label class="mx-f"><span class="label">Uwagi ogólne</span><textarea name="note" rows="3" placeholder="np. warunki przygotowania próbek, czas mieszania…">${esc(m.note)}</textarea></label>
     <div class="tr-foot"><span class="tr-err" id="mxErr"></span><button type="button" class="td-btn" data-mxact="back">Anuluj</button><button type="submit" class="tr-save">Zapisz</button></div></form>`;
 }
 const mxPhHtml = z => `<div class="mx-ph" data-zid="${esc(z)}"><img class="nt-img mx-img" data-zid="${esc(z)}" alt=""><button type="button" class="mx-phx" data-mxact="rmph" aria-label="Usuń zdjęcie" title="Usuń zdjęcie">×</button></div>`;
-async function mxPhDodaj(files){
-  const box=$('.mx-phs'); if(!box) return; const add=box.querySelector('.mx-phadd');
+async function mxPhDodaj(files, box){
+  if(!box) return; const add=box.querySelector('.mx-phadd');
   for(const f of files){ if(!/^image\//.test(f.type||'')) continue;
     const tmp=document.createElement('div'); tmp.className='mx-ph ld'; box.insertBefore(tmp, add);
     try{ const zid=await ntzDodaj(f); const t=document.createElement('div'); t.innerHTML=mxPhHtml(zid); tmp.replaceWith(t.firstChild); }
@@ -116,7 +121,8 @@ async function mxPhDodaj(files){
 function mxTestRow(t,C){ C=C||MXC[mxM.set]; return `<div class="mx-test"><div class="mx-test-g">
     <label><span class="mx-sl">Badanie</span><input name="tn" value="${esc(t.n)}" placeholder="${esc(C.tn)}" autocomplete="off"></label>
     <label><span class="mx-sl">Wynik z badania</span><input name="tr" value="${esc(t.r)}" placeholder="${esc(C.tr)}" autocomplete="off"></label>
-    <label class="w"><span class="mx-sl">Uwagi do badania</span><textarea name="tno" rows="2" placeholder="np. średnia z 3 pomiarów">${esc(t.note)}</textarea></label></div>
+    <label class="w"><span class="mx-sl">Uwagi do badania</span><textarea name="tno" rows="2" placeholder="np. średnia z 3 pomiarów">${esc(t.note)}</textarea></label>
+    <div class="w"><span class="mx-sl">Zdjęcia z badania</span><div class="mx-phs">${(t.z||[]).map(mxPhHtml).join('')}<button type="button" class="mx-phadd" data-mxact="addph" title="Dodaj zdjęcie (albo wklej Ctrl+V w polach tego badania)"><span aria-hidden="true">+</span>Zdjęcie</button></div></div></div>
     <button type="button" class="g-del" data-mxact="rmtest" aria-label="Usuń badanie">×</button></div>`; }
 function mxSum(){ const f=$('form.mx-form'); if(!f) return; const rows=[...f.querySelectorAll('.mx-row')];
   const vals=rows.map(r=>({v:gNum(r.querySelector('[name=pv]').value)||0, u:r.querySelector('[name=pu]').value}));
@@ -138,9 +144,8 @@ function mxPrintHtml(k, id, IMG={}){
       ${tot?`<div class="bar">${m.parts.map((p,i)=>p.v>0?`<i style="flex:${p.v};background:${MX_PCOL[i%MX_PCOL.length]}"></i>`:'').join('')}</div>`:''}
       <h3>Skład i proporcje</h3>
       <table><thead><tr><th>Składnik</th><th class="n">Ilość</th><th class="n">Udział</th></tr></thead><tbody>${m.parts.map((p,i)=>`<tr><td><span class="dot" style="background:${MX_PCOL[i%MX_PCOL.length]}"></span>${esc(p.n)}</td><td class="n">${fmt(p.v, Number.isInteger(p.v)?0:2)} ${esc(p.unit)}</td><td class="n">${tot?fmt(p.v/tot*100,1)+' %':''}</td></tr>`).join('')}</tbody></table>
-      ${m.tests.length?`<h3>Badania</h3><table><thead><tr><th style="width:34%">Badanie</th><th style="width:22%">Wynik</th><th>Uwagi</th></tr></thead><tbody>${m.tests.map(t=>`<tr><td><b>${esc(t.n)}</b></td><td class="res">${esc(t.r)}</td><td class="muted">${esc(t.note)}</td></tr>`).join('')}</tbody></table>`:''}
+      ${m.tests.length?`<h3>Badania</h3><table><thead><tr><th style="width:34%">Badanie</th><th style="width:22%">Wynik</th><th>Uwagi</th></tr></thead><tbody>${m.tests.map(t=>`<tr${t.z.some(z=>IMG[z])?' class="hasph"':''}><td><b>${esc(t.n)}</b></td><td class="res">${esc(t.r)}</td><td class="muted">${esc(t.note)}</td></tr>${t.z.some(z=>IMG[z])?`<tr class="phr"><td colspan="3"><div class="ph">${t.z.filter(z=>IMG[z]).map(z=>`<img src="${IMG[z]}" alt="">`).join('')}</div></td></tr>`:''}`).join('')}</tbody></table>`:''}
       ${m.note.trim()?`<h3>Uwagi ogólne</h3><p class="note">${esc(m.note)}</p>`:''}
-      ${m.z.some(z=>IMG[z])?`<h3>Zdjęcia</h3><div class="ph">${m.z.filter(z=>IMG[z]).map(z=>`<img src="${IMG[z]}" alt="">`).join('')}</div>`:''}
     </section>`; };
   return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${esc(tytul)}</title><style>
   @page{size:A4;margin:14mm 15mm 16mm}
@@ -164,8 +169,8 @@ function mxPrintHtml(k, id, IMG={}){
   .dot{display:inline-block;width:2.4mm;height:2.4mm;border-radius:50%;margin-right:2mm;vertical-align:.1mm}
   .res{font-weight:600;white-space:nowrap} .muted{color:#555}
   .note{margin:0;white-space:pre-wrap}
-  .ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(55mm,1fr));gap:3mm} .ph img{width:100%;max-height:80mm;object-fit:contain;border:1px solid #ddd;border-radius:1.5mm;break-inside:avoid;background:#fafafa}
-  .mx{break-inside:auto}
+  .ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(42mm,1fr));gap:3mm;margin:0 0 2mm} .ph img{width:100%;max-height:60mm;object-fit:contain;border:1px solid #ddd;border-radius:1.5mm;break-inside:avoid;background:#fafafa}
+  .mx{break-inside:auto} tr.hasph td{border-bottom:0} tr.phr td{padding-top:0}
   @media screen{ body{background:#e8e8e8;padding:20px} .sheet{background:#fff;padding:14mm 15mm;box-shadow:0 2px 12px rgba(0,0,0,.2)} }
   </style></head><body><div class="sheet">
   <header><div><small>${esc(C.label)}</small><h1>${esc(C.title)}</h1></div><div class="meta">${data}<br>${mxCnt(L.length)}</div></header>
@@ -174,7 +179,7 @@ function mxPrintHtml(k, id, IMG={}){
 }
 async function mxPdf(k, id){
   const tel=matchMedia('(pointer:coarse)').matches, w0=tel?window.open('','_blank'):null;   /* okno od razu (inaczej telefon zablokuje) */
-  const zs=mxList(k).filter(m=>!id||m.id===id).flatMap(m=>m.z), IMG={};
+  const zs=mxList(k).filter(m=>!id||m.id===id).flatMap(m=>m.tests.flatMap(t=>t.z)), IMG={};
   if(zs.length && typeof ntzDataUrl==='function'){ if(w0) w0.document.write('<p style="font:16px sans-serif;padding:20px">Przygotowuję PDF ze zdjęciami…</p>'); await Promise.all(zs.map(async z=>{ IMG[z]=await ntzDataUrl(z); })); }
   const html=mxPrintHtml(k,id,IMG), name=(html.match(/<title>(.*?)<\/title>/)||[])[1]||'Wyniki';
   if(tel){   /* telefon: nowa karta → Udostępnij/Drukuj → Zapisz jako PDF */
@@ -209,13 +214,13 @@ document.addEventListener('click', e=>{
     box.appendChild(tmp.firstChild); box.lastChild.querySelector('input').focus(); mxSum(); return; }
   if(a==='rmrow'){ b.closest('.mx-row').remove(); mxSum(); return; }
   if(a==='addtest'){ const box=$('.mx-tests'), tmp=document.createElement('div'); tmp.innerHTML=mxTestRow({n:'',r:'',note:''},MXC[mxM.set]); box.appendChild(tmp.firstChild); box.lastChild.querySelector('input').focus(); return; }
-  if(a==='addph'){ const i=document.createElement('input'); i.type='file'; i.accept='image/*'; i.multiple=true; i.onchange=()=>mxPhDodaj([...i.files]); i.click(); return; }
+  if(a==='addph'){ const i=document.createElement('input'); i.type='file'; i.accept='image/*'; i.multiple=true; const box=b.closest('.mx-phs'); i.onchange=()=>mxPhDodaj([...i.files], box); i.click(); return; }
   if(a==='rmph'){ b.closest('.mx-ph').remove(); return; }
   if(a==='rmtest'){ b.closest('.mx-test').remove(); return; }
   if(a==='del'){ if(!b.dataset.marm){ b.dataset.marm='1'; b.textContent='Usuń?'; b.classList.add('armed'); setTimeout(()=>{ if(b.isConnected){ delete b.dataset.marm; b.textContent='×'; b.classList.remove('armed'); } },3000); return; }
     const id=b.dataset.id, k=mxM.set; MXS[k]=MXS[k].filter(m=>m.id!==id); saveMx(k); mxRefresh(); cloud(db=>db.collection(MXC[k].col).doc(id).delete()); }
 });
-document.addEventListener('paste', e=>{ if(!(e.target.closest&&e.target.closest('form.mx-form'))) return; const f=[...((e.clipboardData||{}).files||[])].filter(x=>/^image\//.test(x.type)); if(f.length){ e.preventDefault(); mxPhDodaj(f); } });
+document.addEventListener('paste', e=>{ if(!(e.target.closest&&e.target.closest('form.mx-form'))) return; const f=[...((e.clipboardData||{}).files||[])].filter(x=>/^image\//.test(x.type)); if(!f.length) return; e.preventDefault(); const t=e.target.closest('.mx-test')||document.querySelector('form.mx-form .mx-test:last-child'); if(t) mxPhDodaj(f, t.querySelector('.mx-phs')); });
 document.addEventListener('input', e=>{ if(e.target.closest && e.target.closest('form.mx-form') && (e.target.name==='pv'||e.target.name==='pu')) mxSum(); });
 document.addEventListener('change', e=>{ if(e.target.name==='pu' && e.target.closest && e.target.closest('form.mx-form')) mxSum(); });
 document.addEventListener('submit', e=>{
@@ -223,9 +228,8 @@ document.addEventListener('submit', e=>{
   const n=f.n.value.trim(); if(!n){ f.n.focus(); return; }
   const parts=[...f.querySelectorAll('.mx-row')].map(r=>({n:r.querySelector('[name=pn]').value.trim(), v:Math.max(0,gNum(r.querySelector('[name=pv]').value)||0), unit:r.querySelector('[name=pu]').value})).filter(p=>p.n);
   if(!parts.length){ $('#mxErr').textContent='Dodaj przynajmniej jeden składnik.'; return; }
-  const tests=[...f.querySelectorAll('.mx-test')].map(r=>({n:r.querySelector('[name=tn]').value.trim(), r:r.querySelector('[name=tr]').value.trim(), note:r.querySelector('[name=tno]').value.trim()})).filter(t=>t.n||t.r||t.note);
-  const z=[...f.querySelectorAll('.mx-ph[data-zid]')].map(x=>x.dataset.zid);
-  const k=mxM.set, old=MXS[k].find(x=>x.id===mxM.id), m=mxNorm(old?old.id:uid('m'),{n, parts, tests, z, base:f.base?f.base.value:'', note:f.note.value, c:old?old.c:Date.now(), u:Date.now(), o:old?old.o:(MXS[k].some(x=>x.o!==null)?Math.min(...MXS[k].filter(x=>x.o!==null).map(x=>x.o))-1:null)});
+  const tests=[...f.querySelectorAll('.mx-test')].map(r=>({n:r.querySelector('[name=tn]').value.trim(), r:r.querySelector('[name=tr]').value.trim(), note:r.querySelector('[name=tno]').value.trim(), z:[...r.querySelectorAll('.mx-ph[data-zid]')].map(x=>x.dataset.zid)})).filter(t=>t.n||t.r||t.note||t.z.length);
+  const k=mxM.set, old=MXS[k].find(x=>x.id===mxM.id), m=mxNorm(old?old.id:uid('m'),{n, parts, tests, base:f.base?f.base.value:'', note:f.note.value, c:old?old.c:Date.now(), u:Date.now(), o:old?old.o:(MXS[k].some(x=>x.o!==null)?Math.min(...MXS[k].filter(x=>x.o!==null).map(x=>x.o))-1:null)});
   MXS[k]=old?MXS[k].map(x=>x.id===m.id?m:x):[m,...MXS[k]]; saveMx(k); cloud(db=>{ const {id,...d}=m; return db.collection(MXC[k].col).doc(id).set(d); });
   mxM={set:k, mode:'list'}; mxRender(); mxRefresh();
 });
