@@ -156,6 +156,7 @@ function plikZeSkrzynki(folder, id) {
   return x;
 }
 function skrzynka(akcja, p) {
+  if (String(akcja).indexOf('zdjecie') === 0) return zdjecia(akcja, p);   /* zdjęcia z Notatek — osobny, stały folder */
   const folder = folderSkrzynki();
   if (akcja === 'lista') {
     const wynik = [], granica = Date.now() - SKRZYNKA_DNI * 864e5, it = folder.getFiles();
@@ -183,6 +184,31 @@ function skrzynka(akcja, p) {
   if (akcja === 'usun') { plikZeSkrzynki(folder, p.id).setTrashed(true); return {}; }
   if (akcja === 'wyczysc') { const it = folder.getFiles(); while (it.hasNext()) it.next().setTrashed(true); return {}; }
   throw new Error('Nieznana akcja skrzynki: ' + akcja);
+}
+
+/* ——— ZDJĘCIA Z NOTATEK: folder „Pracownia – Zdjęcia notatek” (bez automatycznego usuwania) ———
+   zdjecie        (POST) zid, typ, dane(base64) → zapisuje plik o nazwie zid (drugi raz ten sam zid = bez zmian)
+   zdjeciePobierz (GET)  zid → { typ, dane(base64) }
+   zdjecieUsun    (POST) zid → do kosza */
+function folderZdjec() {
+  const nazwa = 'Pracownia – Zdjęcia notatek', it = DriveApp.getFoldersByName(nazwa);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(nazwa);
+}
+function zdjecia(akcja, p) {
+  const zid = String(p.zid || '');
+  if (!/^[\w-]{1,60}$/.test(zid)) throw new Error('Złe id zdjęcia');
+  const folder = folderZdjec(), it = folder.getFilesByName(zid), plik = it.hasNext() ? it.next() : null;
+  if (akcja === 'zdjecie') {
+    if (plik) return { id: plik.getId() };
+    const x = folder.createFile(Utilities.newBlob(Utilities.base64Decode(String(p.dane || '')), String(p.typ || 'image/jpeg'), zid));
+    return { id: x.getId() };
+  }
+  if (akcja === 'zdjeciePobierz') {
+    if (!plik) throw new Error('Nie ma takiego zdjęcia');
+    return { typ: plik.getMimeType(), dane: Utilities.base64Encode(plik.getBlob().getBytes()) };
+  }
+  if (akcja === 'zdjecieUsun') { if (plik) plik.setTrashed(true); return {}; }
+  throw new Error('Nieznana akcja zdjęć: ' + akcja);
 }
 
 /* ——— test: w edytorze wybierz „test” i kliknij Uruchom — w Dzienniku zobaczysz listę kart ——— */

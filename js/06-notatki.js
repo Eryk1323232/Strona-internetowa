@@ -36,17 +36,19 @@ const ntWide = () => matchMedia('(min-width:901px)').matches;
 const ntFold = s => String(s).toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[̀-ͯ]/g,'');
 
 /* ——— HTML: czyszczenie (tylko bezpieczne znaczniki) ——— */
-const NT_TAGS = new Set(['P','DIV','BR','B','STRONG','I','EM','U','S','STRIKE','DEL','SPAN','A','H1','H2','H3','UL','OL','LI','BLOCKQUOTE','PRE','CODE','HR','TABLE','TBODY','TR','TD','TH','MARK']);
+const NT_TAGS = new Set(['P','DIV','BR','B','STRONG','I','EM','U','S','STRIKE','DEL','SPAN','A','H1','H2','H3','UL','OL','LI','BLOCKQUOTE','PRE','CODE','HR','TABLE','TBODY','TR','TD','TH','MARK','IMG']);
 function ntClean(html){
   const box=document.createElement('div'); box.innerHTML=html;
   const walk=el=>{ [...el.childNodes].forEach(n=>{
     if(n.nodeType===3) return;
     if(n.nodeType!==1 || !NT_TAGS.has(n.tagName)){ if(n.nodeType===1 && !/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|SVG|IMG|VIDEO|AUDIO|LINK|META)$/.test(n.tagName)){ walk(n); n.replaceWith(...n.childNodes); } else n.remove(); return; }
     [...n.attributes].forEach(a=>{ const k=a.name.toLowerCase();
-      if(k==='class'){ const c=a.value.split(/\s+/).filter(x=>/^(nt-ck|done|nt-tbl|nt-hl)$/.test(x)).join(' '); c?n.setAttribute('class',c):n.removeAttribute('class'); }
+      if(n.tagName==='IMG'){ if(!((k==='data-zid'&&/^[\w-]{1,60}$/.test(a.value))||(k==='class'&&a.value.split(/\s+/).includes('nt-img')))) n.removeAttribute(a.name); else if(k==='class') n.setAttribute('class','nt-img'); }
+      else if(k==='class'){ const c=a.value.split(/\s+/).filter(x=>/^(nt-ck|done|nt-tbl|nt-hl)$/.test(x)).join(' '); c?n.setAttribute('class',c):n.removeAttribute('class'); }
       else if(k==='href' && n.tagName==='A'){ if(!/^(https?:|mailto:)/i.test(a.value.trim())) n.removeAttribute('href'); }
       else if(k==='style' && n.tagName==='SPAN'){ const m=/background-color:\s*([^;]+)/i.exec(a.value); m?n.setAttribute('style','background-color:'+m[1].replace(/[^#\w\s(),.%]/g,'')):n.removeAttribute('style'); }
       else n.removeAttribute(a.name); });
+    if(n.tagName==='IMG' && !n.getAttribute('data-zid')){ n.remove(); return; }   /* tylko własne zdjęcia (js/30-zdjecia-notatek.js) */
     if(n.tagName==='A'){ n.setAttribute('target','_blank'); n.setAttribute('rel','noopener'); }
     walk(n); }); };
   walk(box); return box.innerHTML;
@@ -78,7 +80,7 @@ function ntMdToHtml(src){
 function ntHtmlToMd(root){
   const inl=el=>[...el.childNodes].map(n=>{ if(n.nodeType===3) return n.nodeValue.replace(/ /g,' ');
     if(n.nodeType!==1) return ''; const t=n.tagName, s=inl(n);
-    if(t==='BR') return '\n'; if(!s.trim()) return s;
+    if(t==='BR') return '\n'; if(t==='IMG') return '🖼 zdjęcie'; if(!s.trim()) return s;
     if(t==='B'||t==='STRONG') return `**${s}**`; if(t==='I'||t==='EM') return `*${s}*`; if(t==='S'||t==='STRIKE'||t==='DEL') return `~~${s}~~`;
     if(t==='CODE') return '`'+s+'`'; if(t==='A'){ const h=n.getAttribute('href')||''; return h&&h!==s?`${s} (${h})`:s; }
     return s; }).join('');
@@ -241,12 +243,15 @@ const NT_I = {
   tbl:'<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M1.5 6.5h13M1.5 10h13M6 2.5v11M10.5 2.5v11"/></svg>',
   hl:'<svg viewBox="0 0 16 16"><path d="m9.5 2.5 4 4-6 6H3.5v-4z"/><path d="M2 14.5h12" stroke-width="2.2" class="nt-hlbar"/></svg>',
   undo:'<svg viewBox="0 0 16 16"><path d="M5 3 2 6l3 3"/><path d="M2 6h7.5a4 4 0 0 1 0 8H6"/></svg>', redo:'<svg viewBox="0 0 16 16"><path d="m11 3 3 3-3 3"/><path d="M14 6H6.5a4 4 0 0 0 0 8H10"/></svg>',
+  img:'<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.5" cy="6.3" r="1.3"/><path d="m1.8 12 4-4 3 3 2-2 3.4 3.4"/></svg>',
   clr:'<svg viewBox="0 0 16 16"><path d="M3 3h9M7.5 3 5.5 13"/><path d="m10 9 4 4M14 9l-4 4"/></svg>', open:'<svg viewBox="0 0 16 16"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M11.5 9.5v4h-9v-9h4"/></svg>'
 };
 function ntToolbarHtml(){
   const b=(cmd,inner,title,cls='')=>`<button type="button" class="nt-tb-b ${cls}" data-ntcmd="${cmd}" title="${title}" aria-label="${title}">${inner}</button>`;
   return `<div class="nt-tbw"><div class="nt-tb" role="toolbar" aria-label="Formatowanie" id="ntTb">
     <label class="nt-style" title="Styl akapitu"><select id="ntStyle" aria-label="Styl akapitu"><option value="h1">Tytuł</option><option value="h2">Nagłówek</option><option value="h3">Podnagłówek</option><option value="div" selected>Tekst</option><option value="pre">Monospace</option></select></label>
+    <span class="nt-tb-sep"></span>
+    ${b('img',NT_I.img,'Wstaw zdjęcie (można też wkleić Ctrl+V lub przeciągnąć)')}
     <span class="nt-tb-sep"></span>
     ${b('bold','<b>B</b>','Pogrubienie (Ctrl+B)')}${b('italic','<i>I</i>','Kursywa (Ctrl+I)')}${b('underline','<u>U</u>','Podkreślenie (Ctrl+U)')}${b('strikeThrough','<s>S</s>','Przekreślenie (Ctrl+Shift+S)')}${b('hl',NT_I.hl,'Zakreślacz','nt-tb-hl')}
     <span class="nt-tb-sep"></span>
@@ -360,6 +365,7 @@ function ntExec(cmd, val){
   const r=ntRich(); if(!r) return;
   if(document.activeElement!==r){ r.focus(); if(ntLastRange){ const s=getSelection(); s.removeAllRanges(); s.addRange(ntLastRange); } }
   try{ document.execCommand('styleWithCSS', false, cmd==='hiliteColor'); }catch(e){}
+  if(cmd==='img'){ if(typeof ntZdjWybierz==='function') ntZdjWybierz(); return; }
   if(cmd==='ck'){ const ul=ntClosest('ul');
     if(ul && ul.classList.contains('nt-ck')){ document.execCommand('insertUnorderedList'); }   /* wyłącz */
     else if(ul){ ul.classList.add('nt-ck'); [...ul.children].forEach(li=>li.classList.remove('done')); }
@@ -413,8 +419,8 @@ function ntPrint(n){
     h1.t{font-size:26px;margin:0 0 4px} .d{color:#777;font-size:12px;margin-bottom:22px} h1{font-size:22px}h2{font-size:18px}h3{font-size:16px}
     ul.nt-ck{list-style:none;padding-left:4px} ul.nt-ck li::before{content:"☐ "} ul.nt-ck li.done::before{content:"☑ "} ul.nt-ck li.done{color:#888;text-decoration:line-through}
     blockquote{border-left:3px solid #c8252b;margin:6px 0;padding-left:12px;color:#444} pre{background:#f4f4f4;padding:10px;white-space:pre-wrap}
-    table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} a{color:#c8252b}</style></head>
-    <body><h1 class="t">${esc(ntTitle(n))}</h1><div class="d">${esc(n.cat?n.cat+' · ':'')}${ntWhen(n.u,true)}</div>${ntHtml(n)}</body></html>`); d.close();
+    img{max-width:100%;border-radius:8px} table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} a{color:#c8252b}</style></head>
+    <body><h1 class="t">${esc(ntTitle(n))}</h1><div class="d">${esc(n.cat?n.cat+' · ':'')}${ntWhen(n.u,true)}</div>${(ntSel===n.id&&ntRich())?ntClean(ntRich().innerHTML).replace(/<img ([^>]*)data-zid="([\w-]+)"/g,(m,x,z)=>`<img ${x}data-zid="${z}" src="${(typeof NTZ_URL!=='undefined'&&NTZ_URL[z])||''}"`):ntHtml(n)}</body></html>`); d.close();
   setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); setTimeout(()=>f.remove(),1500); },150);
 }
 function ntOpen(id){ ntFlush(); ntSel=id; ntMenu=''; ntRefresh(true); if(!ntWide()) window.scrollTo(0,0); }
@@ -498,7 +504,9 @@ document.addEventListener('input', e=>{
 /* wklejanie: zawsze jako czysty tekst (bez obcych stylów ze stron i Worda) */
 document.addEventListener('paste', e=>{
   if(!e.target.closest || !e.target.closest('#ntRich')) return;
-  e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData('text/plain'); if(!t) return;
+  const cd=e.clipboardData||window.clipboardData, pl=[...(cd.files||[])].filter(f=>/^image\//.test(f.type));
+  if(pl.length && typeof ntZdjWstaw==='function'){ e.preventDefault(); pl.forEach(f=>ntZdjWstaw(f)); return; }
+  e.preventDefault(); const t=cd.getData('text/plain'); if(!t) return;
   if(/^https?:\/\/\S+$/.test(t.trim())) document.execCommand('insertHTML', false, `<a href="${esc(t.trim())}">${esc(t.trim())}</a>&nbsp;`);
   else document.execCommand('insertText', false, t);
 });

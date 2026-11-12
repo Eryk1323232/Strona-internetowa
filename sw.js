@@ -6,7 +6,7 @@
    • Offline: strona działa z kopii zapisanej przy poprzedniej wizycie. Dane wpisane offline czekają
      w kolejce (js/12-synchronizacja.js) i trafiają do Arkusza po powrocie internetu.
    • Czcionki Google: z pamięci (zmieniają się rzadko). Arkusz (script.google.com) — zawsze z sieci.
-   Zmiana CACHE czyści stare kopie (rzadko potrzebne).
+   Zmiana CACHE czyści stare kopie (rzadko potrzebne). Zdjęć z notatek („pracownia-zdjecia”) nigdy nie usuwa.
    ════════════════════════════════════════════════════════════════════════ */
 const CACHE = 'pracownia-1';
 
@@ -23,7 +23,7 @@ self.addEventListener('install', e => {
   })());
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && !k.startsWith('pracownia-zdjecia')).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
   const r = e.request; if (r.method !== 'GET') return;

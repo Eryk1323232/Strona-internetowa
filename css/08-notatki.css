@@ -251,3 +251,13 @@
 }
 @media (max-width:420px){ .nt-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} .nt-fsel{max-width:46%} }
 @media print{ .nt-side,.nt-lpane,.nt-ebar,.nt-tbw,.nt-foot{display:none!important} }
+
+/* ——— zdjęcia w notatkach (js/30-zdjecia-notatek.js) ——— */
+.nt-rich img.nt-img{display:block;max-width:100%;max-height:70vh;height:auto;margin:8px 0;border-radius:12px;border:1px solid var(--line);background:var(--soft,rgba(127,127,127,.08));cursor:zoom-in}
+.nt-rich img.nt-img:not([src]),.nt-rich img.nt-img.ld{width:260px;height:160px;animation:ntz-pulse 1.2s ease-in-out infinite alternate}
+.nt-rich img.nt-img.brak{width:auto;height:auto;min-height:48px;padding:12px;font-size:13px;color:var(--muted);animation:none;cursor:default}
+@keyframes ntz-pulse{from{opacity:.45}to{opacity:.9}}
+.nt-rich.drop{outline:2px dashed var(--accent);outline-offset:6px;border-radius:8px}
+.ntz-lb{position:fixed;inset:0;z-index:1000;background:rgba(10,10,20,.88);display:grid;place-items:center;padding:20px;cursor:zoom-out}
+.ntz-lb img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.ntz-lb button{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:18px;cursor:pointer}
