@@ -7,7 +7,8 @@
    • marginesy robi tabela-opakowanie: puste <thead>/<tfoot> powtarzają się na każdej stronie
      (góra/dół), boki to wcięcie komórki;
    • opcjonalna ramka jak w Wordzie (linia wokół obszaru tekstu, na każdej stronie).
-   • wszystkie wymiary w mm (szerokość A4 = 210 mm) — nie zależą od okna ani ukrytej ramki iframe.
+   • szerokość dopasowuje się do papieru (A4 albo Letter), ramka liczona od krawędzi kartki;
+     najlepiej drukować na „Zapisz jako PDF” (Chrome sam bierze A4 ze strony).
    pdfRamkaIframe() — ukryta ramka do druku o wymiarach kartki A4 (poza ekranem).
    Ustawienia (⚙ → Dane i kopie): pdfRamka '1'/'0', pdfMarg 'waskie' | 'normalne' | 'szerokie'.
    ════════════════════════════════════════════════════════════════════════ */
@@ -18,9 +19,9 @@ function pdfPrzygotuj(html){
   const css=`
   @page{size:A4;margin:0}
   @media print{
-    html,body{margin:0!important;padding:0!important;background:#fff!important;max-width:none!important;width:210mm!important;min-width:0!important}
+    html,body{margin:0!important;padding:0!important;background:#fff!important;max-width:none!important;width:auto!important;min-width:0!important}
     .sheet{max-width:none!important;margin:0!important;padding:0!important;box-shadow:none!important;background:none!important}
-    table.pdf-pg{width:210mm!important;table-layout:fixed!important;border-collapse:collapse!important;border:0!important;margin:0!important}
+    table.pdf-pg{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;border:0!important;margin:0!important}
     table.pdf-pg>thead>tr>td,table.pdf-pg>tfoot>tr>td,table.pdf-pg>tbody>tr>td.pdf-c{border:0!important;padding:0!important;background:none!important;vertical-align:top!important}
     table.pdf-pg>tbody>tr>td.pdf-c{padding:0 ${r}mm 0 ${l}mm!important}
     .pdf-sp-t{height:${t}mm} .pdf-sp-b{height:${b}mm}
