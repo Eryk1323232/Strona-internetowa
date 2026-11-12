@@ -413,13 +413,13 @@ function ntDownload(name, text, type){
   a.download=(name.replace(/[\\/:*?"<>|]+/g,' ').trim()||'notatka')+(type==='text/markdown'?'.md':'.txt'); document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
 }
 function ntPrint(n){
-  const f=document.createElement('iframe'); f.style.cssText='position:fixed;width:0;height:0;border:0;right:0;bottom:0'; document.body.appendChild(f);
+  const f=pdfRamkaIframe();
   const d=f.contentDocument; d.open(); d.write(pdfPrzygotuj(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${esc(ntTitle(n))}</title><style>
     body{font:15px/1.65 -apple-system,"Segoe UI",Inter,Arial,sans-serif;color:#111;max-width:720px;margin:32px auto;padding:0 20px}
     h1.t{font-size:26px;margin:0 0 4px} .d{color:#777;font-size:12px;margin-bottom:22px} h1{font-size:22px}h2{font-size:18px}h3{font-size:16px}
     ul.nt-ck{list-style:none;padding-left:4px} ul.nt-ck li::before{content:"☐ "} ul.nt-ck li.done::before{content:"☑ "} ul.nt-ck li.done{color:#888;text-decoration:line-through}
     blockquote{border-left:3px solid #c8252b;margin:6px 0;padding-left:12px;color:#444} pre{background:#f4f4f4;padding:10px;white-space:pre-wrap}
-    img{max-width:100%;border-radius:8px} table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} a{color:#c8252b}</style></head>
+    img{max-width:100%;max-height:120mm;width:auto;height:auto;border-radius:6px;display:block;margin:4px 0} table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} a{color:#c8252b}</style></head>
     <body><h1 class="t">${esc(ntTitle(n))}</h1><div class="d">${esc(n.cat?n.cat+' · ':'')}${ntWhen(n.u,true)}</div>${(ntSel===n.id&&ntRich())?ntClean(ntRich().innerHTML).replace(/<img ([^>]*)data-zid="([\w-]+)"/g,(m,x,z)=>`<img ${x}data-zid="${z}" src="${(typeof NTZ_URL!=='undefined'&&NTZ_URL[z])||''}"`):ntHtml(n)}</body></html>`)); d.close();
   setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); setTimeout(()=>f.remove(),1500); },150);
 }

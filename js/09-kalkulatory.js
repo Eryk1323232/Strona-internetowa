@@ -184,7 +184,7 @@ async function mxPdf(k, id){
   const html=pdfPrzygotuj(mxPrintHtml(k,id,IMG)), name=(html.match(/<title>(.*?)<\/title>/)||[])[1]||'Wyniki';
   if(tel){   /* telefon: nowa karta → Udostępnij/Drukuj → Zapisz jako PDF */
     const w=w0; if(w){ w.document.open(); w.document.write(html.replace('</body>','<script>setTimeout(()=>print(),'+(zs.length?1200:400)+')<\/script></body>')); w.document.close(); return; } }
-  const f=document.createElement('iframe'); f.style.cssText='position:fixed;width:0;height:0;border:0;right:0;bottom:0'; document.body.appendChild(f);
+  const f=pdfRamkaIframe();
   const d=f.contentDocument; d.open(); d.write(html); d.close();
   const t0=document.title; document.title=name.replace(/&amp;/g,'&').replace(/&quot;/g,'"');   /* nazwa pliku PDF w Chrome */
   setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); document.title=t0; setTimeout(()=>f.remove(),2000); },zs.length?900:250);
