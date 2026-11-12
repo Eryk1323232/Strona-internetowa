@@ -47,17 +47,19 @@ function setTresc(k){
     return `<h3>Dane i kopie</h3>
     <div class="set-cards">
       <div class="set-card"><b>Eksport danych</b><p>Jeden plik z wszystkimi danymi strony: finanse, treningi, plany, notatki, To-Do, CV, gry, praca i reszta.${t?` Ostatnia kopia: <b>${new Date(t).toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})}</b>.`:' Nie zrobiono jeszcze żadnej kopii.'}</p>
-        <button type="button" class="set-main" data-setact="eksport"${typeof PODGLAD!=='undefined'&&PODGLAD?' disabled':''}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg>Pobierz kopię (.json)</button></div>
+        <button type="button" class="set-main" data-setact="eksport"${typeof PODGLAD!=='undefined'&&PODGLAD?' disabled':''}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg>Pobierz kopię (.json)</button><button type="button" class="td-btn set-zipb" data-setact="eksportzip"${typeof PODGLAD!=='undefined'&&PODGLAD?' disabled':''}>Ze zdjęciami (.zip)</button></div>
       <div class="set-card"><b>Import danych</b><p>Otwiera plik kopii w trybie podglądu — przeglądasz stare dane (np. sprzed roku), a obecne zostają nietknięte.</p>
-        <label class="set-sec"><input type="file" accept=".json,application/json" data-setfile="1"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V5M4.5 8.5 8 5l3.5 3.5M2.5 2.5h11"/></svg>Wgraj kopię…</label></div>
+        <label class="set-sec"><input type="file" accept=".json,.zip,application/json,application/zip" data-setfile="1"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V5M4.5 8.5 8 5l3.5 3.5M2.5 2.5h11"/></svg>Wgraj kopię…</label></div>
     </div>
     ${setRow('Ramka w PDF','Linia wokół marginesów na każdej stronie — jak obramowanie strony w Wordzie (CV, Wyniki, Notatki)',setSeg('pdfRamka', store.get('pdfRamka','0'), [['0','Bez ramki'],['1','Z ramką']]))}
     ${setRow('Marginesy w PDF','Odstęp tekstu od krawędzi kartki — 1,27 cm to wąskie marginesy z Worda',setSeg('pdfMarg', store.get('pdfMarg','waskie'), [['waskie','1,27 cm'],['normalne','1,5 cm'],['szerokie','2,5 cm']]))}
     ${setRow('Przypomnienie o kopii','Przycisk kopii w górnym pasku zaświeci się po tylu dniach',setSeg('kopiaDni', dni, [['7','Co tydzień'],['14','Co 2 tyg.'],['30','Co miesiąc'],['0','Wyłącz']]))}
+    ${typeof zdjKartaHtml==='function'?zdjKartaHtml():''}
     <p class="set-note">Trwałe przywracanie danych: w Arkuszu Google <b>Plik → Historia wersji</b>. Plik kopii trzymaj poza telefonem (Dysk, komputer).</p>`; }
   if(k==='sync'){ const a=arkuszUstawienia(), st=typeof syncState!=='undefined'?syncState:'local', z=a&&a.url.match(/\/s\/([^/]+)\//);
     return `<h3>Synchronizacja</h3>
     <div class="set-status st-${esc(st)}"><i aria-hidden="true"></i><div><b>${esc(typeof syncText==='function'?syncText():'')}</b><span>${a?`Arkusz Google · …${esc(z?z[1].slice(-8):'')}${store.get('arkuszUrl','')?'':' (z pliku js/00-ustawienia.js)'}`:'Dane są tylko w tej przeglądarce — połącz z Arkuszem, żeby mieć je na telefonie i komputerze.'}</span>${st==='err'&&window.arkuszBlad?`<span class="set-err">${esc(window.arkuszBlad)}</span>`:''}</div></div>
+    ${a&&typeof skryptKartaHtml==='function'?skryptKartaHtml():''}
     <form class="set-ark"><b>${a?'Zmień połączenie':'Połącz z Arkuszem Google'}</b>
       <label><span class="label">Adres skryptu (Apps Script → Wdróż → adres aplikacji internetowej)</span><input name="url" class="set-in" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" spellcheck="false" required></label>
       <label><span class="label">Hasło (KLUCZ z Kod.gs)</span><input name="klucz" type="password" class="set-in" autocomplete="off"></label>
@@ -96,6 +98,8 @@ document.addEventListener('click', e=>{
   const act=a.dataset.setact;
   if(act==='zamknij'){ setOpen=false; return setRender(); }
   if(act==='eksport' && typeof kopiaPobierz==='function'){ kopiaPobierz(); return setRender(); }
+  if(act==='eksportzip' && typeof kopiaPobierz==='function'){ a.disabled=true; a.textContent='Pobieram zdjęcia…'; kopiaPobierz(true); return; }
+  if(typeof szAkcjaUstawien==='function' && szAkcjaUstawien(act, a)) return;
   if(act==='odswiez'){ location.reload(); return; }
   if(act==='instaluj' && setInstal){ setInstal.prompt(); setInstal.userChoice.finally(()=>{ setInstal=null; setRender(); }); return; }
   if(act==='rozlacz'){ if(!a.dataset.armed){ a.dataset.armed='1'; a.textContent='Na pewno? Kliknij jeszcze raz'; a.classList.add('armed'); return; }

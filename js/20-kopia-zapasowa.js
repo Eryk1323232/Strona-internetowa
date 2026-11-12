@@ -3,6 +3,7 @@
    ════════════════════════════════════════════════════════════════════════
    • „Pobierz kopię” — jeden plik .json ze WSZYSTKIMI danymi strony (finanse, treningi, plany,
      notatki, To-Do, CV, WoT, posiadówki, subskrypcje…). Bez hasła do Arkusza i bez szkiców.
+   • „Kopia ze zdjęciami (.zip)” — to samo + wszystkie zdjęcia z notatek i badań (folder zdjecia/ w archiwum).
    • Przycisk świeci na czerwono, gdy od ostatniej kopii minęło 7 dni (KOPIA_DNI).
      Data ostatniej kopii idzie do Arkusza (cfg → kopia), więc kopia z komputera gasi przycisk też na telefonie.
    • „Wgraj kopię” — PODGLĄD w tej karcie: strona pokazuje dane z pliku (np. sprzed 2 lat),
@@ -16,24 +17,40 @@ const kopiaDue = () => { KOPIA_DNI=+store.get('kopiaDni','7')||0; return !PODGLA
 const kopiaDzien = t => new Date(t).toLocaleDateString('pl-PL',{day:'numeric', month:'long', year:'numeric'});
 
 function kopiaDane(){ const d={}; try{ Object.keys(localStorage).forEach(k=>{ if(!KOPIA_POMIN(k)) d[k]=localStorage.getItem(k); }); }catch(e){} return d; }
-function kopiaPobierz(){
-  const d=kopiaDane(), t=Date.now(), plik=`Pracownia-kopia-${todayISO()}.json`;
-  const blob=new Blob([JSON.stringify({app:'Pracownia', v:1, t, d}, null, 1)], {type:'application/json'});
+async function kopiaPobierz(zeZdjeciami){
+  const d=kopiaDane(), t=Date.now(), json=JSON.stringify({app:'Pracownia', v:1, t, d}, null, 1);
+  let plik=`Pracownia-kopia-${todayISO()}.json`, blob=new Blob([json], {type:'application/json'}), dopisek='';
+  if(zeZdjeciami && typeof zdjUzywane==='function'){   /* .zip: kopia.json + zdjecia/<id>.jpg (js/34-zip.js, js/37-skrypt-i-zdjecia.js) */
+    const Z=[...zdjUzywane()], pliki=[{name:'kopia.json', data:json}]; let brak=0;
+    for(let i=0;i<Z.length;i++){ kopiaRender(`Pobieram zdjęcia… ${i+1} / ${Z.length}`);
+      const b=await ntzBlob(Z[i]); if(!b){ brak++; continue; }
+      pliki.push({name:`zdjecia/${Z[i]}.${/png/.test(b.type)?'png':'jpg'}`, data:new Uint8Array(await b.arrayBuffer())}); }
+    blob=zipStworz(pliki); plik=`Pracownia-kopia-${todayISO()}.zip`;
+    dopisek=` Zdjęcia: ${pliki.length-1}${brak?`, niedostępne: ${brak} (brak połączenia z Dyskiem?)`:''}.`; }
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=plik; document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   try{ localStorage.setItem('kopiaT', String(t)); }catch(e){}
   cloud(db=>db.collection('cfg').doc('kopia').set({t}));   /* data kopii wspólna dla telefonu i komputera */
-  kopiaBtn(); kopiaRender(`Zapisano plik „${plik}” (${Object.keys(d).length} zestawów danych).`);
+  kopiaBtn(); kopiaRender(`Zapisano plik „${plik}” (${Object.keys(d).length} zestawów danych).${dopisek}`);
+  if(typeof setOpen!=='undefined' && setOpen && typeof setRender==='function') setRender();
 }
-function kopiaWgraj(file){
+async function kopiaWgraj(file){
+  if(/\.zip$/i.test(file.name)){   /* kopia ze zdjęciami: zdjęcia do pamięci przeglądarki, dane do podglądu */
+    try{ const P=await zipCzytaj(await file.arrayBuffer()), kj=P.find(x=>x.name==='kopia.json'); if(!kj) return kopiaRender('W tym pliku ZIP nie ma kopii tej strony.', true);
+      for(const x of P){ const m=/^zdjecia\/([\w-]+)\.(jpg|png)$/.exec(x.name); if(m && typeof ntzPut==='function') await ntzPut(m[1], new Blob([x.data],{type:m[2]==='png'?'image/png':'image/jpeg'})); }
+      return kopiaOtworz(new TextDecoder().decode(kj.data), file.name); }
+    catch(e){ return kopiaRender('Nie udało się odczytać pliku ZIP.', true); } }
   const r=new FileReader();
-  r.onload=()=>{ let j=null; try{ j=JSON.parse(r.result); }catch(e){}
+  r.onload=()=>kopiaOtworz(r.result, file.name);
+  r.onerror=()=>kopiaRender('Nie udało się odczytać pliku.', true);
+  r.readAsText(file);
+}
+function kopiaOtworz(tekst, nazwa){ const file={name:nazwa}, r={result:tekst};
+  { let j=null; try{ j=JSON.parse(r.result); }catch(e){}
     if(!j || j.app!=='Pracownia' || !j.d || typeof j.d!=='object') return kopiaRender('To nie jest plik kopii tej strony.', true);
     try{ sessionStorage.setItem('podglad', JSON.stringify({t:+j.t||0, plik:file.name, d:j.d})); }
     catch(e){ return kopiaRender('Plik jest za duży, żeby go otworzyć w podglądzie.', true); }
-    location.reload(); };
-  r.onerror=()=>kopiaRender('Nie udało się odczytać pliku.', true);
-  r.readAsText(file);
+    location.reload(); }
 }
 /* data ostatniej kopii z innego urządzenia (z Arkusza) — bierzemy nowszą */
 function kopiaFromCloud(t){ t=+t||0; if(t<=kopiaT()) return; try{ localStorage.setItem('kopiaT', String(t)); }catch(e){} kopiaBtn(); if(kopiaOpen) kopiaRender(); }
@@ -56,12 +73,13 @@ function kopiaRender(msg, err){
         <b class="kp-when">${t?kopiaDzien(t):'jeszcze nie zrobiona'}</b>
         <p>${due?(t?`Minęło ${Math.floor((Date.now()-t)/864e5)} dni — czas na nową.`:'Zrób pierwszą kopię.'):(KOPIA_DNI?'Kolejna za ':'Przypomnienia wyłączone.')+(KOPIA_DNI?Math.max(1,Math.ceil((t+KOPIA_DNI*864e5-Date.now())/864e5))+' dni.':'')} Plik zawiera wszystkie dane strony: finanse, treningi, plany, notatki, To-Do, CV, gry i resztę.</p>
         <button type="button" class="kp-main" data-kp="get"${PODGLAD?' disabled title="Najpierw zakończ podgląd"':''}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg>Pobierz kopię</button>
+        <button type="button" class="kp-sec" data-kp="getzip"${PODGLAD?' disabled':''} title="Plik .zip: dane + wszystkie zdjęcia z notatek i badań">Kopia ze zdjęciami (.zip)</button>
       </div>
       <div class="kp-card">
         <span class="label">Wgraj dane</span>
         <b>Podgląd starej kopii</b>
         <p>Otwiera plik kopii (np. sprzed dwóch lat) tylko w tej karcie: przeglądasz i analizujesz stare dane, a obecne zostają nietknięte i nic nie trafia do Arkusza.</p>
-        <label class="kp-file"><input type="file" accept=".json,application/json" data-kp="file"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V5M4.5 8.5 8 5l3.5 3.5M2.5 2.5h11"/></svg>Wgraj kopię…</label>
+        <label class="kp-file"><input type="file" accept=".json,.zip,application/json,application/zip" data-kp="file"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V5M4.5 8.5 8 5l3.5 3.5M2.5 2.5h11"/></svg>Wgraj kopię…</label>
       </div>
       ${msg?`<p class="kp-msg${err?' err':''}" role="status">${esc(msg)}</p>`:''}
       <p class="kp-note">Kopie trzymaj poza telefonem — np. wyślij plik na swój Dysk Google albo przez Skrzynkę na komputer.</p>
@@ -86,6 +104,7 @@ document.addEventListener('click', e=>{
   if(a==='open'){ kopiaOpen=true; return kopiaRender(); }
   if(a==='close'){ kopiaOpen=false; return kopiaRender(); }
   if(a==='get') return kopiaPobierz();
+  if(a==='getzip') return kopiaPobierz(true);
   if(a==='end') return kopiaKoniec();
 });
 document.addEventListener('change', e=>{ if(e.target.dataset && e.target.dataset.kp==='file' && e.target.files[0]) kopiaWgraj(e.target.files[0]); });

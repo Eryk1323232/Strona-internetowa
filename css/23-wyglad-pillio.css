@@ -272,3 +272,12 @@ input.sq,.td-chk,.md-chk{border-color:color-mix(in srgb,var(--muted) 75%,transpa
 .hdr-tools .rf-btn svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .hdr-tools .rf-btn.spin svg{animation:rf-spin .7s linear infinite}
 @keyframes rf-spin{to{transform:rotate(360deg)}}
+/* szybko dodaj w wyszukiwarce (js/36-szybko-dodaj.js) */
+.srch-it.srch-ak span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srch-it.srch-ak span b{color:var(--accent);font-weight:700}
+.srch-it.srch-ak small{flex:none;padding-left:10px}
+.srch-it.srch-ak .ni{color:var(--accent);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.srch-tip{margin:8px 10px 6px;padding-top:8px;border-top:1px solid var(--line);font-size:12.5px;line-height:1.45;color:var(--muted)}
+.srch-tip b{color:var(--ink);font-weight:600}
+.srch-ok{margin:10px 12px;font-size:14px;font-weight:600;color:var(--ok,#2e9e6b)}
+@media (max-width:700px){ .srch-it.srch-ak small{display:none} }

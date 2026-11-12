@@ -4,6 +4,7 @@
    • Ctrl+K (albo „/”) — skok do wyszukiwarki. Szuka podstron z bocznego menu
      po nazwie, grupie i słowach z SZ_SLOWA (np. „trening” → Siłownia).
      Strzałki ↑↓ wybierają, Enter otwiera, Esc zamyka.
+   • Szybko dodaj: ten sam pasek przyjmuje „kawa 12 zł” / „jutro 10:00 kolokwium” (js/36-szybko-dodaj.js).
    • Telefon: przyciemnienie za bocznym menu (.side-scrim) zamyka menu.
    • Jednorazowo przy pierwszym wejściu po zmianie wyglądu ustawia jasny motyw
      (wygląd „Pillio”); później działa zwykły przełącznik motywu w bocznym menu.
@@ -34,16 +35,24 @@ let szSel=0, szWyn=[];
 function szRender(){
   const inp=$('#srchIn'), pop=$('#srchPop'); if(!inp||!pop) return;
   const q=szK(inp.value.trim()), L=szLista();
-  szWyn=q?L.filter(x=>q.split(/\s+/).every(w=>x.k.includes(w))).sort((a,b)=>(szK(b.n).startsWith(q))-(szK(a.n).startsWith(q))):L;
+  const strony=q?L.filter(x=>q.split(/\s+/).every(w=>x.k.includes(w))).sort((a,b)=>(szK(b.n).startsWith(q))-(szK(a.n).startsWith(q))):L;
+  const ak=(q && typeof sdAkcje==='function' && !(typeof PODGLAD!=='undefined'&&PODGLAD))?sdAkcje(inp.value):[];   /* szybkie dodawanie (js/36-szybko-dodaj.js) */
+  szWyn=[...ak.filter(a=>a.pierw), ...strony, ...ak.filter(a=>!a.pierw)];
   szSel=Math.min(szSel, Math.max(0,szWyn.length-1));
-  pop.innerHTML=szWyn.length?szWyn.map((x,i)=>`<a href="#${esc(x.r)}" class="srch-it${i===szSel?' on':''}" role="option" aria-selected="${i===szSel}" data-i="${i}">${x.ic}<span>${esc(x.n)}</span><small>${esc(x.g)}</small></a>`).join('')
+  pop.innerHTML=szWyn.length?szWyn.map((x,i)=>`<a href="#${esc(x.r||'')}" class="srch-it${x.run?' srch-ak':''}${i===szSel?' on':''}" role="option" aria-selected="${i===szSel}" data-i="${i}">${x.ic}<span>${x.run?'<b>+</b> ':''}${esc(x.n)}</span><small>${esc(x.g)}</small></a>`).join('')+(q?'':`<p class="srch-tip">Możesz też wpisać np. <b>kawa 12 zł</b> albo <b>jutro 10:00 kolokwium</b> — dodam wydatek lub zadanie.</p>`)
     :`<p class="srch-none">Nic nie znaleziono</p>`;
   pop.hidden=false;
 }
 const szZamknij = () => { const p=$('#srchPop'); if(p) p.hidden=true; };
-const szIdz = i => { const x=szWyn[i]; if(!x) return; location.hash='#'+x.r; const inp=$('#srchIn'); inp.value=''; inp.blur(); szZamknij(); };
+let szOkT=null;
+const szIdz = i => { const x=szWyn[i]; if(!x) return;
+  if(x.run){ const inp=$('#srchIn'), pop=$('#srchPop'); let msg=''; try{ msg=x.run()||'Dodano'; }catch(e){ console.warn(e); msg='Nie udało się dodać'; }
+    inp.value=''; szWyn=[]; pop.innerHTML=`<p class="srch-ok" role="status">✓ ${esc(msg)}</p>`; pop.hidden=false;
+    if(typeof homeRefresh==='function') homeRefresh(); if(typeof kalRefresh==='function' && document.getElementById('kalApp')) kalRefresh();
+    clearTimeout(szOkT); szOkT=setTimeout(()=>{ if(!inp.value && document.activeElement!==inp) szZamknij(); else if(!inp.value) szRender(); }, 2600); return; }
+  location.hash='#'+x.r; const inp=$('#srchIn'); inp.value=''; inp.blur(); szZamknij(); };
 document.addEventListener('focusin', e=>{ if(e.target.id==='srchIn'){ szSel=0; szRender(); } });
-document.addEventListener('input', e=>{ if(e.target.id==='srchIn'){ szSel=0; szRender(); } });
+document.addEventListener('input', e=>{ if(e.target.id==='srchIn'){ clearTimeout(szOkT); szSel=0; szRender(); } });
 document.addEventListener('keydown', e=>{
   const inp=$('#srchIn'); if(!inp) return;
   const typing=/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement&&document.activeElement.tagName)||(document.activeElement&&document.activeElement.isContentEditable);

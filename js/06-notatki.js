@@ -272,6 +272,7 @@ function ntMenuHtml(n){
     <hr><button type="button" role="menuitem" data-act="ntcopy">Kopiuj tekst</button>
     <button type="button" role="menuitem" data-act="ntmd">Pobierz jako .md</button>
     <button type="button" role="menuitem" data-act="nttxt">Pobierz jako .txt</button>
+    <button type="button" role="menuitem" data-act="ntdocx">Pobierz jako Word (.docx)</button>
     <button type="button" role="menuitem" data-act="ntprint">Drukuj / PDF</button>
     <hr><button type="button" role="menuitem" class="danger" data-act="ntdel">Usuń</button></div>`;
   return '';
@@ -466,6 +467,7 @@ document.addEventListener('click', e=>{
     case 'ntcopy': if(n){ ntMenu=''; const r=ntRich(); const txt=(n.t?n.t+'\n\n':'')+(r?r.innerText:n.b); (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>ntStatus('Skopiowano do schowka')).catch(()=>ntStatus('Nie udało się skopiować')); document.querySelectorAll('.nt-pop').forEach(p=>p.remove()); } break;
     case 'ntmd': if(n){ ntMenu=''; ntDownload(ntTitle(n), `# ${ntTitle(n)}\n\n${n.b}\n`, 'text/markdown'); document.querySelectorAll('.nt-pop').forEach(p=>p.remove()); } break;
     case 'nttxt': if(n){ ntMenu=''; const r=ntRich(); ntDownload(ntTitle(n), `${ntTitle(n)}\n\n${r?r.innerText:n.b}\n`, 'text/plain'); document.querySelectorAll('.nt-pop').forEach(p=>p.remove()); } break;
+    case 'ntdocx': if(n){ ntMenu=''; document.querySelectorAll('.nt-pop').forEach(p=>p.remove()); ntFlush(); ntDocxPobierz(n); } break;
     case 'ntprint': if(n){ ntMenu=''; document.querySelectorAll('.nt-pop').forEach(p=>p.remove()); ntPrint(n); } break;
     case 'ntdel': if(n){ ntMenu=''; ntTrash(n.id); } break;
     case 'ntrestore': if(n){ ntSet(n.id,{del:0}); ntCat=''; store.set('ntCat',''); ntRefresh(true); } break;

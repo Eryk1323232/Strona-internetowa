@@ -17,10 +17,13 @@
    SKRZYNKA (ikonka w prawym górnym rogu strony) — przesyłanie plików i tekstu
    między telefonem a komputerem. Pliki NIE trafiają do Arkusza, tylko do folderu
    „Pracownia – Skrzynka” na Twoim Dysku Google; po 7 dniach same idą do kosza.
+   ZDJĘCIA z Notatek i Wyników trafiają do folderu „Pracownia – Zdjęcia notatek” (bez usuwania).
+   Najwygodniej: na stronie ⚙ → Synchronizacja → „Kopiuj nowy Kod.gs” (wstawia od razu Twoje hasło).
    Po wklejeniu nowej wersji tego pliku: Wdróż → Zarządzaj wdrożeniami → ołówek →
    Wersja: Nowa wersja → Wdróż, i zgódź się na dostęp do Dysku (Google zapyta raz).
    ════════════════════════════════════════════════════════════════════════ */
 
+const WERSJA_SKRYPTU = 3;              // strona sprawdza ten numer (⚙ → Synchronizacja) — nie zmieniaj
 const KLUCZ = 'zmien-mnie';            // ← TU wpisz swoje hasło (min. kilkanaście znaków)
 const SKRZYNKA_FOLDER = 'Pracownia – Skrzynka';   // folder na Dysku Google
 const SKRZYNKA_DNI = 7;                            // po ilu dniach pliki ze skrzynki idą do kosza
@@ -156,7 +159,8 @@ function plikZeSkrzynki(folder, id) {
   return x;
 }
 function skrzynka(akcja, p) {
-  if (String(akcja).indexOf('zdjecie') === 0) return zdjecia(akcja, p);   /* zdjęcia z Notatek — osobny, stały folder */
+  if (akcja === 'wersja') return { wersja: WERSJA_SKRYPTU };
+  if (String(akcja).indexOf('zdjeci') === 0) return zdjecia(akcja, p);   /* zdjęcia z Notatek — osobny, stały folder */
   const folder = folderSkrzynki();
   if (akcja === 'lista') {
     const wynik = [], granica = Date.now() - SKRZYNKA_DNI * 864e5, it = folder.getFiles();
@@ -189,12 +193,18 @@ function skrzynka(akcja, p) {
 /* ——— ZDJĘCIA Z NOTATEK: folder „Pracownia – Zdjęcia notatek” (bez automatycznego usuwania) ———
    zdjecie        (POST) zid, typ, dane(base64) → zapisuje plik o nazwie zid (drugi raz ten sam zid = bez zmian)
    zdjeciePobierz (GET)  zid → { typ, dane(base64) }
-   zdjecieUsun    (POST) zid → do kosza */
+   zdjecieUsun    (POST) zid → do kosza (Dysk trzyma kosz 30 dni)
+   zdjeciaLista   (GET)  → [{ zid, rozmiar, kiedy }] */
 function folderZdjec() {
   const nazwa = 'Pracownia – Zdjęcia notatek', it = DriveApp.getFoldersByName(nazwa);
   return it.hasNext() ? it.next() : DriveApp.createFolder(nazwa);
 }
 function zdjecia(akcja, p) {
+  if (akcja === 'zdjeciaLista') {   /* wszystkie zdjęcia w folderze: do sprzątania nieużywanych i kopii zapasowej */
+    const wynik = [], it0 = folderZdjec().getFiles();
+    while (it0.hasNext()) { const x = it0.next(); wynik.push({ zid: x.getName(), rozmiar: x.getSize(), kiedy: x.getDateCreated().getTime() }); }
+    return wynik;
+  }
   const zid = String(p.zid || '');
   if (!/^[\w-]{1,60}$/.test(zid)) throw new Error('Złe id zdjęcia');
   const folder = folderZdjec(), it = folder.getFilesByName(zid), plik = it.hasNext() ? it.next() : null;
