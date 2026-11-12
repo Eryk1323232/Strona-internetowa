@@ -10,8 +10,9 @@
    Ustawienia (⚙ → Dane i kopie): pdfRamka '1'/'0', pdfMarg 'waskie' | 'normalne' | 'szerokie'.
    ════════════════════════════════════════════════════════════════════════ */
 const PDF_MARG = { waskie:[12.7,12.7,12.7,12.7], normalne:[15,15,16,15], szerokie:[25,25,25,25] };   /* góra, prawo, dół, lewo (mm) */
+if(!store.get('pdfMarg2','')){ store.set('pdfMarg','waskie'); store.set('pdfMarg2','1'); }   /* jednorazowo: domyślnie 1,27 cm jak w Wordzie */
 function pdfPrzygotuj(html){
-  const ramka=store.get('pdfRamka','0')==='1', [t,r,b,l]=PDF_MARG[store.get('pdfMarg','normalne')]||PDF_MARG.normalne, od=4;   /* ramka 4 mm od tekstu */
+  const ramka=store.get('pdfRamka','0')==='1', [t,r,b,l]=PDF_MARG[store.get('pdfMarg','waskie')]||PDF_MARG.normalne, od=4;   /* ramka 4 mm od tekstu */
   const css=`
   @page{size:A4;margin:0}
   @media print{
