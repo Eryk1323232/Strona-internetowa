@@ -268,3 +268,7 @@ details.nation summary::before{border-color:var(--muted)}
 
 /* pola wyboru: delikatna ramka zamiast czarnej */
 input.sq,.td-chk,.md-chk{border-color:color-mix(in srgb,var(--muted) 75%,transparent)}
+/* przycisk odświeżania (js/31-odswiez.js) */
+.hdr-tools .rf-btn svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.hdr-tools .rf-btn.spin svg{animation:rf-spin .7s linear infinite}
+@keyframes rf-spin{to{transform:rotate(360deg)}}
