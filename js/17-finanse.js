@@ -19,6 +19,14 @@
    finAuto()  – operacje dopisywane automatycznie ze stałych, Zakładów i Subskrypcji (tylko do odczytu).
    finCalc()  – salda, „zostaje do końca miesiąca”, średnie dzienne/tygodniowe/miesięczne.
    Przelew między kontami: przycisk „Przelej” na kafelku konta (szybkie kwoty FIN_SZYBKIE, „Całość”, inna kwota, „Cofnij”).
+   SKARBONKA — wydzielona część konta oszczędnościowego (nie jest osobnym kontem w banku):
+     op.sk = +1 pieniądze trafiają do skarbonki, −1 wychodzą ze skarbonki, 0 — nie dotyczy.
+     • przelew główne → oszczędn. z zaznaczonym „do skarbonki” (sk +1)
+     • przelew oszczędn. → główne z zaznaczonym „ze skarbonki” (sk −1)
+     • t 'skb' — przełożenie wewnątrz oszczędnościowego (wolne ↔ skarbonka), saldo konta się nie zmienia
+     F.skarb = cfg.ss (stan skarbonki w dniu „od”) + suma sk×a;  F.wolne = oszczędn. − skarbonka.
+     „Razem” i karta Pieniędzy liczą główne + WOLNE oszczędności (skarbonka osobno).
+     cfg.skCel — cel (zł, opcjonalny), cfg.skNa — na co oszczędzasz.
    Kategorie: FIN_KAT_WYD (wydatki) i FIN_KAT_WPL (wpływy) niżej.
    Strona główna: widżet „Szybki wydatek” (widgetFin) — wpis trafia do FIN.ops, czyli prosto do Finansów.
    Operacje z przyszłą datą = zaplanowane: nie zmieniają salda dziś, ale liczą się w „zostaje”.
@@ -26,7 +34,7 @@
 
 const FIN_KONTA = {glowne:'Konto główne', oszcz:'Oszczędnościowe'};
 const FIN_KR = {glowne:'Główne', oszcz:'Oszczędn.'};
-const FIN_TYP = {wyd:'Wydatek', wpl:'Wpływ', prz:'Przelew'};
+const FIN_TYP = {wyd:'Wydatek', wpl:'Wpływ', prz:'Przelew', skb:'Skarbonka'};
 const FIN_KAT_WYD = ['Jedzenie','Transport','Mieszkanie','Studia','Zakupy','Rozrywka','Inne'];   /* kategorie wydatków — dopisz/usuń tutaj */
 const FIN_KAT_WPL = ['Stypendium','Praca','Od rodziców','Inne'];
 /* lista <option> kategorii dla rodzaju operacji; nietypowa kategoria ze starszego wpisu zostaje na liście */
@@ -34,8 +42,10 @@ const finKatOpts = (t, cur='') => { const L=t==='wpl'?FIN_KAT_WPL:FIN_KAT_WYD; r
 const FIN_OKRES = {d:['Dziennie','dzień',1], t:['Tygodniowo','tydzień',7], m:['Miesięcznie','miesiąc',30]};   /* [2] używane tylko dla d/t — miesiąc liczy finAvg z pełnych miesięcy */
 const finIso = v => /^\d{4}-\d{2}-\d{2}$/.test(v);
 const finR = v => Math.round((+v||0)*100)/100;
-const finCfgNorm = (v={}) => ({od:finIso(v.od)?v.od:todayISO(), sg:finR(v.sg), so:finR(v.so), zak:v.zak!==false, sub:v.sub!==false, u:+v.u||0});
-const finONorm = (id,v={}) => ({id, t:FIN_TYP[v.t]?v.t:'wyd', k:FIN_KONTA[v.k]?v.k:'glowne', d:finIso(v.d)?v.d:todayISO(), a:Math.abs(finR(v.a)), kat:String(v.kat||'').slice(0,40), n:String(v.n||'').slice(0,80), c:+v.c||0});
+const finCfgNorm = (v={}) => ({od:finIso(v.od)?v.od:todayISO(), sg:finR(v.sg), so:finR(v.so), ss:Math.max(0,finR(v.ss)), skCel:Math.max(0,finR(v.skCel)), skNa:String(v.skNa||'').slice(0,40), zak:v.zak!==false, sub:v.sub!==false, u:+v.u||0});
+const finONorm = (id,v={}) => { const t=FIN_TYP[v.t]?v.t:'wyd', k=t==='skb'?'oszcz':(FIN_KONTA[v.k]?v.k:'glowne'), s=+v.sk||0;
+  const sk=t==='skb'?(s<0?-1:1):t==='prz'?(k==='glowne'&&s>0?1:k==='oszcz'&&s<0?-1:0):0;
+  return {id, t, k, d:finIso(v.d)?v.d:todayISO(), a:Math.abs(finR(v.a)), kat:String(v.kat||'').slice(0,40), n:String(v.n||'').slice(0,80), c:+v.c||0, sk}; };
 
 const finSNorm = (id,v={}) => ({id, n:String(v.n||'Stała pozycja').slice(0,50), t:v.t==='wpl'?'wpl':'wyd', a:Math.abs(finR(v.a)), dz:Math.min(31,Math.max(1,Math.round(+v.dz||1))),
   k:FIN_KONTA[v.k]?v.k:'glowne', kat:String(v.kat||'').slice(0,40), od:finIso(v.od)?v.od:todayISO(), do:finIso(v.do)?v.do:'', o:+v.o||0});
@@ -101,7 +111,7 @@ function finCalc(){
   const kon=finD(eom)>finD(td)?eom:td, max=FIN.ops.reduce((m,o)=>o.d>m?o.d:m, kon);
   const all=[...FIN.ops, ...finAuto(od, max>kon?max:kon)];
   const saldo={glowne:C.sg, oszcz:C.so}, poMies={glowne:0, oszcz:0}, przMies={glowne:0, oszcz:0};
-  const ruch=(o,s)=>{ if(o.t==='wpl') s[o.k]+=o.a; else if(o.t==='wyd') s[o.k]-=o.a; else { s[o.k]-=o.a; s[o.k==='glowne'?'oszcz':'glowne']+=o.a; } };
+  const ruch=(o,s)=>{ if(o.t==='wpl') s[o.k]+=o.a; else if(o.t==='wyd') s[o.k]-=o.a; else if(o.t==='prz'){ s[o.k]-=o.a; s[o.k==='glowne'?'oszcz':'glowne']+=o.a; } };   /* 'skb' nie zmienia sald kont */
   const liczone=all.filter(o=>o.d>=od && o.d<=td), plan=all.filter(o=>o.d>td && o.d<=eom);
   liczone.forEach(o=>ruch(o,saldo));
   /* „w tym miesiącu” na kartach kont: tylko prawdziwe wpływy i wydatki; przelewy własne osobno (przMies) */
@@ -117,7 +127,10 @@ function finCalc(){
   let mies=0, dni=0; for(let y=+od.slice(0,4), m=+od.slice(5,7); y*12+m <= +td.slice(0,4)*12+ +td.slice(5,7); m++){ if(m>12){ m=1; y++; } mies++; dni+=new Date(y,m,0).getDate(); }
   mies=Math.max(1,mies); dni=Math.max(1,dni);
   const wyd=przeplyw.filter(o=>o.t==='wyd').reduce((s,o)=>s+o.a,0), wpl=przeplyw.filter(o=>o.t==='wpl').reduce((s,o)=>s+o.a,0);
-  return {all, liczone, plan, saldo, poMies, przMies, po, zostaje:po.glowne, planSub, planStale, planInne, dniDoKonca, eom, td, od, dni, mies, wyd, wpl};
+  /* skarbonka */
+  const skL=liczone.filter(o=>o.sk), skarb=finR(C.ss+skL.reduce((a,o)=>a+o.sk*o.a,0)), wolne=finR(saldo.oszcz-skarb);
+  const skMies=finR(skL.filter(o=>o.d.startsWith(td.slice(0,7))).reduce((a,o)=>a+o.sk*o.a,0));
+  return {all, liczone, plan, saldo, poMies, przMies, po, skL, skarb, wolne, skMies, razem:finR(saldo.glowne+wolne), zostaje:po.glowne, planSub, planStale, planInne, dniDoKonca, eom, td, od, dni, mies, wyd, wpl};
 }
 /* opis okresu średnich, np. „listopad 2026 · 30 dni” albo „wrz 2026 – lis 2026 · 3 mies. · 91 dni” */
 function finZakres(F){ const M=(iso,o)=>new Date(iso.slice(0,7)+'-01T12:00').toLocaleDateString('pl-PL',o);
@@ -160,9 +173,10 @@ function finModalHtml(){
   const close=`<button type="button" class="tr-x" data-finact="close" aria-label="Zamknij">✕</button>`;
   const nieUst=!C.u;
   const naDzien=F.zostaje/F.dniDoKonca;
-  const cells=`<div class="grid g4 px-cells fin-cells">
-    ${['glowne','oszcz'].map(kk=>`<div class="cell fin-acc${finPrz===kk?' open':''}"><span class="label">${FIN_KONTA[kk]}</span><span class="big ${F.saldo[kk]<-0.004?'bk-minus':''}">${fmt(F.saldo[kk],2)}<small>zł</small></span><p>${finSign(F.poMies[kk])} zł w tym miesiącu</p>${Math.abs(F.przMies[kk])>0.004?`<p class="fin-przm">przelewy własne: ${finSign(F.przMies[kk])} zł</p>`:''}${finPrzHtml(kk,F)}</div>`).join('')}
-    <div class="cell"><span class="label">Razem</span><span class="big">${fmt(F.saldo.glowne+F.saldo.oszcz,2)}<small>zł</small></span><p>oba konta${nieUst?' · ustaw salda w „Konta” niżej':''}</p></div>
+  const cells=`<div class="grid g4 px-cells fin-cells fin-cells5">
+    ${['glowne','oszcz'].map(kk=>{ const v=kk==='oszcz'?F.wolne:F.saldo[kk]; return `<div class="cell fin-acc${finPrz===kk?' open':''}"><span class="label">${FIN_KONTA[kk]}${kk==='oszcz'&&F.skarb>0.004?' · wolne':''}</span><span class="big ${v<-0.004?'bk-minus':''}">${fmt(v,2)}<small>zł</small></span>${kk==='oszcz'&&F.skarb>0.004?`<p class="fin-skw">na koncie ${fmt(F.saldo.oszcz,2)} zł, w tym skarbonka ${fmt(F.skarb,2)} zł</p>`:''}<p>${finSign(F.poMies[kk])} zł w tym miesiącu</p>${Math.abs(F.przMies[kk])>0.004?`<p class="fin-przm">przelewy własne: ${finSign(F.przMies[kk])} zł</p>`:''}${finPrzHtml(kk,F)}</div>`; }).join('')}
+    ${finSkCell(F)}
+    <div class="cell"><span class="label">Razem</span><span class="big">${fmt(F.razem,2)}<small>zł</small></span><p>${F.skarb>0.004?'oba konta, bez skarbonki':'oba konta'}${nieUst?' · ustaw salda w „Konta” niżej':''}</p></div>
     <div class="cell fin-zost${F.zostaje<-0.004?' over':''}"><span class="label">Zostaje do ${dPL(F.eom).slice(0,5)}</span><span class="big">${fmt(F.zostaje,2)}<small>zł</small></span>
       <p>${F.zostaje>0?`≈ ${fmt(naDzien,2)} zł na dzień (${F.dniDoKonca} ${F.dniDoKonca===1?'dzień':'dni'})`:'na koncie głównym zabraknie pieniędzy'}${Math.abs(F.planStale)>0.004?` · ${finSign(F.planStale)} stałe`:''}${F.planSub?` · −${fmt(F.planSub,2)} subskrypcje`:''}${Math.abs(F.planInne)>0.004?` · ${finSign(F.planInne)} zaplanowane`:''}</p></div></div>`;
 
@@ -189,15 +203,16 @@ function finModalHtml(){
   /* historia wybranego miesiąca, pogrupowana po dniach */
   const H=F.all.filter(o=>o.d.startsWith(finMies) && (finK==='all' || o.k===finK || o.t==='prz')).sort((a,b)=>b.d.localeCompare(a.d)||b.c-a.c);
   const dni={}; H.forEach(o=>(dni[o.d]=dni[o.d]||[]).push(o));
-  const znak=o=>o.t==='wpl'?1:o.t==='wyd'?-1:(finK==='all'?0:(o.k===finK?-1:1));
+  const znak=o=>o.t==='wpl'?1:o.t==='wyd'?-1:o.t==='skb'?0:(finK==='all'?0:(o.k===finK?-1:1));
   const wiersz=o=>{ const pre=o.d<C.od, fut=o.d>F.td, s=znak(o), cls=`fin-r-${o.t}${pre?' fin-pre':''}${fut?' fin-fut':''}${o.auto?' fin-auto':''}`;
-    const konto=o.t==='prz'?`${FIN_KR[o.k]} → ${FIN_KR[o.k==='glowne'?'oszcz':'glowne']}`:FIN_KR[o.k];
+    const konto=o.t==='skb'?(o.sk>0?'Oszczędn. → Skarbonka':'Skarbonka → Oszczędn.'):o.t==='prz'?(o.sk>0?'Główne → Skarbonka':o.sk<0?'Skarbonka → Główne':`${FIN_KR[o.k]} → ${FIN_KR[o.k==='glowne'?'oszcz':'glowne']}`):FIN_KR[o.k];
+    const ruchW=o.t==='prz'||o.t==='skb';
     const kw=`<span class="bk-amt"><em aria-hidden="true">${s>0?'+':s<0?'−':'⇄'}</em>`;
     if(o.auto) return `<tr class="${cls}" title="${o.auto==='zak'?'Z okienka Zakłady — zmieniasz tam':o.auto==='sub'?'Z Subskrypcji — zmieniasz tam':'Stała pozycja — zmieniasz w „Stałe wpływy i opłaty”'}"><td><span class="fin-tag fin-tag-${o.auto}">${esc(o.kat)}</span></td><td class="fin-n">${esc(o.n)}${fut?' <small>zaplanowane</small>':''}</td><td class="fin-kc">${konto}</td><td class="n">${kw}<b>${fmt(o.a,2)}</b></span></td><td></td></tr>`;
     return `<tr class="${cls}"${pre?' title="Przed dniem „stan na” — nie liczy się do salda"':''}>
-      <td>${o.t==='prz'?'<span class="fin-tag">Przelew</span>':`<select class="td-sel bk-sel fin-katsel" data-fn="${k('o',o.id,'kat')}" aria-label="Kategoria">${finKatOpts(o.t, o.kat||'Inne')}</select>`}</td>
+      <td>${ruchW?`<span class="fin-tag${o.sk?' fin-tag-sk':''}">${o.t==='skb'?'Skarbonka':'Przelew'}</span>`:`<select class="td-sel bk-sel fin-katsel" data-fn="${k('o',o.id,'kat')}" aria-label="Kategoria">${finKatOpts(o.t, o.kat||'Inne')}</select>`}</td>
       <td class="fin-n"><input class="g-in g-txt" data-fn="${k('o',o.id,'n')}" value="${esc(o.n)}" placeholder="opis" aria-label="Opis" maxlength="80">${fut?'<small>zaplanowane</small>':''}</td>
-      <td class="fin-kc">${o.t==='prz'?konto:`<select class="td-sel bk-sel" data-fn="${k('o',o.id,'k')}" aria-label="Konto">${Object.entries(FIN_KR).map(([v,n])=>`<option value="${v}"${v===o.k?' selected':''}>${n}</option>`).join('')}</select>`}</td>
+      <td class="fin-kc">${ruchW?konto:`<select class="td-sel bk-sel" data-fn="${k('o',o.id,'k')}" aria-label="Konto">${Object.entries(FIN_KR).map(([v,n])=>`<option value="${v}"${v===o.k?' selected':''}>${n}</option>`).join('')}</select>`}</td>
       <td class="n">${kw}<input class="g-in g-num bk-a" inputmode="decimal" data-fn="${k('o',o.id,'a')}" value="${fmt(o.a,2).replace(/ /g,'')}" aria-label="Kwota"></span></td>
       <td class="n"><input type="date" class="fin-dt" data-fn="${k('o',o.id,'d')}" value="${esc(o.d)}" aria-label="Zmień datę" title="Zmień datę"><button type="button" class="g-del" data-findel="${esc(o.id)}" aria-label="Usuń operację">×</button></td></tr>`; };
   const histBody=Object.keys(dni).map(d=>{ const L=dni[d], w=L.filter(o=>o.t==='wyd').reduce((s,o)=>s+o.a,0), p=L.filter(o=>o.t==='wpl').reduce((s,o)=>s+o.a,0);
@@ -216,7 +231,8 @@ function finModalHtml(){
 
   /* konta i ustawienia */
   const ust=`<div class="tbl-wrap px-wrap"><table class="px-t bk-t fin-ust"><thead><tr><th>Konto</th><th class="n">Saldo w dniu „stan na”</th><th class="n">Saldo dziś</th><th class="n">Po zaplanowanych</th></tr></thead><tbody>
-      ${Object.entries(FIN_KONTA).map(([v,n])=>`<tr><td class="px-prod"><b>${n}</b></td><td class="n"><input class="g-in g-num bk-a" inputmode="decimal" data-fn="${k('c','x',v==='glowne'?'sg':'so')}" value="${fmt(v==='glowne'?C.sg:C.so,2).replace(/ /g,'')}" aria-label="Saldo początkowe: ${n}"></td><td class="n px-calc px-share">${fmt(F.saldo[v],2)}</td><td class="n px-calc">${fmt(F.po[v],2)}</td></tr>`).join('')}
+      ${Object.entries(FIN_KONTA).map(([v,n])=>`<tr><td class="px-prod"><b>${n}</b>${v==='oszcz'?'<small class="fin-sub">razem ze skarbonką</small>':''}</td><td class="n"><input class="g-in g-num bk-a" inputmode="decimal" data-fn="${k('c','x',v==='glowne'?'sg':'so')}" value="${fmt(v==='glowne'?C.sg:C.so,2).replace(/ /g,'')}" aria-label="Saldo początkowe: ${n}"></td><td class="n px-calc px-share">${fmt(F.saldo[v],2)}</td><td class="n px-calc">${fmt(F.po[v],2)}</td></tr>`).join('')}
+      <tr class="fin-skrow"><td class="px-prod"><b>↳ Skarbonka</b><small class="fin-sub">część oszczędnościowego</small></td><td class="n"><input class="g-in g-num bk-a" inputmode="decimal" data-fn="${k('c','x','ss')}" value="${fmt(C.ss,2).replace(/ /g,'')}" aria-label="Stan skarbonki w dniu „stan na”" title="Ile już było odłożone w skarbonce w dniu „stan na”"></td><td class="n px-calc px-share">${fmt(F.skarb,2)}</td><td class="n px-calc">${fmt(F.skarb,2)}</td></tr>
     </tbody></table></div>
     <div class="fin-opts"><label class="fin-od"><span class="label">Stan na dzień</span><input type="date" data-fn="${k('c','x','od')}" value="${esc(C.od)}" aria-label="Stan na dzień"></label>
       <label class="fin-chk"><input type="checkbox" data-fn="${k('c','x','zak')}"${C.zak?' checked':''}><span>Wliczaj Zakłady — wpłaty u bukmachera jako wydatki, wypłaty jako wpływy na koncie głównym</span></label>
@@ -225,6 +241,7 @@ function finModalHtml(){
   return `<div class="tr-top"><div><span class="label">Pieniądze</span><h2>Finanse</h2></div>${close}</div>
     ${cells}
     <section class="bk-sec">${add}</section>
+    <section class="bk-sec fin-skarb"><h3>Skarbonka</h3>${finSkHtml(F)}</section>
     <section class="bk-sec"><h3>Stałe wpływy i opłaty</h3>${finStaleHtml(F)}</section>
     <section class="bk-sec"><h3>Średnie</h3>${avg}</section>
     <div class="bk-two">
@@ -235,22 +252,31 @@ function finModalHtml(){
 }
 /* ——— przelew między kontami (przycisk na kafelku konta) ——— */
 const FIN_SZYBKIE = [50, 100, 200, 500];   /* kwoty na jedno kliknięcie */
+/* skarbonka przy przelewie: główne → oszcz. „do skarbonki” (finPrzSk), oszcz. → główne „ze skarbonki” (finPrzSkO) */
+const finPrzSk = kk => kk==='glowne' ? (store.get('finPrzSk','0')==='1'?1:0) : kk==='oszcz' ? (store.get('finPrzSkO','0')==='1'?-1:0) : (store.get('finSkKier','in')==='out'?-1:1);
+const finPrzMax = (kk,F) => { const sk=finPrzSk(kk); return Math.max(0, kk==='glowne'?F.saldo.glowne : kk==='oszcz'?(sk?F.skarb:F.wolne) : (sk>0?F.wolne:F.skarb)); };
 function finPrzHtml(kk, F){
-  const na=kk==='glowne'?'oszcz':'glowne', dokad=kk==='glowne'?'na oszczędnościowe':'na główne';
+  const na=kk==='glowne'?'oszcz':'glowne', dokad=kk==='glowne'?'na oszczędnościowe':'na główne', sk=finPrzSk(kk);
   const msg=finPrzMsg&&finPrzMsg.k===kk?`<div class="fin-pmsg">${esc(finPrzMsg.txt)}<button type="button" data-finundo="${esc(finPrzMsg.id)}">Cofnij</button></div>`:'';
   if(finPrz!==kk) return `${msg}<button type="button" class="fin-pbtn" data-finprz="${kk}">${kk==='glowne'?'Przelej '+dokad+' →':'← Przelej '+dokad}</button>`;
-  const mx=Math.max(0,F.saldo[kk]);
-  return `${msg}<div class="fin-pbox"><span class="fin-ph">${FIN_KR[kk]} → ${FIN_KR[na]}</span>
+  const mx=finPrzMax(kk,F);
+  const chk=kk==='glowne'?`<label class="fin-skchk"><input type="checkbox" data-finsk="finPrzSk"${sk?' checked':''}><span>do skarbonki</span></label>`
+    : (F.skarb>0.004||sk)?`<label class="fin-skchk"><input type="checkbox" data-finsk="finPrzSkO"${sk?' checked':''}><span>ze skarbonki (${fmt(F.skarb,2)} zł)</span></label>`:'';
+  return `${msg}<div class="fin-pbox"><span class="fin-ph">${sk<0?'Skarbonka':FIN_KR[kk]} → ${sk>0?'Skarbonka':FIN_KR[na]}${kk==='oszcz'&&!sk&&F.skarb>0.004?` · wolne ${fmt(F.wolne,2)} zł`:''}</span>${chk}
     <div class="fin-pq">${FIN_SZYBKIE.map(q=>`<button type="button" data-finq="${q}" data-from="${kk}"${q>mx+0.004?' disabled':''}>${fmt(q)} zł</button>`).join('')}<button type="button" data-finq="all" data-from="${kk}"${mx<0.01?' disabled':''}>Całość</button></div>
     <form class="fin-pform" data-from="${kk}"><input name="a" placeholder="Inna kwota" inputmode="decimal" autocomplete="off" aria-label="Kwota przelewu"><button type="submit">Przelej</button><button type="button" class="fin-pcancel" data-finprz="">✕</button></form>
     <span class="tr-err" id="finPErr"></span></div>`;
 }
 function finPrzelej(from, a){
-  const F=finCalc(), mx=finR(F.saldo[from]);
-  if(isNaN(a)||a<=0){ const e=$('#finPErr'); if(e) e.textContent='Wpisz kwotę większą od zera.'; return; }
-  if(a>mx+0.004){ const e=$('#finPErr'); if(e) e.textContent=`Na koncie jest tylko ${fmt(mx,2)} zł.`; return; }
-  const o=finONorm(uid('fo'),{t:'prz', k:from, d:todayISO(), a:finR(a), kat:'', n:'', c:Date.now()});
-  FIN.ops=[...FIN.ops,o]; finPrz=null; finPrzMsg={id:o.id, k:from, txt:`Przelano ${fmt(o.a,2)} zł ${from==='glowne'?'na oszczędnościowe':'na główne'}.`};
+  const F=finCalc(), mx=finR(finPrzMax(from,F)), sk=finPrzSk(from), err=t=>{ const e=$('#finPErr'); if(e) e.textContent=t; };
+  if(isNaN(a)||a<=0) return err('Wpisz kwotę większą od zera.');
+  if(a>mx+0.004) return err(from==='sk'?(sk>0?`Wolnych oszczędności jest tylko ${fmt(mx,2)} zł.`:`W skarbonce jest tylko ${fmt(mx,2)} zł.`)
+    : from==='oszcz'&&!sk&&F.skarb>0.004?`Wolnych oszczędności jest ${fmt(mx,2)} zł (skarbonka: ${fmt(F.skarb,2)} zł — zaznacz „ze skarbonki”).`
+    : sk<0?`W skarbonce jest tylko ${fmt(mx,2)} zł.`:`Na koncie jest tylko ${fmt(mx,2)} zł.`);
+  const o=finONorm(uid('fo'),{t:from==='sk'?'skb':'prz', k:from==='sk'?'oszcz':from, d:todayISO(), a:finR(a), kat:'', n:'', c:Date.now(), sk});
+  const txt=from==='sk'?(sk>0?`Odłożono ${fmt(o.a,2)} zł do skarbonki.`:`Wyjęto ${fmt(o.a,2)} zł ze skarbonki do wolnych oszczędności.`)
+    : `Przelano ${fmt(o.a,2)} zł ${from==='glowne'?(sk?'do skarbonki (na oszczędnościowe)':'na oszczędnościowe'):(sk?'ze skarbonki na główne':'na główne')}.`;
+  FIN.ops=[...FIN.ops,o]; finPrz=null; finPrzMsg={id:o.id, k:from, txt};
   saveFin(); finRefresh(); finPushO(o);
   setTimeout(()=>{ if(finPrzMsg&&finPrzMsg.id===o.id){ finPrzMsg=null; if(finM) finRender(); } }, 12000);
 }
@@ -285,6 +311,40 @@ function finStaleHtml(F){
     <tbody>${rows}${add}</tbody>
     ${L.length?`<tfoot><tr class="px-sum"><td colspan="10">Co miesiąc: wpływy <b class="bk-plus">+${fmt(wp,2)}</b> · opłaty <b class="bk-minus">−${fmt(wy,2)}</b> · zostaje <b class="${finCls(wp-wy)}">${finSign(wp-wy)} zł</b></td></tr></tfoot>`:''}</table></div>`;
 }
+/* ——— skarbonka ——— */
+const finIleL = (n,a,b,c) => n===1?a:(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?b:c;
+function finSkCell(F){ const C=FIN.cfg, cel=C.skCel, pct=cel?Math.min(100,F.skarb/cel*100):0;
+  return `<div class="cell fin-acc fin-skc${finPrz==='sk'?' open':''}"><span class="label">Skarbonka${C.skNa?' · '+esc(C.skNa):''}</span><span class="big">${fmt(F.skarb,2)}<small>zł</small></span>
+    ${cel?`<div class="fin-skbar" title="${fmt(pct,0)} % celu"><i style="width:${pct.toFixed(1)}%"></i></div><p>${pct>=100?'cel osiągnięty 🎉':`${fmt(pct,0)} % z ${fmt(cel,0)} zł · brakuje ${fmt(cel-F.skarb,2)} zł`}</p>`:''}
+    <p>${finSign(F.skMies)} zł w tym miesiącu</p>${finSkPanel(F)}</div>`; }
+function finSkPanel(F){
+  const msg=finPrzMsg&&finPrzMsg.k==='sk'?`<div class="fin-pmsg">${esc(finPrzMsg.txt)}<button type="button" data-finundo="${esc(finPrzMsg.id)}">Cofnij</button></div>`:'';
+  if(finPrz!=='sk') return `${msg}<button type="button" class="fin-pbtn" data-finprz="sk">Odłóż / wyjmij</button>`;
+  const sk=finPrzSk('sk'), mx=finPrzMax('sk',F);
+  return `${msg}<div class="fin-pbox"><div class="seg fin-skseg" role="tablist"><button type="button" data-finskk="in" aria-selected="${sk>0}">Odłóż</button><button type="button" data-finskk="out" aria-selected="${sk<0}">Wyjmij</button></div>
+    <span class="fin-ph">${sk>0?`z wolnych oszczędności (${fmt(F.wolne,2)} zł) → skarbonka`:`skarbonka → wolne oszczędności`}</span>
+    <div class="fin-pq">${FIN_SZYBKIE.map(q=>`<button type="button" data-finq="${q}" data-from="sk"${q>mx+0.004?' disabled':''}>${fmt(q)} zł</button>`).join('')}<button type="button" data-finq="all" data-from="sk"${mx<0.01?' disabled':''}>Całość</button></div>
+    <form class="fin-pform" data-from="sk"><input name="a" placeholder="Inna kwota" inputmode="decimal" autocomplete="off" aria-label="Kwota"><button type="submit">${sk>0?'Odłóż':'Wyjmij'}</button><button type="button" class="fin-pcancel" data-finprz="">✕</button></form>
+    <span class="tr-err" id="finPErr"></span></div>`;
+}
+function finSkHtml(F){
+  const C=FIN.cfg, k=(id,f)=>esc('c|'+id+'|'+f), L=[...F.skL].sort((a,b)=>b.d.localeCompare(a.d)||b.c-a.c);
+  const wplaty=L.filter(o=>o.sk>0), suma=wplaty.reduce((a,o)=>a+o.a,0), pierwsza=wplaty.length?wplaty[wplaty.length-1].d:'';
+  const tyg=pierwsza?Math.max(1,(finDni(pierwsza,F.td)+1)/7):1, netto=F.skarb-C.ss, tempo=pierwsza?netto/tyg:0;
+  const brak=C.skCel-F.skarb, kiedy=C.skCel&&brak>0.004&&tempo>0.004?Math.ceil(brak/tempo):0;
+  const kiedyTxt=kiedy?(()=>{ const d=finD(F.td); d.setDate(d.getDate()+kiedy*7); return `w tym tempie cel za ok. ${kiedy} ${finIleL(kiedy,'tydzień','tygodnie','tygodni')} (${d.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})})`; })():'';
+  const opis=o=>o.t==='skb'?(o.sk>0?'Odłożone z wolnych oszczędności':'Wyjęte do wolnych oszczędności'):(o.sk>0?'Przelew z konta głównego':'Przelew na konto główne');
+  return `<p class="fin-skinfo">Wydzielona część konta oszczędnościowego — nie wlicza się do „Razem” ani do wolnych oszczędności. Wpłacasz przelewem z głównego z zaznaczonym <b>„do skarbonki”</b> albo przyciskiem <b>Odłóż</b> na kafelku Skarbonki (z pieniędzy, które już są na oszczędnościowym).</p>
+    <div class="grid g4 px-cells fin-skstat">
+      <div class="cell"><span class="label">Odłożone</span><span class="big">${fmt(F.skarb,2)}<small>zł</small></span><p>${wplaty.length} ${finIleL(wplaty.length,'wpłata','wpłaty','wpłat')} · razem ${fmt(suma,2)} zł</p></div>
+      <div class="cell"><span class="label">W tym miesiącu</span><span class="big ${finCls(F.skMies)}">${finSign(F.skMies)}<small>zł</small></span><p>${esc(finMName(F.td.slice(0,7)))}</p></div>
+      <div class="cell"><span class="label">Średnio</span><span class="big">${fmt(Math.max(0,tempo),2)}<small>zł / tydz.</small></span><p>${pierwsza?`od ${dPL(pierwsza)} · ≈ ${fmt(Math.max(0,tempo)*52/12,0)} zł / mies.`:'policzę po pierwszej wpłacie'}</p></div>
+      <div class="cell fin-skcel"><span class="label">Cel</span><div class="fin-skin"><input class="g-in g-num" inputmode="decimal" data-fn="${k('x','skCel')}" value="${C.skCel?fmt(C.skCel,2).replace(/ /g,''):''}" placeholder="np. 2000" aria-label="Cel skarbonki w zł"><span>zł</span></div>
+        <input class="g-in g-txt" data-fn="${k('x','skNa')}" value="${esc(C.skNa)}" placeholder="na co? np. wakacje" aria-label="Na co oszczędzasz" maxlength="40">
+        <p>${C.skCel?(brak>0.004?`brakuje ${fmt(brak,2)} zł${kiedyTxt?' · '+kiedyTxt:''}`:'cel osiągnięty 🎉'):'opcjonalnie — pokaże pasek postępu'}</p></div></div>
+    ${L.length?`<ul class="fin-skl">${L.slice(0,8).map(o=>`<li><span class="fin-skd">${esc(dPL(o.d).slice(0,5))}</span><span class="fin-skn">${opis(o)}</span><b class="${o.sk>0?'bk-plus':'bk-minus'}">${o.sk>0?'+':'−'}${fmt(o.a,2)} zł</b></li>`).join('')}${L.length>8?`<li class="fin-skmore">+ ${L.length-8} starszych — w Historii (oznaczone „Skarbonka”)</li>`:''}</ul>`:'<p class="nt-none">Jeszcze nic nie odłożono.</p>'}`;
+}
+
 function finRender(){
   let sc=$('#finScrim'), md=$('#finModal');
   if(!finM || !$('#bkPage')){ sc&&sc.remove(); md&&md.remove(); finM=false; if(!bkM) document.body.classList.remove('tr-lock'); return; }
@@ -300,7 +360,7 @@ function finRender(){
   else if(fresh){ const f=md.querySelector('form.fin-add [name="a"]'); if(f && matchMedia('(pointer:fine)').matches) setTimeout(()=>f.focus(),30); }
 }
 function finCard(){ const F=finCalc();
-  return `<span class="bk-cbil">${fmt(F.saldo.glowne+F.saldo.oszcz,2)} zł</span><span class="calc-count">główne ${fmt(F.saldo.glowne,2)} · oszczędn. ${fmt(F.saldo.oszcz,2)}</span><span class="calc-count ${F.zostaje<-0.004?'bk-minus':''}">zostaje do ${dPL(F.eom).slice(0,5)}: ${fmt(F.zostaje,2)} zł</span>`; }
+  return `<span class="bk-cbil">${fmt(F.razem,2)} zł</span><span class="calc-count">główne ${fmt(F.saldo.glowne,2)} · oszczędn. ${fmt(F.wolne,2)}${F.skarb>0.004?` · skarbonka ${fmt(F.skarb,2)}`:''}</span><span class="calc-count ${F.zostaje<-0.004?'bk-minus':''}">zostaje do ${dPL(F.eom).slice(0,5)}: ${fmt(F.zostaje,2)} zł</span>`; }
 function finRefresh(){ const c=$('#finCard'); if(c) c.innerHTML=finCard(); const w=$('#wfData'); if(w) w.innerHTML=finWidgetData(); if(finM) finRender(); }
 
 /* ——— STRONA GŁÓWNA: widżet „Szybki wydatek” (wywoływany w pStart, js/03) ———
@@ -365,12 +425,13 @@ document.addEventListener('submit', e=>{
 document.addEventListener('change', e=>{
   const el=e.target;
   if(el.name==='t' && el.closest('form.fin-add')){ finTyp=el.value; store.set('finTyp',finTyp); const fm=el.closest('form'); fm.dataset.t=finTyp; fm.kat.innerHTML=finKatOpts(finTyp); return; }
+  if(el.dataset && el.dataset.finsk){ store.set(el.dataset.finsk, el.checked?'1':'0'); return finRender(); }
   const key=el.dataset&&el.dataset.fn; if(!key) return;
   const [kind,id,f]=key.split('|'), v=el.type==='checkbox'?el.checked:el.value;
   setTimeout(()=>{
     if(kind==='s') finUpdS(id, x=>{ if(f==='a'){ const n=bkNum(v); if(!isNaN(n)&&n>0) x.a=n; } else if(f==='dz'){ const n=Math.round(bkNum(v)); if(n>=1&&n<=31) x.dz=n; }
       else if(f==='od'){ if(finIso(v)) x.od=v; } else if(f==='do'){ x.do=finIso(v)?v:''; } else if(f==='t'){ x.t=v; const L=v==='wpl'?FIN_KAT_WPL:FIN_KAT_WYD; if(!L.includes(x.kat)) x.kat=''; } else if(f==='n'){ if(String(v).trim()) x.n=String(v).trim(); } else x[f]=String(v).trim(); });
-    else if(kind==='c') finUpdCfg(c=>{ if(f==='sg'||f==='so'){ const n=String(v).trim()?bkNum(v):0; if(!isNaN(n)) c[f]=n; } else if(f==='od'){ if(finIso(v)) c.od=v; } else c[f]=!!v; });
+    else if(kind==='c') finUpdCfg(c=>{ if(f==='skNa'){ c.skNa=String(v).trim(); return; } if(f==='skCel'||f==='ss'){ const n=String(v).trim()?bkNum(v):0; if(!isNaN(n)&&n>=0) c[f]=n; return; } if(f==='sg'||f==='so'){ const n=String(v).trim()?bkNum(v):0; if(!isNaN(n)) c[f]=n; } else if(f==='od'){ if(finIso(v)) c.od=v; } else c[f]=!!v; });
     else finUpdO(id, o=>{ if(f==='a'){ const n=bkNum(v); if(!isNaN(n)&&n>0) o.a=n; } else if(f==='d'){ if(finIso(v)) o.d=v; } else if(f==='kat'||f==='n'){ o[f]=String(v).trim(); } else if(f==='k'){ o.k=v; } });
   },0);
 });
@@ -379,7 +440,8 @@ document.addEventListener('click', e=>{
   const hit=e.target.closest&&e.target.closest('rect.fin-hit'); if(hit) return finTipShow(hit);
   const act=e.target.closest('[data-finact]'); if(act){ finM=act.dataset.finact==='open'; finPrz=null; finPrzMsg=null; if(finM) finMies=todayISO().slice(0,7); return finRender(); }
   const pb=e.target.closest('[data-finprz]'); if(pb){ finPrz=pb.dataset.finprz||null; finRender(); if(finPrz) setTimeout(()=>{ const i=$('form.fin-pform [name="a"]'); i&&matchMedia('(pointer:fine)').matches&&i.focus(); },0); return; }
-  const qb=e.target.closest('[data-finq]'); if(qb){ const from=qb.dataset.from; return finPrzelej(from, qb.dataset.finq==='all'?finR(finCalc().saldo[from]):+qb.dataset.finq); }
+  const sb=e.target.closest('[data-finskk]'); if(sb){ store.set('finSkKier', sb.dataset.finskk); return finRender(); }
+  const qb=e.target.closest('[data-finq]'); if(qb){ const from=qb.dataset.from; return finPrzelej(from, qb.dataset.finq==='all'?finR(finPrzMax(from,finCalc())):+qb.dataset.finq); }
   const ub=e.target.closest('[data-finundo]'); if(ub){ const id=ub.dataset.finundo; FIN.ops=FIN.ops.filter(o=>o.id!==id); finPrzMsg=null; saveFin(); finRefresh(); cloud(db=>db.collection('finOps').doc(id).delete()); return; }
   const ob=e.target.closest('[data-fino]'); if(ob){ finOkres=ob.dataset.fino; store.set('finOkres',finOkres); return finRender(); }
   const kb=e.target.closest('[data-fink]'); if(kb){ finK=kb.dataset.fink; store.set('finK',finK); return finRender(); }

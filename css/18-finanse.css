@@ -151,3 +151,32 @@ table.fin-ust{min-width:460px}
 
 /* karta konta: przelewy własne w tym miesiącu (nie liczą się do bilansu) */
 .fin-acc p.fin-przm{margin-top:-4px;font-size:12.5px;opacity:.7}
+
+/* ——— skarbonka (wydzielona część oszczędnościowego) ——— */
+.grid.fin-cells5{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.fin-skc{background:color-mix(in srgb,var(--accent) 7%,var(--card,var(--surface)))!important;border-color:color-mix(in srgb,var(--accent) 28%,var(--line))!important}
+.fin-skc .label{color:var(--accent)}
+.fin-skw{margin-top:-4px!important;font-size:12.5px!important;opacity:.75}
+.fin-skbar{height:7px;border-radius:99px;background:color-mix(in srgb,var(--accent) 14%,transparent);overflow:hidden;margin:2px 0 0}
+.fin-skbar i{display:block;height:100%;border-radius:inherit;background:var(--accent);transition:width .4s}
+.fin-skchk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;user-select:none;padding:6px 10px;border-radius:10px;border:1px dashed color-mix(in srgb,var(--accent) 45%,var(--line));align-self:flex-start}
+.fin-skchk input{accent-color:var(--accent);width:16px;height:16px;margin:0}
+.fin-skchk:has(input:checked){background:color-mix(in srgb,var(--accent) 12%,transparent);border-style:solid;color:var(--accent)}
+.fin-skseg{align-self:flex-start}
+.fin-tag.fin-tag-sk{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+.fin-sub{display:block;font-size:11.5px;color:var(--muted);font-weight:400}
+.fin-skrow td{border-top:0!important} .fin-skrow .px-prod b{font-weight:600;color:var(--accent)}
+.fin-skinfo{margin:0 0 12px;font-size:13px;line-height:1.5;color:var(--muted)} .fin-skinfo b{color:var(--ink)}
+.fin-skstat .cell{gap:4px}
+.fin-skcel .fin-skin{display:flex;align-items:center;gap:6px} .fin-skcel .fin-skin input{width:100%;max-width:130px;font-size:18px;font-weight:600}
+.fin-skcel .fin-skin span{color:var(--muted);font-size:13px}
+.fin-skcel input.g-txt{font-size:13px}
+.fin-skl{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column}
+.fin-skl li{display:flex;align-items:center;gap:12px;padding:8px 2px;border-top:1px solid var(--line);font-size:13.5px}
+.fin-skd{font-family:var(--f-mono);font-size:12px;color:var(--muted);min-width:42px}
+.fin-skn{flex:1;min-width:0}
+.fin-skl b{font-family:var(--f-mono);font-size:13px;white-space:nowrap}
+.fin-skmore{color:var(--muted);font-size:12.5px!important;justify-content:center}
+@media (max-width:640px){ .grid.fin-cells5 .fin-skc{grid-column:1/-1} .fin-skstat{grid-template-columns:1fr 1fr!important} .fin-skcel{grid-column:1/-1} }
+.fin-skcel input.g-in{border:1px solid var(--line)!important;background:var(--surface,#fff)!important;border-radius:10px;padding:7px 10px!important;text-align:left!important;width:100%}
+.fin-skcel input.g-in:focus{border-color:var(--accent)!important;outline:none}

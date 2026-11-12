@@ -23,7 +23,7 @@ function kalZbierz(od, doI){
   if(typeof TR!=='undefined') TR.forEach(t=>add(t.d,{k:'tren', id:t.id, n:t.dn||'Trening', sub:t.pn, done:!!t.e}));
   if(typeof FIN==='object'){
     if(typeof finStaleDaty==='function') FIN.stale.forEach(s=>{ if(s.a>0) finStaleDaty(s, od, doI).forEach(d=>add(d,{k:'plat', n:s.n, kw:s.a, wpl:s.t==='wpl', sub:'stała'})); });
-    const td=todayISO(); FIN.ops.forEach(o=>{ if(o.d>td && o.t!=='prz') add(o.d,{k:'plat', n:o.n||o.kat||'Operacja', kw:o.a, wpl:o.t==='wpl', sub:'zaplanowana'}); });
+    const td=todayISO(); FIN.ops.forEach(o=>{ if(o.d>td && o.t!=='prz' && o.t!=='skb') add(o.d,{k:'plat', n:o.n||o.kat||'Operacja', kw:o.a, wpl:o.t==='wpl', sub:'zaplanowana'}); });
   }
   if(typeof SUB!=='undefined' && typeof subNth==='function') SUB.forEach(s=>{
     if(s.tryb==='anul'){ if(s.do) add(s.do,{k:'plat', n:s.n, sub:'subskrypcja wygasa'}); return; }
