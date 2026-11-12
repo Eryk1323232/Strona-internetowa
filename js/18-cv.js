@@ -137,7 +137,7 @@ function cvPrintHtml(){
   </div></body></html>`;
 }
 function cvPdf(){
-  const html=cvPrintHtml();
+  const html=pdfPrzygotuj(cvPrintHtml());
   if(matchMedia('(pointer:coarse)').matches){   /* telefon: nowa karta → Udostępnij/Drukuj → Zapisz jako PDF */
     const w=window.open('','_blank'); if(w){ w.document.open(); w.document.write(html.replace('</body>','<script>setTimeout(()=>print(),400)<\/script></body>')); w.document.close(); return; } }
   const f=document.createElement('iframe'); f.style.cssText='position:fixed;width:0;height:0;border:0;right:0;bottom:0'; document.body.appendChild(f);

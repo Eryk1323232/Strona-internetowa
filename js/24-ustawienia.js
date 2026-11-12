@@ -51,6 +51,8 @@ function setTresc(k){
       <div class="set-card"><b>Import danych</b><p>Otwiera plik kopii w trybie podglądu — przeglądasz stare dane (np. sprzed roku), a obecne zostają nietknięte.</p>
         <label class="set-sec"><input type="file" accept=".json,application/json" data-setfile="1"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V5M4.5 8.5 8 5l3.5 3.5M2.5 2.5h11"/></svg>Wgraj kopię…</label></div>
     </div>
+    ${setRow('Ramka w PDF','Linia wokół marginesów na każdej stronie — jak obramowanie strony w Wordzie (CV, Wyniki, Notatki)',setSeg('pdfRamka', store.get('pdfRamka','0'), [['0','Bez ramki'],['1','Z ramką']]))}
+    ${setRow('Marginesy w PDF','Wąskie 12,7 mm · Normalne 15 mm · Szerokie 25 mm',setSeg('pdfMarg', store.get('pdfMarg','normalne'), [['waskie','Wąskie'],['normalne','Normalne'],['szerokie','Szerokie']]))}
     ${setRow('Przypomnienie o kopii','Przycisk kopii w górnym pasku zaświeci się po tylu dniach',setSeg('kopiaDni', dni, [['7','Co tydzień'],['14','Co 2 tyg.'],['30','Co miesiąc'],['0','Wyłącz']]))}
     <p class="set-note">Trwałe przywracanie danych: w Arkuszu Google <b>Plik → Historia wersji</b>. Plik kopii trzymaj poza telefonem (Dysk, komputer).</p>`; }
   if(k==='sync'){ const a=arkuszUstawienia(), st=typeof syncState!=='undefined'?syncState:'local', z=a&&a.url.match(/\/s\/([^/]+)\//);

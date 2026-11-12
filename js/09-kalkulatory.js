@@ -138,7 +138,7 @@ function mxPrintHtml(k, id, IMG={}){
   const tytul=id&&L[0]?`${C.title} – ${L[0].n||'mieszanka'}`:C.title;
   const data=new Date().toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'});
   const item=m=>{ const tot=m.parts.reduce((a,p)=>a+Math.max(0,p.v),0), b=m.base&&MXS.pawel.find(x=>x.id===m.base);
-    return `<section class="mx">
+    return `<section class="mx${m.tests.some(t=>t.z.some(z=>IMG[z]))?' zph':''}">
       <h2>${esc(m.n||'Bez nazwy')}</h2>
       ${b?`<p class="base">Lepiszcze: <b>${esc(b.n)}</b></p>`:''}
       ${tot?`<div class="bar">${m.parts.map((p,i)=>p.v>0?`<i style="flex:${p.v};background:${MX_PCOL[i%MX_PCOL.length]}"></i>`:'').join('')}</div>`:''}
@@ -170,7 +170,7 @@ function mxPrintHtml(k, id, IMG={}){
   .res{font-weight:600;white-space:nowrap} .muted{color:#555}
   .note{margin:0;white-space:pre-wrap}
   .ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(42mm,1fr));gap:3mm;margin:0 0 2mm} .ph img{width:100%;max-height:60mm;object-fit:contain;border:1px solid #ddd;border-radius:1.5mm;break-inside:avoid;background:#fafafa}
-  .mx{break-inside:auto} tr.hasph td{border-bottom:0} tr.phr td{padding-top:0}
+  .mx.zph{break-inside:auto} tr.hasph td{border-bottom:0} tr.phr td{padding-top:0}
   @media screen{ body{background:#e8e8e8;padding:20px} .sheet{background:#fff;padding:14mm 15mm;box-shadow:0 2px 12px rgba(0,0,0,.2)} }
   </style></head><body><div class="sheet">
   <header><div><small>${esc(C.label)}</small><h1>${esc(C.title)}</h1></div><div class="meta">${data}<br>${mxCnt(L.length)}</div></header>
@@ -181,7 +181,7 @@ async function mxPdf(k, id){
   const tel=matchMedia('(pointer:coarse)').matches, w0=tel?window.open('','_blank'):null;   /* okno od razu (inaczej telefon zablokuje) */
   const zs=mxList(k).filter(m=>!id||m.id===id).flatMap(m=>m.tests.flatMap(t=>t.z)), IMG={};
   if(zs.length && typeof ntzDataUrl==='function'){ if(w0) w0.document.write('<p style="font:16px sans-serif;padding:20px">Przygotowuję PDF ze zdjęciami…</p>'); await Promise.all(zs.map(async z=>{ IMG[z]=await ntzDataUrl(z); })); }
-  const html=mxPrintHtml(k,id,IMG), name=(html.match(/<title>(.*?)<\/title>/)||[])[1]||'Wyniki';
+  const html=pdfPrzygotuj(mxPrintHtml(k,id,IMG)), name=(html.match(/<title>(.*?)<\/title>/)||[])[1]||'Wyniki';
   if(tel){   /* telefon: nowa karta → Udostępnij/Drukuj → Zapisz jako PDF */
     const w=w0; if(w){ w.document.open(); w.document.write(html.replace('</body>','<script>setTimeout(()=>print(),'+(zs.length?1200:400)+')<\/script></body>')); w.document.close(); return; } }
   const f=document.createElement('iframe'); f.style.cssText='position:fixed;width:0;height:0;border:0;right:0;bottom:0'; document.body.appendChild(f);
