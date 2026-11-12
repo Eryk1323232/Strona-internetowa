@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════════
-   NOTATKI → ZDJĘCIA (przycisk w pasku, wklejanie Ctrl+V, przeciąganie pliku)
+   ZDJĘCIA: Notatki (przycisk w pasku, wklejanie Ctrl+V, przeciąganie pliku) i Wyniki Pawła / moje (js/09)
    ════════════════════════════════════════════════════════════════════════
    Zdjęcie NIE jest zapisywane w treści notatki (komórka Arkusza mieści tylko 50 000 znaków).
    • W treści zostaje sam znacznik <img class="nt-img" data-zid="zd…"> (bez obrazka).
@@ -49,6 +49,16 @@ addEventListener('online', ntzWyslijKolejke);
 setInterval(ntzWyslijKolejke, 120000);
 setTimeout(ntzWyslijKolejke, 4000);
 
+/* wspólne dla notatek i Wyników (js/09): zmniejsza, zapisuje w pamięci, dodaje do kolejki wysyłki → zid */
+async function ntzDodaj(file){
+  if(!/^image\//.test(file.type||'')) throw new Error('To nie jest zdjęcie');
+  const blob=await ntzZmniejsz(file), zid=uid('zd'); await ntzPut(zid, blob); NTZ_URL[zid]=URL.createObjectURL(blob);
+  ntzKolejka.push(zid); ntzZapiszKolejke(); setTimeout(ntzWyslijKolejke, 50);
+  return zid;
+}
+/* obrazek jako data:URL (do PDF) — z pamięci albo z Dysku */
+async function ntzDataUrl(zid){ const b=await ntzBlob(zid); return b?await new Promise(ok=>{ const r=new FileReader(); r.onload=()=>ok(r.result); r.readAsDataURL(b); }):''; }
+
 /* wstawienie zdjęcia w miejscu kursora */
 async function ntZdjWstaw(file){
   const r=ntRich(); if(!r || r.getAttribute('contenteditable')==='false') return;
@@ -74,17 +84,17 @@ async function ntzZaladuj(img){
   const zid=img.dataset.zid; if(!zid) return;
   if(NTZ_URL[zid]){ img.src=NTZ_URL[zid]; return; }
   img.classList.add('ld');
-  if(!NTZ_LAD[zid]) NTZ_LAD[zid]=(async()=>{
-    let b=await ntzGet(zid);
-    if(!b && typeof skGet==='function' && skPolaczenie()){
-      try{ const d=await skGet('zdjeciePobierz',{zid}); const bin=atob(d.dane), u8=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) u8[k]=bin.charCodeAt(k);
-        b=new Blob([u8],{type:d.typ||'image/jpeg'}); await ntzPut(zid,b); }catch(e){}
-    }
-    if(b) NTZ_URL[zid]=URL.createObjectURL(b);
-    delete NTZ_LAD[zid]; return NTZ_URL[zid]||'';
-  })();
+  if(!NTZ_LAD[zid]) NTZ_LAD[zid]=ntzBlob(zid).then(b=>{ if(b) NTZ_URL[zid]=URL.createObjectURL(b); delete NTZ_LAD[zid]; return NTZ_URL[zid]||''; });
   const u=await NTZ_LAD[zid];
   document.querySelectorAll(`img.nt-img[data-zid="${zid}"]`).forEach(x=>{ x.classList.remove('ld'); if(u){ x.src=u; x.classList.remove('brak'); } else { x.classList.add('brak'); x.alt='Zdjęcie niedostępne — otwórz na urządzeniu, z którego je dodano, albo podłącz Arkusz'; } });
+}
+async function ntzBlob(zid){
+  let b=await ntzGet(zid);
+  if(!b && typeof skGet==='function' && skPolaczenie()){
+    try{ const d=await skGet('zdjeciePobierz',{zid}); const bin=atob(d.dane), u8=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) u8[k]=bin.charCodeAt(k);
+      b=new Blob([u8],{type:d.typ||'image/jpeg'}); await ntzPut(zid,b); }catch(e){}
+  }
+  return b;
 }
 const ntzSkan = root => (root.querySelectorAll ? root.querySelectorAll('img.nt-img[data-zid]:not([src])') : []).forEach(ntzZaladuj);
 new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{ if(n.nodeType!==1) return; if(n.matches('img.nt-img[data-zid]:not([src])')) ntzZaladuj(n); else ntzSkan(n); })))
@@ -101,6 +111,7 @@ document.addEventListener('drop', e=>{ const r=e.target.closest&&e.target.closes
 
 /* dwuklik / dłuższe kliknięcie na zdjęcie → podgląd na cały ekran */
 document.addEventListener('dblclick', e=>{ const im=e.target.closest&&e.target.closest('img.nt-img[src]'); if(!im) return; ntzPodglad(im.src); });
+document.addEventListener('click', e=>{ const im=e.target.closest&&e.target.closest('.mx-gal img.nt-img[src]'); if(im) ntzPodglad(im.src); });
 function ntzPodglad(src){
   const d=document.createElement('div'); d.className='ntz-lb'; d.innerHTML=`<img src="${src}" alt=""><button type="button" aria-label="Zamknij">✕</button>`;
   d.onclick=()=>d.remove(); document.body.appendChild(d);
