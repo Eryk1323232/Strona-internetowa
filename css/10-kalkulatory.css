@@ -104,3 +104,10 @@ td.mx-pct{color:var(--muted);width:70px}
 .mx-mv+.mx-mv{border-left:1px solid var(--line)}
 .mx-mv:hover:not(:disabled){background:var(--soft,rgba(127,127,127,.12));color:var(--accent)}
 .mx-mv:disabled{opacity:.3;cursor:default}
+/* przeciąganie mieszanek za uchwyt */
+.mx-grip{flex:none;display:grid;place-items:center;width:22px;height:30px;margin:0 4px 0 -8px;border-radius:7px;color:var(--muted);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.mx-grip svg{width:10px;height:16px;fill:currentColor}
+.mx-grip:hover{background:var(--soft,rgba(127,127,127,.12));color:var(--accent)}
+.mx-list.dragging,.mx-list.dragging *{cursor:grabbing!important;user-select:none;-webkit-user-select:none}
+.mx-item.drag{position:relative;z-index:2;box-shadow:0 12px 32px rgba(40,30,90,.22);outline:2px solid var(--accent);outline-offset:-1px;transform:scale(1.01);transition:box-shadow .15s,transform .15s}
+.mx-ih>.mx-grip+b{flex:1;min-width:0}

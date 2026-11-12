@@ -39,11 +39,36 @@ const MX_COL=['var(--accent)','var(--mark)','var(--ok)','#B58B5A','#8E6BB0','#5A
 const mxList = k => MXS[k].slice().sort((a,b)=>(a.o===null)!==(b.o===null)?(a.o===null?-1:1):a.o===null?b.c-a.c:a.o-b.o);
 function mxMove(k, id, dir){
   const L=mxList(k), i=L.findIndex(m=>m.id===id), j=i+dir; if(i<0||j<0||j>=L.length) return;
-  [L[i],L[j]]=[L[j],L[i]];
+  [L[i],L[j]]=[L[j],L[i]]; mxUstaw(k, L);
+  const el=document.querySelector(`.mx-item[data-id="${CSS.escape(id)}"] [data-mxact="${dir<0?'up':'down'}"]`); if(el&&!el.disabled) el.focus();
+}
+function mxUstaw(k, L){
   const zm=L.filter((m,x)=>m.o!==x); L.forEach((m,x)=>{ m.o=x; });
   saveMx(k); zm.forEach(m=>cloud(db=>{ const {id,...d}=m; return db.collection(MXC[k].col).doc(id).set(d); }));
-  mxRender(); const el=document.querySelector(`.mx-item[data-id="${CSS.escape(id)}"] [data-mxact="${dir<0?'up':'down'}"]`); if(el&&!el.disabled) el.focus();
+  mxRender();
 }
+/* przeciąganie myszką / palcem za uchwyt ⋮⋮ (pointer events — działa też na telefonie) */
+let mxDrag=null;
+document.addEventListener('pointerdown', e=>{
+  const g=e.target.closest&&e.target.closest('.mx-grip'); if(!g||!mxM||e.button>0) return;
+  const it=g.closest('.mx-item'), list=it.parentElement; e.preventDefault();
+  let sc=list; while(sc&&sc!==document.body&&!(sc.scrollHeight>sc.clientHeight&&/(auto|scroll)/.test(getComputedStyle(sc).overflowY))) sc=sc.parentElement;
+  mxDrag={it, list, sc:sc&&sc!==document.body?sc:null, y:e.clientY, id:e.pointerId, raf:0, start:[...list.children].map(x=>x.dataset.id).join()};
+  it.classList.add('drag'); list.classList.add('dragging'); g.setPointerCapture&&g.setPointerCapture(e.pointerId);
+  const scroll=()=>{ if(!mxDrag) return; const s=mxDrag.sc; if(s){ const r=s.getBoundingClientRect(), y=mxDrag.y, v=y<r.top+60?-(r.top+60-y)/4:y>r.bottom-60?(y-(r.bottom-60))/4:0; if(v){ s.scrollTop+=v; mxDragPoz(); } } mxDrag.raf=requestAnimationFrame(scroll); };
+  mxDrag.raf=requestAnimationFrame(scroll);
+});
+function mxDragPoz(){ const d=mxDrag; if(!d) return;
+  const inne=[...d.list.children].filter(x=>x!==d.it);
+  const za=inne.find(x=>{ const r=x.getBoundingClientRect(); return d.y<r.top+r.height/2; });
+  if(za){ if(d.it.nextElementSibling!==za) d.list.insertBefore(d.it, za); } else if(d.list.lastElementChild!==d.it) d.list.appendChild(d.it);
+}
+document.addEventListener('pointermove', e=>{ if(!mxDrag||e.pointerId!==mxDrag.id) return; e.preventDefault(); mxDrag.y=e.clientY; mxDragPoz(); }, {passive:false});
+const mxDragKoniec = e=>{ const d=mxDrag; if(!d||e.pointerId!==d.id) return; mxDrag=null; cancelAnimationFrame(d.raf);
+  d.it.classList.remove('drag'); d.list.classList.remove('dragging');
+  const ids=[...d.list.children].map(x=>x.dataset.id); if(ids.join()===d.start) return;
+  const k=mxM.set, M=new Map(MXS[k].map(m=>[m.id,m])); mxUstaw(k, ids.map(i=>M.get(i)).filter(Boolean)); };
+document.addEventListener('pointerup', mxDragKoniec); document.addEventListener('pointercancel', mxDragKoniec);
 const mxCnt = n => n?n+' '+(n===1?'mieszanka':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'mieszanki':'mieszanek'):'brak wpisów';
 function mxBar(m){ const tot=m.parts.reduce((a,p)=>a+Math.max(0,p.v),0); if(!tot) return '';
   return `<div class="mx-bar" role="img" aria-label="Proporcje">${m.parts.map((p,i)=>p.v>0?`<i style="flex:${p.v};background:${MX_COL[i%MX_COL.length]}" title="${esc(p.n)}: ${fmt(p.v/tot*100,1)}%"></i>`:'').join('')}</div>`; }
@@ -55,7 +80,7 @@ function mxModalHtml(){
     return `<div class="tr-top"><div><span class="label">${esc(C.label)}</span><h2>${esc(C.title)}</h2></div><div class="mx-topr">${pdf}${close}</div></div>
       <button type="button" class="mx-add" data-mxact="new"><span aria-hidden="true">+</span>Dodaj mieszankę</button>
       ${L.length?`<div class="mx-list">${L.map((m,mi)=>{ const tot=m.parts.reduce((a,p)=>a+Math.max(0,p.v),0);
-        return `<article class="mx-item" data-id="${esc(m.id)}"><div class="mx-ih"><b>${esc(m.n||'Bez nazwy')}</b><div class="mx-acts"><span class="mx-ord"><button type="button" class="mx-mv" data-mxact="up" data-id="${esc(m.id)}" title="Przesuń wyżej" aria-label="Przesuń wyżej"${mi===0?' disabled':''}>↑</button><button type="button" class="mx-mv" data-mxact="down" data-id="${esc(m.id)}" title="Przesuń niżej" aria-label="Przesuń niżej"${mi===L.length-1?' disabled':''}>↓</button></span><button type="button" class="td-btn" data-mxact="pdf" data-id="${esc(m.id)}" title="Pobierz tę mieszankę jako PDF">PDF</button><button type="button" class="td-btn" data-mxact="edit" data-id="${esc(m.id)}">Edytuj</button><button type="button" class="g-del" data-mxact="del" data-id="${esc(m.id)}" aria-label="Usuń mieszankę">×</button></div></div>
+        return `<article class="mx-item" data-id="${esc(m.id)}"><div class="mx-ih"><span class="mx-grip" title="Przeciągnij, aby zmienić kolejność" aria-hidden="true"><svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.3"/><circle cx="7" cy="3" r="1.3"/><circle cx="3" cy="8" r="1.3"/><circle cx="7" cy="8" r="1.3"/><circle cx="3" cy="13" r="1.3"/><circle cx="7" cy="13" r="1.3"/></svg></span><b>${esc(m.n||'Bez nazwy')}</b><div class="mx-acts"><span class="mx-ord"><button type="button" class="mx-mv" data-mxact="up" data-id="${esc(m.id)}" title="Przesuń wyżej" aria-label="Przesuń wyżej"${mi===0?' disabled':''}>↑</button><button type="button" class="mx-mv" data-mxact="down" data-id="${esc(m.id)}" title="Przesuń niżej" aria-label="Przesuń niżej"${mi===L.length-1?' disabled':''}>↓</button></span><button type="button" class="td-btn" data-mxact="pdf" data-id="${esc(m.id)}" title="Pobierz tę mieszankę jako PDF">PDF</button><button type="button" class="td-btn" data-mxact="edit" data-id="${esc(m.id)}">Edytuj</button><button type="button" class="g-del" data-mxact="del" data-id="${esc(m.id)}" aria-label="Usuń mieszankę">×</button></div></div>
           ${m.base?(b=>b?`<p class="mx-base">Lepiszcze: <b>${esc(b.n)}</b></p>`:'')(MXS.pawel.find(x=>x.id===m.base)):''}
           ${mxBar(m)}
           <table class="mx-t"><tbody>${m.parts.map((p,i)=>`<tr><td><span class="mx-dot" style="background:${MX_COL[i%MX_COL.length]}"></span>${esc(p.n)}</td><td class="n">${fmt(p.v, Number.isInteger(p.v)?0:2)} ${esc(p.unit)}</td><td class="n mx-pct">${tot?fmt(p.v/tot*100,1)+'%':''}</td></tr>`).join('')}</tbody></table>
