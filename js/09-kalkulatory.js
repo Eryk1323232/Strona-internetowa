@@ -24,7 +24,7 @@ function pCalcs(){
 const MX_UNITS=['%','g','kg','ml','cz. mas.'];
 const mxNorm = (id,v={}) => ({id, n:String(v.n||''), note:String(v.note||''), c:+v.c||0, u:+v.u||+v.c||0,
   parts:(Array.isArray(v.parts)?v.parts:[]).map(p=>({n:String(p.n||''), v:+p.v||0, unit:MX_UNITS.includes(p.unit)?p.unit:'%'})),
-  tests:(Array.isArray(v.tests)?v.tests:[]).map(t=>({n:String(t.n||''), r:String(t.r||''), note:String(t.note||'')})), base:String(v.base||'')});
+  tests:(Array.isArray(v.tests)?v.tests:[]).map(t=>({n:String(t.n||''), r:String(t.r||''), note:String(t.note||'')})), base:String(v.base||''), o:(v.o===undefined||v.o===null||v.o==='')?null:+v.o});
 const MXC={
   pawel:{title:'Wyniki Pawła', col:'mieszanki', key:'mxState', label:'Praca inżynierska · mieszanki lepiszczy',
     rows:[['Asfalt'],['SBS'],['Olej']], ph:'np. Mieszanka 3 — 5% SBS, 2% oleju', tn:'np. Penetracja w 25 °C', tr:'np. 52 ×0,1 mm'},
@@ -35,7 +35,15 @@ for(const k in MXC){ try{ const c=JSON.parse(store.get(MXC[k].key,'null')); if(A
 const saveMx = k => store.set(MXC[k].key, JSON.stringify(MXS[k]));
 let mxM=null; /* {set, mode:'list'} | {set, mode:'edit', id} */
 const MX_COL=['var(--accent)','var(--mark)','var(--ok)','#B58B5A','#8E6BB0','#5AA3A8','var(--bad)','#7A7066'];
-const mxList = k => MXS[k].slice().sort((a,b)=>b.u-a.u);
+/* kolejność ustalana ręcznie strzałkami ↑↓ (pole o); wpisy bez o (starsze) — na górze, od najnowszego */
+const mxList = k => MXS[k].slice().sort((a,b)=>(a.o===null)!==(b.o===null)?(a.o===null?-1:1):a.o===null?b.c-a.c:a.o-b.o);
+function mxMove(k, id, dir){
+  const L=mxList(k), i=L.findIndex(m=>m.id===id), j=i+dir; if(i<0||j<0||j>=L.length) return;
+  [L[i],L[j]]=[L[j],L[i]];
+  const zm=L.filter((m,x)=>m.o!==x); L.forEach((m,x)=>{ m.o=x; });
+  saveMx(k); zm.forEach(m=>cloud(db=>{ const {id,...d}=m; return db.collection(MXC[k].col).doc(id).set(d); }));
+  mxRender(); const el=document.querySelector(`.mx-item[data-id="${CSS.escape(id)}"] [data-mxact="${dir<0?'up':'down'}"]`); if(el&&!el.disabled) el.focus();
+}
 const mxCnt = n => n?n+' '+(n===1?'mieszanka':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'mieszanki':'mieszanek'):'brak wpisów';
 function mxBar(m){ const tot=m.parts.reduce((a,p)=>a+Math.max(0,p.v),0); if(!tot) return '';
   return `<div class="mx-bar" role="img" aria-label="Proporcje">${m.parts.map((p,i)=>p.v>0?`<i style="flex:${p.v};background:${MX_COL[i%MX_COL.length]}" title="${esc(p.n)}: ${fmt(p.v/tot*100,1)}%"></i>`:'').join('')}</div>`; }
@@ -46,8 +54,8 @@ function mxModalHtml(){
     const pdf=L.length?`<button type="button" class="mx-pdf" data-mxact="pdf"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.5h5.5L13 5v9.5H4z"/><path d="M9.5 1.5V5H13M8.5 7.5v5M6.5 10.5l2 2 2-2"/></svg>Pobierz PDF</button>`:'';
     return `<div class="tr-top"><div><span class="label">${esc(C.label)}</span><h2>${esc(C.title)}</h2></div><div class="mx-topr">${pdf}${close}</div></div>
       <button type="button" class="mx-add" data-mxact="new"><span aria-hidden="true">+</span>Dodaj mieszankę</button>
-      ${L.length?`<div class="mx-list">${L.map(m=>{ const tot=m.parts.reduce((a,p)=>a+Math.max(0,p.v),0);
-        return `<article class="mx-item"><div class="mx-ih"><b>${esc(m.n||'Bez nazwy')}</b><div class="mx-acts"><button type="button" class="td-btn" data-mxact="pdf" data-id="${esc(m.id)}" title="Pobierz tę mieszankę jako PDF">PDF</button><button type="button" class="td-btn" data-mxact="edit" data-id="${esc(m.id)}">Edytuj</button><button type="button" class="g-del" data-mxact="del" data-id="${esc(m.id)}" aria-label="Usuń mieszankę">×</button></div></div>
+      ${L.length?`<div class="mx-list">${L.map((m,mi)=>{ const tot=m.parts.reduce((a,p)=>a+Math.max(0,p.v),0);
+        return `<article class="mx-item" data-id="${esc(m.id)}"><div class="mx-ih"><b>${esc(m.n||'Bez nazwy')}</b><div class="mx-acts"><span class="mx-ord"><button type="button" class="mx-mv" data-mxact="up" data-id="${esc(m.id)}" title="Przesuń wyżej" aria-label="Przesuń wyżej"${mi===0?' disabled':''}>↑</button><button type="button" class="mx-mv" data-mxact="down" data-id="${esc(m.id)}" title="Przesuń niżej" aria-label="Przesuń niżej"${mi===L.length-1?' disabled':''}>↓</button></span><button type="button" class="td-btn" data-mxact="pdf" data-id="${esc(m.id)}" title="Pobierz tę mieszankę jako PDF">PDF</button><button type="button" class="td-btn" data-mxact="edit" data-id="${esc(m.id)}">Edytuj</button><button type="button" class="g-del" data-mxact="del" data-id="${esc(m.id)}" aria-label="Usuń mieszankę">×</button></div></div>
           ${m.base?(b=>b?`<p class="mx-base">Lepiszcze: <b>${esc(b.n)}</b></p>`:'')(MXS.pawel.find(x=>x.id===m.base)):''}
           ${mxBar(m)}
           <table class="mx-t"><tbody>${m.parts.map((p,i)=>`<tr><td><span class="mx-dot" style="background:${MX_COL[i%MX_COL.length]}"></span>${esc(p.n)}</td><td class="n">${fmt(p.v, Number.isInteger(p.v)?0:2)} ${esc(p.unit)}</td><td class="n mx-pct">${tot?fmt(p.v/tot*100,1)+'%':''}</td></tr>`).join('')}</tbody></table>
@@ -149,6 +157,7 @@ document.addEventListener('click', e=>{
   const a=b.dataset.mxact;
   if(a==='open'){ mxM={set:b.dataset.set||'pawel', mode:'list'}; return mxRender(); }
   if(a==='close'){ mxM=null; return mxRender(); }
+  if(a==='up'||a==='down'){ return mxMove(mxM.set, b.dataset.id, a==='up'?-1:1); }
   if(a==='pdf'){ return mxPdf(mxM.set, b.dataset.id||''); }
   if(a==='new'){ mxM={...mxM, mode:'edit', id:''}; return mxRender(); }
   if(a==='edit'){ mxM={...mxM, mode:'edit', id:b.dataset.id}; return mxRender(); }
@@ -170,7 +179,7 @@ document.addEventListener('submit', e=>{
   const parts=[...f.querySelectorAll('.mx-row')].map(r=>({n:r.querySelector('[name=pn]').value.trim(), v:Math.max(0,gNum(r.querySelector('[name=pv]').value)||0), unit:r.querySelector('[name=pu]').value})).filter(p=>p.n);
   if(!parts.length){ $('#mxErr').textContent='Dodaj przynajmniej jeden składnik.'; return; }
   const tests=[...f.querySelectorAll('.mx-test')].map(r=>({n:r.querySelector('[name=tn]').value.trim(), r:r.querySelector('[name=tr]').value.trim(), note:r.querySelector('[name=tno]').value.trim()})).filter(t=>t.n||t.r||t.note);
-  const k=mxM.set, old=MXS[k].find(x=>x.id===mxM.id), m=mxNorm(old?old.id:uid('m'),{n, parts, tests, base:f.base?f.base.value:'', note:f.note.value, c:old?old.c:Date.now(), u:Date.now()});
+  const k=mxM.set, old=MXS[k].find(x=>x.id===mxM.id), m=mxNorm(old?old.id:uid('m'),{n, parts, tests, base:f.base?f.base.value:'', note:f.note.value, c:old?old.c:Date.now(), u:Date.now(), o:old?old.o:(MXS[k].some(x=>x.o!==null)?Math.min(...MXS[k].filter(x=>x.o!==null).map(x=>x.o))-1:null)});
   MXS[k]=old?MXS[k].map(x=>x.id===m.id?m:x):[m,...MXS[k]]; saveMx(k); cloud(db=>{ const {id,...d}=m; return db.collection(MXC[k].col).doc(id).set(d); });
   mxM={set:k, mode:'list'}; mxRender(); mxRefresh();
 });
