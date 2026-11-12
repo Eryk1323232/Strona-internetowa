@@ -75,3 +75,27 @@ body.sk-lock{overflow:hidden}
   .sk-btn{width:34px;margin-right:6px}
 }
 @media (max-width:460px){ .hdr .brand .brand-word{display:none} }   /* telefon: samo logo, żeby zmieściła się skrzynka */
+
+/* ——— podgląd, kopiowanie, „Pobrano · Otwórz” ——— */
+.sk-it.has-mini{grid-template-areas:"ico body" "thumb thumb" "acts acts"}
+.sk-thumb{grid-area:thumb;display:block;width:100%;max-height:220px;padding:0;border:1px solid var(--line-soft);border-radius:10px;overflow:hidden;background:color-mix(in srgb,var(--ink) 5%,transparent);cursor:zoom-in;min-height:90px}
+.sk-thumb img{display:block;width:100%;max-height:220px;object-fit:contain}
+.sk-thumb:not(.ok) img{opacity:0} .sk-thumb:not(.ok):not(.brak){animation:ntz-pulse 1.1s ease-in-out infinite alternate}
+.sk-thumb.brak{display:none}
+.sk-acts{flex-wrap:wrap}
+.sk-toastw{position:sticky;bottom:0;margin-top:auto}
+.sk-toast{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:12px 14px;border-radius:14px;background:var(--ink);color:var(--bg);box-shadow:0 10px 30px rgba(20,16,50,.25)}
+.sk-toast>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sk-toast b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sk-toast span{font-size:12px;opacity:.75}
+.sk-tok{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--ok,#2e9e6b);color:#fff;font-weight:700}
+.sk-toast button{flex:none;height:32px;padding:0 14px;border-radius:999px;border:0;background:var(--bg);color:var(--ink);font:700 13px var(--f-body);cursor:pointer}
+.sk-toast .sk-tx{background:transparent;color:var(--bg);opacity:.7;padding:0 6px}
+.sk-lb{position:fixed;inset:0;z-index:1200;background:rgba(10,10,20,.9);display:flex;flex-direction:column}
+.sk-lbbar{display:flex;align-items:center;gap:8px;padding:12px 16px;color:#fff}
+.sk-lbbar b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.sk-lbbar button{height:34px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font:600 13px var(--f-body);cursor:pointer}
+.sk-lbbar button:hover{background:rgba(255,255,255,.2)} .sk-lbbar .sk-lbx{width:34px;padding:0}
+.sk-lbc{flex:1;min-height:0;display:grid;place-items:center;padding:0 16px 16px;cursor:zoom-out}
+.sk-lbc img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5);cursor:default}
+.sk-lbc pre{cursor:text;width:min(900px,100%);max-height:100%;overflow:auto;margin:0;padding:16px 18px;border-radius:10px;background:var(--bg,#fff);color:var(--ink,#111);font:12.5px/1.55 var(--f-mono,monospace);white-space:pre-wrap;word-break:break-word}
