@@ -4,6 +4,7 @@
    • „Pobierz kopię” — jeden plik .json ze WSZYSTKIMI danymi strony (finanse, treningi, plany,
      notatki, To-Do, CV, WoT, posiadówki, subskrypcje…). Bez hasła do Arkusza i bez szkiców.
    • Przycisk świeci na czerwono, gdy od ostatniej kopii minęło 7 dni (KOPIA_DNI).
+     Data ostatniej kopii idzie do Arkusza (cfg → kopia), więc kopia z komputera gasi przycisk też na telefonie.
    • „Wgraj kopię” — PODGLĄD w tej karcie: strona pokazuje dane z pliku (np. sprzed 2 lat),
      nic nie trafia do chmury ani nie nadpisuje obecnych danych. „Zakończ podgląd” wraca do aktualnych.
      (Mechanizm podglądu: PODGLAD w js/02-narzedzia.js, wyłączenie chmury w js/12-synchronizacja.js.)
@@ -21,6 +22,7 @@ function kopiaPobierz(){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=plik; document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   try{ localStorage.setItem('kopiaT', String(t)); }catch(e){}
+  cloud(db=>db.collection('cfg').doc('kopia').set({t}));   /* data kopii wspólna dla telefonu i komputera */
   kopiaBtn(); kopiaRender(`Zapisano plik „${plik}” (${Object.keys(d).length} zestawów danych).`);
 }
 function kopiaWgraj(file){
@@ -33,6 +35,8 @@ function kopiaWgraj(file){
   r.onerror=()=>kopiaRender('Nie udało się odczytać pliku.', true);
   r.readAsText(file);
 }
+/* data ostatniej kopii z innego urządzenia (z Arkusza) — bierzemy nowszą */
+function kopiaFromCloud(t){ t=+t||0; if(t<=kopiaT()) return; try{ localStorage.setItem('kopiaT', String(t)); }catch(e){} kopiaBtn(); if(kopiaOpen) kopiaRender(); }
 function kopiaKoniec(){ try{ sessionStorage.removeItem('podglad'); }catch(e){} location.reload(); }
 
 /* ——— panel (wygląd jak skrzynka: z prawej na komputerze, od dołu na telefonie) ——— */
