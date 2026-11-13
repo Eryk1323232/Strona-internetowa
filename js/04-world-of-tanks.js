@@ -9,7 +9,7 @@
      Każda rzecz osobno: XP z czołgu (Posiadane) + wolne XP. Moduły — XP na TYM czołgu; cena czołgu — XP na POPRZEDNIM
      czołgu w gałęzi (dla pierwszego w gałęzi — na nim samym). Np. 20 000 na czołgu + 30 000 wolnego → stać na działo za 50 000.
    fixExp()  – poprawki gałęzi drzewek (Hirschkäfer, Bassotto, T-34-2, Fauteur/AX-XX).
-   cloud(fn) – zapis do chmury (działa tylko w wersji na claude.ai, patrz 12-synchronizacja.js).
+   cloud(fn) – zapis do chmury (Arkusz Google, patrz 12-synchronizacja.js).
    ════════════════════════════════════════════════════════════════════════ */
 
 const WOT_TABS = [['przep','Przepustka'],['oblig','Obligacje'],['mag','Magazyn'],['exp','Expienie'],['moe','Kalkulator MOE'],['bast','Ostatni Bastion'],['cele','Cele']];

@@ -6,20 +6,17 @@
 .wy-box{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 10px 6px}
 .wy-box svg{display:block;width:100%;height:auto}
 .wy-grid{stroke:var(--line-soft);stroke-width:1}
-.wy-base{stroke:var(--line);stroke-width:1}
+
 .wy-ax{fill:var(--muted);font:500 11px var(--f-body)}
-.wy-xl{fill:var(--ink);font-weight:600} .wy-xl2{font-size:10px}
+ 
 .wy-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 .wy-area{fill:var(--accent);opacity:.08}
 .wy-dot{fill:var(--surface);stroke:var(--accent);stroke-width:2}
 .wy-dot.last,.wy-dot.best{fill:var(--accent)}
 .wy-lbl{fill:var(--ink);font:600 12px var(--f-body)}
-.wy-bar{fill:var(--accent);opacity:.85}
-.wy-err{stroke:var(--ink);stroke-width:1.4;opacity:.55}
-.wy-val{fill:var(--ink);font:600 11.5px var(--f-body)}
+
 .wy-hit{fill:transparent;cursor:pointer;outline:none}
 .wy-hit:focus-visible{stroke:var(--accent);stroke-width:2}
-.wy-box:has(.wy-bar) .wy-hit:hover{fill:color-mix(in srgb,var(--accent) 6%,transparent)}
 .wy-tip{position:absolute;z-index:3;transform:translate(-50%,calc(-100% - 14px));background:var(--ink);color:var(--bg);border-radius:10px;padding:7px 11px;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px -10px rgba(0,0,0,.4)}
 .wy-tip.below{transform:translate(-50%,16px)}
 .wy-tip b{display:block;font-size:16px;font-weight:700;line-height:1.2}
@@ -42,4 +39,3 @@
 .tr-sn{position:relative}
 .tr-sn.pr{background:#F2B33D;color:#3B2A00}
 .tr-sn.pr::after{content:"🏆";position:absolute;right:-10px;top:-10px;font-size:13px}
-.pr-wy .wy-wrap{margin-top:0}

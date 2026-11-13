@@ -2,10 +2,9 @@
    WYKRESY — wspólne rysowanie (SVG) + eksport do PNG
    ════════════════════════════════════════════════════════════════════════
    wyLine(P, o)  — wykres liniowy: P = [{x:'RRRR-MM-DD', y:liczba, tip:'…', sub:'…'}], o = {u:'kg', label:'…'}
-   wyBars(B, o)  — słupki ze „wąsami” (± odchylenie): B = [{n:'nazwa', y:średnia, sd, tip, sub}], o = {u:'%'}
    Kolory z motywu (--accent, --line…), dymek po najechaniu/dotknięciu (.wy-tip), jedna seria = bez legendy.
    wyPng(btn) — zapisuje wykres z najbliższego .wy-box jako PNG (białe/ciemne tło wg motywu, 2× rozdzielczość).
-   Używają: Siłownia → Postępy (js/07), Praca → Wykresy (js/21).
+   Używa: Siłownia → Postępy (js/28-postepy.js).
    ════════════════════════════════════════════════════════════════════════ */
 const wyNice = (lo,hi,n=5) => { if(lo===hi){ lo-=1; hi+=1; } const span=hi-lo, st0=span/n, mag=10**Math.floor(Math.log10(st0)), st=[1,2,2.5,5,10].map(k=>k*mag).find(k=>k>=st0);
   return {lo:Math.floor(lo/st)*st, hi:Math.ceil(hi/st)*st, st}; };
@@ -29,23 +28,6 @@ function wyLine(P, o={}){
     <text x="${(lp[0]-10).toFixed(1)}" y="${(lp[1]-12).toFixed(1)}" text-anchor="end" class="wy-lbl">${wyF(P[P.length-1].y,o.u)}</text>${xl}
     ${pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="16" class="wy-hit" tabindex="0" data-tip="${esc(P[i].tip||wyF(P[i].y,o.u))}" data-sub="${esc(P[i].sub||dPL(P[i].x))}"/>`).join('')}</svg>`;
 }
-function wyBars(Bs, o={}){
-  const W=720,H=280,L=52,R=16,T=22,B=58;
-  if(!Bs.length) return `<div class="wy-empty">Brak danych.</div>`;
-  const hi=Math.max(...Bs.map(b=>b.y+(b.sd||0))), lo=Math.min(0,...Bs.map(b=>b.y-(b.sd||0))), N=wyNice(lo, hi*1.08);
-  const Y=v=>T+(N.hi-v)/(N.hi-N.lo)*(H-T-B), slot=(W-L-R)/Bs.length, bw=Math.min(56, slot*.58);
-  let g=''; for(let v=N.lo; v<=N.hi+1e-9; v+=N.st) g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" class="wy-grid"/><text x="${L-8}" y="${(Y(v)+3.5).toFixed(1)}" text-anchor="end" class="wy-ax">${fmt(v, N.st<1?(N.st<.1?2:1):0)}</text>`;
-  const skr=(s,n)=>s.length>n?s.slice(0,n-1)+'…':s, maxCh=Math.max(6, Math.floor(slot/6.4));
-  const bars=Bs.map((b,i)=>{ const cx=L+slot*(i+.5), y=Y(b.y), y0=Y(Math.max(0,N.lo)), top=Math.min(y,y0), h=Math.max(2,Math.abs(y0-y)), r=Math.min(4,h/2);
-    const path=`M${(cx-bw/2).toFixed(1)} ${(top+h).toFixed(1)} V${(top+r).toFixed(1)} Q${(cx-bw/2).toFixed(1)} ${top.toFixed(1)} ${(cx-bw/2+r).toFixed(1)} ${top.toFixed(1)} H${(cx+bw/2-r).toFixed(1)} Q${(cx+bw/2).toFixed(1)} ${top.toFixed(1)} ${(cx+bw/2).toFixed(1)} ${(top+r).toFixed(1)} V${(top+h).toFixed(1)} Z`;
-    const sd=b.sd?`<line x1="${cx}" x2="${cx}" y1="${Y(b.y+b.sd).toFixed(1)}" y2="${Y(b.y-b.sd).toFixed(1)}" class="wy-err"/><line x1="${cx-6}" x2="${cx+6}" y1="${Y(b.y+b.sd).toFixed(1)}" y2="${Y(b.y+b.sd).toFixed(1)}" class="wy-err"/><line x1="${cx-6}" x2="${cx+6}" y1="${Y(b.y-b.sd).toFixed(1)}" y2="${Y(b.y-b.sd).toFixed(1)}" class="wy-err"/>`:'';
-    return `<path d="${path}" class="wy-bar"/>${sd}<text x="${cx}" y="${(Y(b.y+(b.sd||0))-7).toFixed(1)}" text-anchor="middle" class="wy-val">${fmt(b.y, Math.abs(b.y)>=100?0:Math.abs(b.y)>=10?1:2)}</text>
-      <text x="${cx}" y="${H-B+18}" text-anchor="middle" class="wy-ax wy-xl">${esc(skr(b.n,maxCh))}</text>${b.n2?`<text x="${cx}" y="${H-B+32}" text-anchor="middle" class="wy-ax wy-xl2">${esc(skr(b.n2,maxCh))}</text>`:''}
-      <rect x="${(cx-slot/2).toFixed(1)}" y="${T}" width="${slot.toFixed(1)}" height="${H-T-B}" class="wy-hit" tabindex="0" data-tip="${esc(b.tip||wyF(b.y,o.u))}" data-sub="${esc(b.sub||b.n)}"/>`; }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label||'Wykres słupkowy')}">${g}<line x1="${L}" x2="${W-R}" y1="${Y(Math.max(0,N.lo)).toFixed(1)}" y2="${Y(Math.max(0,N.lo)).toFixed(1)}" class="wy-base"/>${bars}</svg>`;
-}
-
-/* dymek */
 function wyTip(el){ const box=el.closest('.wy-box'), tip=box&&box.querySelector('.wy-tip'); if(!tip) return;
   const r=el.getBoundingClientRect(), b=box.getBoundingClientRect();
   tip.innerHTML=`<b>${el.dataset.tip}</b><span>${el.dataset.sub||''}</span>`; tip.hidden=false;

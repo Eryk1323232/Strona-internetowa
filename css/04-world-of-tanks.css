@@ -74,8 +74,7 @@ form.addrow button:hover{background:var(--accent);border-color:var(--accent);col
 /* expienie */
 .nations{display:flex;flex-direction:column;gap:10px}
 @media (min-width:2100px){.nations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
-.duo{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:0 32px;align-items:start}
-@media (max-width:1100px){.duo{grid-template-columns:minmax(0,1fr)}}
+
 details.nation{border:1px solid var(--line);background:var(--surface)}
 details.nation[open]{border-color:var(--ink)}
 details.nation summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px}
@@ -87,7 +86,7 @@ details.nation summary:hover .nat-name{color:var(--accent)}
 .nat-meta{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
 .nat-xp{font-family:var(--f-mono);font-size:14px;font-weight:500;font-variant-numeric:tabular-nums}
 .nat-body{border-top:1px solid var(--line);padding:14px 16px 16px;display:flex;flex-direction:column;gap:18px}
-.branch-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+
 .branch .tbl-wrap{border-color:var(--line)}
 .branch form.addrow{grid-template-columns:minmax(0,1fr) auto;border:1px dashed var(--line);border-top:0;padding:8px}
 form.addbranch{grid-template-columns:minmax(0,1fr) auto;border:1px dashed var(--muted);padding:10px}

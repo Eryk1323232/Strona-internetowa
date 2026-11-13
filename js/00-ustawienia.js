@@ -12,7 +12,7 @@
    Strona zapamięta to w przeglądarce i od razu usunie z paska adresu.
    (?arkusz=off — zapomina połączenie na tym urządzeniu)
 
-   W wersji na claude.ai te ustawienia są ignorowane — tam działa baza claude.ai.
+   Adres i hasło można też wpisać w ⚙ → Synchronizacja (zapisują się w przeglądarce).
    ════════════════════════════════════════════════════════════════════════ */
 const ARKUSZ_URL   = '';   // np. 'https://script.google.com/macros/s/AKfy..../exec'
 const ARKUSZ_KLUCZ = '';   // np. 'moje-tajne-haslo-123'

@@ -10,34 +10,20 @@
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .hdr-in{max-width:2400px;margin:0 auto;padding:0 clamp(0px,1.6vw,36px);display:flex;align-items:center;gap:36px;min-height:62px}
 .brand{display:flex;gap:12px;align-items:center;text-decoration:none;flex:none}
-.brand-mark{width:30px;height:30px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px}
-.brand-mark i{display:block;background:var(--ink)}
-.brand-mark i:nth-child(2){background:var(--accent)}
-.brand-mark i:nth-child(3){background:transparent;border: 1px solid var(--line)}
-.brand-mark i:nth-child(4){background:var(--mark);border-radius:50% 0 0 0}
+
 .brand b{font-family:var(--f-display);font-stretch:118%;font-weight:800;font-size:15px;letter-spacing:.02em;text-transform:uppercase;line-height:1.1;display:block}
 .brand small{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);letter-spacing:.04em}
 .topnav{flex:1;min-width:0;align-self:stretch;display:flex}
 .navtree{list-style:none;margin:0;padding:0;display:flex;align-items:stretch;gap:4px}
 .navtree>li{position:relative;display:flex}
-.dd-head{display:flex;align-items:stretch}
+
 .navtree .top{font-family:var(--f-display);font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:.09em;text-transform:uppercase;text-decoration:none;
   display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .navtree .ax{font-family:var(--f-mono);font-weight:500;font-size:10.5px;color:var(--muted);letter-spacing:0}
-.dd-btn{background:none;border:0;border-bottom:3px solid transparent;cursor:pointer;color:var(--ink)}
-.dd-btn::after{color:var(--muted);content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s}
-.navtree .top:hover,.dd-btn:hover{color:var(--accent)}
+
+.navtree .top:hover{color:var(--accent)}
 .navtree .top[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
-.navtree li.cur .dd-btn{border-bottom-color:var(--accent);color:var(--accent)}
-.dd-menu{list-style:none;margin:0;padding:6px 0;position:absolute;top:100%;left:0;min-width:230px;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);
-  box-shadow:0 14px 30px rgba(0,0,0,.18);display:none;z-index:31}
-.dd-menu a{display:flex;align-items:center;gap:10px;text-decoration:none;font-size:14px;padding:9px 16px;color:var(--ink);white-space:nowrap}
-.dd-menu a::before{content:"";width:7px;height:7px;border:1px solid var(--muted);flex:none}
-.dd-menu a:hover{background:var(--bg);color:var(--accent)}
-.dd-menu a[aria-current="page"]{font-weight:600}
-.dd-menu a[aria-current="page"]::before{background:var(--accent);border-color:var(--accent)}
-li.dd:not(.shut):hover .dd-menu,li.dd:not(.shut):focus-within .dd-menu,li.dd.open .dd-menu{display:block}
-li.dd:not(.shut):hover .dd-btn::after,li.dd.open .dd-btn::after{transform:translateY(1px) rotate(-135deg)}
+
 .hdr-tools{display:flex;align-items:center;gap:8px;margin-left:auto;flex:none}
 .theme-seg{position:relative;display:grid;grid-template-columns:repeat(3,32px);height:32px;border:1px solid var(--line);background:var(--surface);padding:2px;gap:0;flex:none}
 .theme-seg button{position:relative;z-index:1;background:none;border:0;cursor:pointer;display:grid;place-items:center;color:var(--muted);padding:0;transition:color .2s}
@@ -47,8 +33,7 @@ li.dd:not(.shut):hover .dd-btn::after,li.dd.open .dd-btn::after{transform:transl
 .theme-seg .knob{position:absolute;top:2px;left:2px;width:32px;height:26px;background:var(--accent);transition:transform .25s cubic-bezier(.3,.7,.2,1)}
 .theme-seg[data-pos="1"] .knob{transform:translateX(32px)}
 .theme-seg[data-pos="2"] .knob{transform:translateX(64px)}
-.theme-btn{background:none;border:1px solid var(--line);padding:5px 10px;cursor:pointer;font-family:var(--f-mono);font-size:11px;white-space:nowrap}
-.theme-btn:hover{border-color:var(--ink)}
+
 .menu-btn{display:none;background:none;border:1px solid var(--line);padding:6px 12px;font-family:var(--f-mono);font-size:12px;cursor:pointer}
 
 main{min-width:0;padding-block:0 0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}

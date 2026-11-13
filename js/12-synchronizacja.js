@@ -1,18 +1,14 @@
 /* ════════════════════════════════════════════════════════════════════════
    SYNCHRONIZACJA Z CHMURĄ
    ════════════════════════════════════════════════════════════════════════
-   Dwie możliwości (wybierana automatycznie):
-   • claude.ai  — strona dostaje window.claude.use('db') (wspólna baza claude.ai).
-   • GitHub Pages — dane idą do Arkusza Google przez Google Apps Script,
-     jeśli w js/00-ustawienia.js podano ARKUSZ_URL i ARKUSZ_KLUCZ
-     (albo otwarto stronę z ?arkusz=…&klucz=…).
-   Bez żadnej z nich wszystko zapisuje się tylko w przeglądarce (localStorage).
+   Dane idą do Arkusza Google przez Google Apps Script (apps-script/Kod.gs), jeśli podano
+   adres i hasło: ⚙ → Synchronizacja, js/00-ustawienia.js (ARKUSZ_URL, ARKUSZ_KLUCZ)
+   albo link ?arkusz=…&klucz=…. Bez tego wszystko zapisuje się tylko w przeglądarce (localStorage).
 
    Wszystkie podstrony zapisują dane tym samym poleceniem:
      cloud(db => db.collection('nazwa').doc(id).set({...}) / .update({...}) / .delete())
    i nasłuchują zmian przez db.collection('nazwa').onSnapshot(...).
-   arkuszDb() niżej udaje dokładnie te polecenia, więc reszta kodu nie wie,
-   czy pod spodem jest claude.ai, czy Arkusz Google.
+   arkuszDb() niżej obsługuje te polecenia (zapis w kolejce, odczyt co 30 s).
    ════════════════════════════════════════════════════════════════════════ */
 
 /* ——— adres i hasło Arkusza: z linku (?arkusz=…&klucz=…), z pamięci przeglądarki albo z js/00-ustawienia.js ——— */
@@ -31,12 +27,12 @@ function arkuszUstawienia(){
   return /^https:\/\/script\.google(usercontent)?\.com\//.test(url) ? {url:url.trim(), klucz} : null;
 }
 
-/* czy wysłać dane z przeglądarki do pustej kolekcji? Na claude.ai — tak (jak dotąd).
-   Przy Arkuszu — tylko przy pierwszym połączeniu tego urządzenia; później pusta karta znaczy
-   „wszystko usunięto”, a nie „wyślij moje stare dane” (inaczej usunięte wpisy wracałyby z innego urządzenia). */
-const wyslijLokalne = () => !(gdb && gdb.arkusz) || gdb.pierwszyRaz;
+/* czy wysłać dane z przeglądarki do pustej kolekcji? Tylko przy pierwszym połączeniu tego urządzenia;
+   później pusta karta znaczy „wszystko usunięto”, a nie „wyślij moje stare dane”
+   (inaczej usunięte wpisy wracałyby z innego urządzenia). */
+const wyslijLokalne = () => !!(gdb && gdb.pierwszyRaz);
 
-/* ——— „baza” na Arkuszu Google: te same polecenia co baza claude.ai ———
+/* ——— „baza” na Arkuszu Google ———
    • zapisy trafiają do kolejki (zapamiętanej w przeglądarce — przetrwają brak internetu i odświeżenie),
      wysyłane paczką w tle po ok. 1 s; Arkusz w odpowiedzi odsyła aktualny stan wszystkich danych,
    • co 30 s (i po powrocie do karty) strona pobiera stan z Arkusza — zmiany z telefonu widać na laptopie,
@@ -146,14 +142,14 @@ function arkuszDb(url, klucz){
 
 (async()=>{
   if(PODGLAD) return;                              /* podgląd starej kopii — bez chmury */
-  const ark = window.claude?.use ? null : arkuszUstawienia();
-  if(!window.claude?.use && !ark) return;          /* brak chmury — zapis tylko w przeglądarce */
+  const ark = arkuszUstawienia();
+  if(!ark) return;                                 /* brak Arkusza — zapis tylko w przeglądarce */
   syncState='wait';
-  const timer = setTimeout(()=>{ if(syncState==='wait'){ syncState=ark?'err':'local'; if(ark&&!window.arkuszBlad) window.arkuszBlad='Arkusz nie odpowiedział w ciągu 25 s'; refreshAll(); } }, ark?25000:10000);
+  const timer = setTimeout(()=>{ if(syncState==='wait'){ syncState='err'; if(!window.arkuszBlad) window.arkuszBlad='Arkusz nie odpowiedział w ciągu 25 s'; refreshAll(); } }, 25000);
   const fail = ()=>{ clearTimeout(timer); syncState='err'; refreshAll(); };
   const ok = ()=>{ clearTimeout(timer); syncState='cloud'; saveLocal(); refreshAll(); };
   try{
-    gdb = ark ? arkuszDb(ark.url, ark.klucz) : await window.claude.use('db');
+    gdb = arkuszDb(ark.url, ark.klucz);
     if(!gdb){ clearTimeout(timer); syncState='local'; refreshAll(); return; }
     /* pierwsze połączenie z pustą kolekcją (np. świeży Arkusz) → wyślij to, co jest w przeglądarce */
     let gaF=true, maF=true, cfF=true, exF=true, obF=true;
@@ -174,9 +170,6 @@ function arkuszDb(url, klucz){
     let wcF=true;   /* WoT → Cele (js/23-wot-cele.js) */
     gdb.collection('wotCele').onSnapshot(s=>{ if(wcF&&s.empty&&wyslijLokalne()&&WC.length){ wcF=false; WC.forEach(wcPush); return ok(); }
       wcF=false; WC=s.docs.map(d=>wcNorm(d.id,d.data())); saveWc(); wcRefresh(); ok(); }, fail);
-    let bdF=true;   /* Praca — dziennik badań (js/21-praca.js) */
-    gdb.collection('badania').onSnapshot(s=>{ if(bdF&&s.empty&&wyslijLokalne()&&PR.length){ bdF=false; PR.forEach(prPush); return ok(); }
-      bdF=false; PR=s.docs.map(d=>prNorm(d.id,d.data())); savePr(); if(!prM) prRefresh(); ok(); }, fail);
     Object.keys(MXC).forEach(k=>{ let first=true; const col=MXC[k].col;
       gdb.collection(col).onSnapshot(s=>{ if(first&&s.empty&&wyslijLokalne()&&MXS[k].length){ first=false; MXS[k].forEach(m=>{ const {id,...d}=m; cloud(db=>db.collection(col).doc(id).set(d)); }); return ok(); }
         first=false; MXS[k]=s.docs.map(d=>mxNorm(d.id,d.data())); saveMx(k); if(!(mxM&&mxM.mode==='edit')) mxRefresh(); ok(); }, fail); });

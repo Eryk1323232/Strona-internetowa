@@ -121,7 +121,7 @@ section.block{border-top:0;margin-top:34px;padding-top:0}
 .block-head h2::before{display:none}
 
 /* ——— karty, kafle, panele ——— */
-.cell,.grid .cell:nth-child(n),.widget,.home-tile,.g-form,.calc,.cv,.chart,.day,.tier,details.nation,.branch,.nt-tile,.td-today,.px-row,.dk-card,.calc-card,.sub,.pl-card,.pr-card,.tr-ex,.tr-day,.tr-entry,.kp-card,.fin-acc,.bk-card,.mx-card{
+.cell,.grid .cell:nth-child(n),.widget,.g-form,.calc,.cv,.chart,.day,.tier,details.nation,.branch,.nt-tile,.td-today,.px-row,.dk-card,.calc-card,.sub,.pl-card,.tr-ex,.tr-day,.tr-entry,.kp-card,.fin-acc,.bk-card{
   background-color:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
 .grid{gap:14px;background:none;border:0}
 .grid .cell:first-child{border-top:1px solid var(--line)}
@@ -132,7 +132,7 @@ section.block{border-top:0;margin-top:34px;padding-top:0}
 .tbl-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
 .tier.wide{background:var(--surface)}
 .day-head,.day:nth-child(even) .day-head{background:var(--soft);border-radius:var(--r) var(--r) 0 0;border-bottom:1px solid var(--line)}
-.tier-head b,.branch-sum b,.nat-name,.td-head h2,.nt-tile b,.nt-title,td.left b,.result .v,.tdd-title,.tdd-in.tdd-title,.px-amt,.home-tile b,input.pl-dname,input.pl-pname,.branch-ttl h3{font-family:var(--f-display);font-variation-settings:normal;text-transform:none;letter-spacing:-.02em}
+.tier-head b,.branch-sum b,.nat-name,.td-head h2,.nt-tile b,.nt-title,td.left b,.result .v,.tdd-title,.tdd-in.tdd-title,.px-amt,input.pl-dname,input.pl-pname,.branch-ttl h3{font-family:var(--f-display);font-variation-settings:normal;text-transform:none;letter-spacing:-.02em}
 .tier-head b,.branch-sum b{font-weight:600}
 .nat-name{font-weight:600;font-size:17px}
 .td-head h2{font-weight:700;font-size:24px}
@@ -156,23 +156,22 @@ tr.px-sum td,tr.px-sum td.px-c b{font-family:var(--f-body);font-weight:600;backg
 tr.px-adj td{background:color-mix(in srgb,var(--band) 50%,var(--surface))}
 
 /* ——— pola i przyciski ——— */
-input.num-in,.field input,.field select,.g-form input,.nt-search,.td-add,.td-newlist input,.nt-catin input,select.td-sel,form.addrow input,.calc input,input.g-in,input.pl-in,input.ed,input.num-in.xp,
+input.num-in,.field input,.field select,.g-form input,.nt-search,.td-add,.td-newlist input,select.td-sel,form.addrow input,.calc input,input.g-in,input.pl-in,input.ed,input.num-in.xp,
 form.px-additem input,form.sub-add input,form.sub-add select,.px-addp input,.tr-panel input,.tr-panel select,.tr-panel textarea,form.fin-qadd input,form.fin-qadd select,.mx-f input,.mx-f select,.mx-f textarea{border-radius:var(--r-sm)}
 .tr-panel input:focus,.tr-panel select:focus,.tr-panel textarea:focus,.g-form input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 14%,transparent);outline:none}
 /* główne przyciski: czarne (jak „Write a message”) */
-.g-form button,.nt-new,form.px-additem button,form.sub-add button,.tr-save,form.fin-qadd button,.kp-main,.td-add button,form.addrow button{
+.g-form button,form.px-additem button,form.sub-add button,.tr-save,form.fin-qadd button,.kp-main,.td-add button,form.addrow button{
   background:var(--btn);color:var(--btn-ink);border:0;border-radius:12px;font:600 14px var(--f-body);letter-spacing:0;text-transform:none}
-.g-form button:hover,.nt-new:hover,form.px-additem button:hover,form.sub-add button:hover,.tr-save:hover,form.fin-qadd button:hover,.kp-main:hover,.td-add button:hover,form.addrow button:hover{background:color-mix(in srgb,var(--btn) 82%,var(--accent));color:var(--btn-ink)}
+.g-form button:hover,form.px-additem button:hover,form.sub-add button:hover,.tr-save:hover,form.fin-qadd button:hover,.kp-main:hover,.td-add button:hover,form.addrow button:hover{background:color-mix(in srgb,var(--btn) 82%,var(--accent));color:var(--btn-ink)}
 .td-add button{border-radius:0}
 /* drugorzędne: białe z ramką */
-.td-btn,.nt-pin,.dk-open,button.zb,.px-chip,.tr-addset,.tr-chg,.kp-file{border-radius:10px}
+.td-btn,.dk-open,button.zb,.px-chip,.tr-addset,.tr-chg,.kp-file{border-radius:10px}
 .td-btn{background:var(--surface);border:1px solid var(--line);font-family:var(--f-body);font-weight:500}
 .td-btn:hover{border-color:var(--ink)}
 .dk-plus{border-radius:12px;border:1.5px dashed color-mix(in srgb,var(--muted) 60%,transparent)}
-.chip,.nt-cat,input.pl-tag,.day-head .tag,.tr-pill,span.sub-st,button.sub-st{border-radius:999px}
-input.sq,.td-chk,.md-chk{border-radius:6px}
+input.pl-tag,.day-head .tag,.tr-pill,span.sub-st,button.sub-st{border-radius:999px}
+input.sq,.td-chk{border-radius:6px}
 .mx-pdf{border-radius:12px}
-.pr-ai{border-radius:999px}
 
 /* ——— okienka ——— */
 .tr-scrim,.sk-scrim{background:rgba(24,25,52,.28);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
@@ -189,23 +188,18 @@ input.sq,.td-chk,.md-chk{border-radius:6px}
 h1.hello-t{margin:0;font-size:clamp(26px,3.2vw,36px)}
 .hello-time{text-align:right}
 .hello-time b{display:block;font:600 34px/1 var(--f-mono);letter-spacing:-.02em}
-.home-tile{min-height:170px}
-.home-tile:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--accent) 40%,var(--line));box-shadow:0 2px 4px rgba(28,29,60,.05),0 18px 36px -18px rgba(28,29,60,.3)}
-.home-tile b{font-weight:700;font-size:24px}
-.ht-ic{border-radius:14px;background:var(--soft);border:0}
+
 .ht-go{background:var(--btn);color:var(--btn-ink)}
-.home-tile:hover .ht-go{background:var(--accent);color:var(--accent-ink)}
+
 .home-widgets{margin-top:22px}
 .widget{padding:18px 20px}
 .ac-face{fill:var(--soft)}
 
 /* ——— dolny pasek: dopasowany do ramy ——— */
 .sbar{left:14px;right:14px;bottom:8px;height:var(--sbar-h);border:1px solid var(--shell-line);border-radius:14px;background:var(--shell);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 10px 30px -18px rgba(28,29,60,.35)}
-.sb-btn,.sb-date,.sb-sync{font-family:var(--f-body);font-size:12.5px;letter-spacing:0;text-transform:none}
+.sb-date,.sb-sync{font-family:var(--f-body);font-size:12.5px;letter-spacing:0;text-transform:none}
 
 /* ——— drobne poprawki kolorów po zmianie akcentu ——— */
-.pr-k li.warn{color:var(--bad)}
-.pr-ai{border-color:var(--accent);color:var(--accent)}
 .kp-btn.due{border-color:var(--bad);color:var(--bad)}
 .kp-dot{background:var(--bad)}
 .kp-bar{background:var(--accent)}
@@ -255,7 +249,7 @@ h1.hello-t{margin:0;font-size:clamp(26px,3.2vw,36px)}
 
 /* ——— cienkie linie podziału (przeniesione ze starego 14-wyglad.css) ——— */
 .tier-head,.branch-top{border-bottom:1px solid var(--line)}
-.nat-body,.td-head,.td-items,.nt-ed,.nt-aside{border-top:1px solid var(--line)}
+.nat-body,.td-head,.td-items,.nt-ed{border-top:1px solid var(--line)}
 .td-tabs{border-bottom:0}
 details.nation[open]{border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
 details.nation summary::before{border-color:var(--muted)}
@@ -268,7 +262,7 @@ details.nation summary::before{border-color:var(--muted)}
 .tier.wide{background:linear-gradient(170deg,color-mix(in srgb,var(--band) 40%,var(--surface)),var(--surface) 40%)}
 
 /* pola wyboru: delikatna ramka zamiast czarnej */
-input.sq,.td-chk,.md-chk{border-color:color-mix(in srgb,var(--muted) 75%,transparent)}
+input.sq,.td-chk{border-color:color-mix(in srgb,var(--muted) 75%,transparent)}
 /* przycisk odświeżania (js/31-odswiez.js) */
 .hdr-tools .rf-btn svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .hdr-tools .rf-btn.spin svg{animation:rf-spin .7s linear infinite}

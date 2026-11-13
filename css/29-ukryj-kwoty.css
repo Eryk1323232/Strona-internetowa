@@ -2,8 +2,7 @@
 .kw{transition:filter .2s}
 body.kasa-ukryta .kw,
 body.kasa-ukryta :is(#finModal,#bkModal,#sbModal,.tr-modal.ok-out) :is(input[inputmode="decimal"],input.g-num,input.bk-a),
-body.kasa-ukryta :is(#finModal,#bkModal,#sbModal,#bkPage,.tr-modal.ok-out) svg text,
-body.kasa-ukryta :is(#finModal,#bkModal,#sbModal,.tr-modal.ok-out) :is(.wy-tip,.wy-tt,[class*="tip"]){filter:blur(7px);user-select:none}
+body.kasa-ukryta :is(#finModal,#bkModal,#sbModal,#bkPage,.tr-modal.ok-out) svg text{filter:blur(7px);user-select:none}
 body.kasa-ukryta .kw{display:inline-block;border-radius:6px;color:var(--ink)!important;background:color-mix(in srgb,var(--ink) 8%,transparent)}
 body.kasa-ukryta :is(#finModal,#bkModal,#sbModal,.tr-modal.ok-out) input:focus{filter:none}
 body.kasa-ukryta .fin-skbar i{opacity:.25}

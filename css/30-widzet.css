@@ -1,6 +1,6 @@
 /* ════════ WIDŻET NA PULPIT (js/39-widzet.js): ./?widzet=1 ════════ */
 html.tryb-widzet body{padding:0!important;min-height:100vh;background:var(--page-bg)}
-html.tryb-widzet :is(aside.side,.side-scrim,header.hdr,#sbar,.kp-wrap,#skBtn,.sk-fab){display:none!important}
+
 html.tryb-widzet .shell{display:block;min-height:100vh;margin:0!important;border:0;border-radius:0;background:transparent;box-shadow:none}
 html.tryb-widzet .mainc{padding:0}
 html.tryb-widzet main{border:0;border-radius:0;background:transparent}
@@ -43,5 +43,4 @@ html.tryb-widzet .page{padding:0!important}
 /* Dziś / Kasa: karty ze strony głównej w jednej kolumnie */
 .wz-hd{display:flex!important;flex-direction:column;gap:10px}
 .wz-hd .hd-card,.wz-body .w-fin{margin:0;padding:14px}
-.wz-body .w-fin .wf-form{flex-wrap:wrap}
-.wz-body .w-fin .wf-form>*{flex:1 1 120px;min-width:0}
+

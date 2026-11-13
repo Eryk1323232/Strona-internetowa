@@ -86,7 +86,7 @@ tr.fin-day td{background:color-mix(in srgb,var(--soft) 70%,var(--surface))!impor
 tr.fin-day b{font-weight:600;text-transform:capitalize;font-size:13.5px}
 tr.fin-day span{float:right;display:inline-flex;gap:12px;font-family:var(--f-mono);font-size:13px}
 tr.fin-day i{font-style:normal}
-table.fin-t input.fin-katin{width:130px}
+
 table.fin-t td.fin-n input{width:100%;min-width:120px}
 table.fin-t td.fin-n small{display:block;font-size:11px;color:var(--mark);padding-left:8px}
 table.fin-t td.fin-kc{font-size:13px;color:var(--muted)}
@@ -106,7 +106,7 @@ input.fin-dt:focus{outline:1px solid var(--accent)}
 table.fin-st td{white-space:nowrap}
 table.fin-st input.fin-sn{font-weight:700;min-width:120px;width:140px}
 table.fin-st .g-date{width:128px;font-size:13px}
-table.fin-st input.fin-katin{width:100px}
+
 table.fin-st input.bk-a{width:84px}
 td.fin-dz{color:var(--muted);font-size:13.5px}
 td.fin-dz input.g-q{width:44px;text-align:center}
@@ -143,7 +143,7 @@ table.fin-ust{min-width:460px}
   form.fin-add input[name=a]{flex:1 1 100px} form.fin-add input[name=kat],form.fin-add select{flex:1 1 140px} form.fin-add input[name=n]{flex:1 1 100%} form.fin-add input[type=date]{flex:1 1 140px} form.fin-add button{flex:1 1 100%}
   .fin-typ{flex:1 1 100%} .fin-typ label{flex:1;text-align:center}
   .fin-avgcells{grid-template-columns:minmax(0,1fr)!important}
-  table.fin-t .fin-kc{display:none} table.fin-t input.fin-katin{width:96px}
+  table.fin-t .fin-kc{display:none} 
   .fin-mnav b{min-width:120px}
   .grid.fin-cells .fin-acc{grid-column:1/-1}
   .fin-cells .big{font-size:24px!important} .fin-cells .big small{font-size:10px} .fin-hbar .bk-chips{flex-wrap:nowrap;overflow-x:auto;max-width:100%}

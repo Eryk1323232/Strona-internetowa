@@ -50,7 +50,7 @@ form.px-additem input[name=n]{width:200px} form.px-additem input[name=p]{width:1
 form.px-additem input:focus{outline:none;border-color:var(--accent)}
 form.px-additem button{height:36px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);padding:0 16px;cursor:pointer;font-family:var(--f-body);font-weight:600;font-size:13.5px}
 form.px-additem button:hover{background:var(--accent);color:var(--accent-ink)}
-.px-tip{font-size:12px;color:var(--muted);font-weight:400;font-family:var(--f-body)}
+
 tr.px-adj td{background:color-mix(in srgb,var(--band-2) 35%,var(--surface));font-family:var(--f-body);font-weight:500}
 input.px-adjin{width:70px;text-align:center}
 tr.px-sum td{background:color-mix(in srgb,var(--band) 45%,var(--surface));font-family:var(--f-display);font-size:16px;font-weight:600;padding:10px 8px;border-bottom:0}

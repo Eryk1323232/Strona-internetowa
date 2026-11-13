@@ -8,7 +8,8 @@
    Nowy kalkulator = nowa karta w pCalcs() + własny kod pod spodem.
    ════════════════════════════════════════════════════════════════════════ */
 
-/* karty „Wyniki Pawła / Wyniki moje” — wyświetlane w Studia → Praca (pPraca, js/21-praca.js) */
+/* karty „Wyniki Pawła / Wyniki moje” — strona Studia → Praca */
+function pPraca(){ return `<h1>Pra<span class="acc">ca</span></h1><div class="calc-cards pr-wyn" id="prWyn">${mxKarty()}</div>`; }
 function mxKarty(){
   return `    <button type="button" class="calc-card res" data-mxact="open" data-set="pawel"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6h12M20 6v12L9 38a3 3 0 0 0 2.6 4.5h24.8A3 3 0 0 0 39 38L28 18V6"/><path d="M13.5 30h21"/><circle cx="21" cy="35" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="37" r="1.2" fill="currentColor" stroke="none"/></svg></div>
       <h2>Wyniki Pawła</h2><span class="calc-count" id="mxCount-pawel">${mxCnt(MXS.pawel.length)}</span><span class="calc-open">Otwórz →</span></button>

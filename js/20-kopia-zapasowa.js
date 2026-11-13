@@ -16,6 +16,8 @@ const kopiaT = () => { try{ return +localStorage.getItem('kopiaT')||0; }catch(e)
 const kopiaDue = () => { KOPIA_DNI=+store.get('kopiaDni','7')||0; return !PODGLAD && KOPIA_DNI>0 && Date.now()-kopiaT() > KOPIA_DNI*864e5; };
 const kopiaDzien = t => new Date(t).toLocaleDateString('pl-PL',{day:'numeric', month:'long', year:'numeric'});
 
+/* sprzątanie po usuniętych funkcjach (dziennik badań, „ostatnio odwiedzane”) — żeby nie wracały w kopiach */
+['prState','prFiltr','prWyB','prWyW','prWyP','recentPages'].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
 function kopiaDane(){ const d={}; try{ Object.keys(localStorage).forEach(k=>{ if(!KOPIA_POMIN(k)) d[k]=localStorage.getItem(k); }); }catch(e){} return d; }
 async function kopiaPobierz(zeZdjeciami){
   const d=kopiaDane(), t=Date.now(), json=JSON.stringify({app:'Pracownia', v:1, t, d}, null, 1);

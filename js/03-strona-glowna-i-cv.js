@@ -1,47 +1,14 @@
 /* ════════════════════════════════════════════════════════════════════════
    STRONA GŁÓWNA I CV
    ════════════════════════════════════════════════════════════════════════
-   pStart() – strona główna: powitanie, 3 kafle „ostatnio odwiedzane”, widżety
-              (zegar, pogoda, szybkie notatki, szybki wydatek → js/17-finanse.js).
-              • ostatnio odwiedzane zapisuje router (js/13-router.js → zapamiętajWizytę),
-              • pogodę pobiera js/11-pasek-dolny.js (wspólna dla widżetu i paska),
-              • ikony kafli i nazwy działów: stałe HOME_ICONS / HOME_SECTION niżej.
+   pStart() – strona główna: powitanie, pulpit (js/26-pulpit.js) i widżety
+              (pogoda, szybkie notatki, szybki wydatek → js/17-finanse.js, cele WoT).
+              • pogodę pobiera js/11-pasek-dolny.js.
    pCV()    – podstrona O mnie → CV: w js/18-cv.js.
    Każda funkcja pXxx() zwraca HTML strony jako tekst; router wstawia go do <div id="page">.
    ════════════════════════════════════════════════════════════════════════ */
 
 /* ——— STRONA GŁÓWNA ——— */
-/* ikony kafli (SVG 24×24, rysowane kreską) — klucz = adres strony po # */
-const HOME_ICONS={
-  todo:'<path d="M4 6.5l2 2 3.5-3.5M4 13.5l2 2 3.5-3.5M13 7h7M13 14h7M4 20h16"/>',
-  notatki:'<path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 7h3"/>',
-  kalkulatory:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h0M16 11h0M8 15h2M12 15h0M16 15h0M8 18h2M12 18h4"/>',
-  dyski:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
-  praca:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7 15h10"/>',
-  wot:'<path d="M3 15h14l2-3H5zM6 12l1-3h7l1 3M12 9V6h7"/><circle cx="6" cy="18" r="1.5"/><circle cx="10" cy="18" r="1.5"/><circle cx="14" cy="18" r="1.5"/>',
-  silownia:'<path d="M3 12h18M6 8v8M18 8v8M3 10v4M21 10v4"/>',
-  posiadowki:'<path d="M8 3h8l-1 7a3 3 0 0 1-6 0zM12 13v6M8 21h8"/>',
-  subskrypcje:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/><path d="M16 14.5a1.8 1.8 0 1 0 0 .01"/>',
-  pieniadze:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 16l3-3 2.5 2 4-4.5"/>',
-  cv:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>'
-};
-const HOME_SECTION={studia:'Studia', gry:'Gry', inne:'Inne', 'o-mnie':'O mnie'};
-const HOME_FALLBACK=['todo','silownia','wot'];           /* gdy nie odwiedziłeś jeszcze 3 stron */
-
-function homeAgo(t){ const m=Math.round((Date.now()-t)/60000);
-  if(m<1) return 'przed chwilą'; if(m<60) return m+' min temu'; const h=Math.round(m/60); if(h<24) return h+' godz. temu';
-  const d=Math.round(h/24); return d===1?'wczoraj':d+' dni temu'; }
-function homeRecent(){ let L=[]; try{ L=JSON.parse(store.get('recentPages','[]'))||[]; }catch(e){}
-  L=L.filter(x=>ROUTES[x.k] && x.k!=='start');
-  HOME_FALLBACK.forEach(k=>{ if(L.length<3 && !L.some(x=>x.k===k)) L.push({k,t:0}); });
-  return L.slice(0,3); }
-function homeTile(x,i){ const r=ROUTES[x.k];
-  return `<a class="home-tile ht-${i}" href="#${x.k}">
-    <span class="ht-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${HOME_ICONS[x.k]||HOME_ICONS.notatki}</svg></span>
-    <span class="label">${esc(HOME_SECTION[r.parent]||'Pracownia')}</span>
-    <b>${esc(r.title)}</b>
-    <span class="ht-foot"><span>${x.t?homeAgo(x.t):'proponowane'}</span><span class="ht-go" aria-hidden="true">→</span></span></a>`; }
-
 function homeGreeting(){ const h=new Date().getHours();
   return h<5?['Dobranoc','']:h<12?['Dzień ','dobry']:h<18?['Dzień ','dobry']:['Dobry ','wieczór']; }
 
@@ -71,7 +38,7 @@ function widgetClock(){
 function widgetWeather(){
   return `<article class="widget w-weather" id="wWeather">${weatherWidgetHtml()}</article>`;
 }
-/* ——— widżet: szybkie notatki (zapis automatyczny; na claude.ai synchronizowane) ——— */
+/* ——— widżet: szybkie notatki (zapis automatyczny, synchronizowane z Arkuszem) ——— */
 function widgetQuick(){
   return `<article class="widget w-quick"><div class="w-head"><span class="label">Szybkie notatki</span><span class="w-sub" id="qnState"></span></div>
     <textarea id="qnText" placeholder="Zapisz coś na szybko…" aria-label="Szybkie notatki">${esc(store.get('quickNote',''))}</textarea></article>`;

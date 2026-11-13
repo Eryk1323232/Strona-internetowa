@@ -37,7 +37,6 @@ function render(){
   if(!ROUTES[key] && !RD0[key]) key='start';
   /* stare adresy działów (#gry itd.) przekierowują na pierwszą podstronę */
   const RD={'o-mnie':'cv','studia':'todo','gry':'wot','inne':'silownia'}; if(RD[key]){ history.replaceState(null,'','#'+RD[key]); key=RD[key]; }
-  zapamiętajWizytę(key);
   document.body.classList.toggle('is-home', key==='start');   /* strona główna: ciemny baner na całą szerokość */
   $('#page').innerHTML=ROUTES[key].render();
   if(key==='start') tickClock();
@@ -56,19 +55,11 @@ function render(){
   if(key!=='praca' && mxM){ mxM=null; mxRender(); }   /* Wyniki Pawła / moje są w Pracy */
   if(key!=='pozostale' && pozM){ pozM=null; pozRender(); }
   if(key!=='dyski' && dkM){ dkM=null; dkRender(); }
-  if(key!=='praca' && prM){ prM=null; prRender(); }
   if(key!=='pieniadze' && bkM){ bkM=false; bkRender(); }
   if(key!=='pieniadze' && finM){ finM=false; finRender(); }
   if(key!=='pieniadze' && sbM){ sbM=false; sbRender(); }
   if(mmaM){ mmaM=false; mmaRender(); }
   window.scrollTo(0,0);
-}
-/* lista 3 ostatnio odwiedzanych podstron (dla kafli na stronie głównej) */
-function zapamiętajWizytę(key){
-  if(key==='start' || !ROUTES[key]) return;
-  let L=[]; try{ L=JSON.parse(store.get('recentPages','[]'))||[]; }catch(e){}
-  L=[{k:key, t:Date.now()}, ...L.filter(x=>x.k!==key)].slice(0,6);
-  store.set('recentPages', JSON.stringify(L));
 }
 function setWotTab(k){
   if(!WOT_TABS.some(t=>t[0]===k)) k='przep';

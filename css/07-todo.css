@@ -9,8 +9,7 @@
 /* ——— To-Do ——— */
 .ic{width:1em;height:1em;vertical-align:-2px;flex:none}
 .td{display:grid;grid-template-columns:230px minmax(0,1fr);border:1px solid var(--line);background:var(--surface);min-height:540px}
-.td-rail{border-right:1px solid var(--line);padding:12px 0 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.td-rail ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+
 .td-nav{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-left:3px solid transparent;padding:8px 14px 8px 13px;cursor:pointer;text-align:left;font-size:14px;color:var(--ink)}
 .td-nav:hover{background:var(--bg)}
 .td-nav[aria-current="true"]{border-left-color:var(--accent);background:var(--bg);font-weight:600}
@@ -18,7 +17,7 @@
 .td-nav .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .td-nav .ct{font-family:var(--f-mono);font-size:11px;color:var(--muted);font-weight:400}
 .c-sun{color:var(--mark)} .c-star{color:var(--bad)} .c-cal{color:var(--ok)} .c-home{color:var(--accent)} .c-all,.c-list{color:var(--muted)}
-.td-sep{padding:14px 16px 6px;border-top:1px solid var(--line-soft);margin-top:10px}
+
 .td-newlist{padding:8px 14px 0}
 .td-newlist input,.tdd-date{width:100%;min-width:0;font-family:var(--f-body);font-size:13.5px;padding:7px 9px;border:1px dashed var(--line);background:none;color:var(--ink)}
 .td-newlist input:focus{outline:none;border-style:solid;border-color:var(--accent);background:var(--bg)}
@@ -142,12 +141,12 @@ select.td-sel{font-family:var(--f-mono);font-size:11px;padding:5px 6px;border:1p
 
 @media (max-width:900px){
   .td{grid-template-columns:minmax(0,1fr);min-height:0}
-  .td-rail{border-right:0;border-bottom:1px solid var(--line);flex-direction:row;align-items:center;overflow-x:auto;padding:6px;gap:4px;scrollbar-width:thin}
-  .td-rail ul{flex-direction:row;gap:2px}
+  
+  
   .td-nav{border-left:0;border-bottom:3px solid transparent;white-space:nowrap;padding:7px 10px;width:auto}
   .td-nav .nm{overflow:visible}
   .td-nav[aria-current="true"]{border-bottom-color:var(--accent)}
-  .td-sep{display:none}
+  
   .td-newlist{padding:0 4px;min-width:150px}
   .td-main{padding:16px 14px 22px}
   .td-row{padding-left:4px;gap:0 10px}
