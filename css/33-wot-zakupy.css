@@ -27,7 +27,7 @@
 .wz-r{font-size:11px;font-weight:700;color:var(--ok,#2e9e6b);background:color-mix(in srgb,var(--ok,#2e9e6b) 12%,transparent);padding:2px 6px;border-radius:999px}
 .wz-ceny b{font-family:var(--f-display);font-size:15px;white-space:nowrap}
 .wz-it .del{flex:none}
-.wz-it .del.armed{width:auto;padding:0 8px;color:var(--bad,#d64545);border-color:var(--bad,#d64545);font-size:12px}
+.wz-it .del.armed{width:auto;height:28px;padding:0 11px;border-radius:999px;border:1px solid color-mix(in srgb,var(--bad,#d64545) 45%,transparent);background:color-mix(in srgb,var(--bad,#d64545) 12%,transparent);color:var(--bad,#d64545);font:600 12px var(--f-body);white-space:nowrap}
 .wz-it.done .wz-b b{text-decoration:line-through;opacity:.6}
 .wz-pusto{margin:0 0 18px;padding:16px;border:1px dashed var(--line);border-radius:14px;text-align:center;font-size:13.5px;color:var(--muted)}
 .wz-kup{margin:0 0 22px}
