@@ -1,11 +1,11 @@
 /* ukrywanie kwot (js/38-ukryj-kwoty.js) */
 .kw{transition:filter .2s}
 body.kasa-ukryta .kw,
-body.kasa-ukryta :is(#finModal,#bkModal,#sbModal) :is(input[inputmode="decimal"],input.g-num,input.bk-a),
-body.kasa-ukryta :is(#finModal,#bkModal,#sbModal,#bkPage) svg text,
-body.kasa-ukryta :is(#finModal,#bkModal,#sbModal) :is(.wy-tip,.wy-tt,[class*="tip"]){filter:blur(7px);user-select:none}
+body.kasa-ukryta :is(#finModal,#bkModal,#sbModal,.tr-modal.ok-out) :is(input[inputmode="decimal"],input.g-num,input.bk-a),
+body.kasa-ukryta :is(#finModal,#bkModal,#sbModal,#bkPage,.tr-modal.ok-out) svg text,
+body.kasa-ukryta :is(#finModal,#bkModal,#sbModal,.tr-modal.ok-out) :is(.wy-tip,.wy-tt,[class*="tip"]){filter:blur(7px);user-select:none}
 body.kasa-ukryta .kw{display:inline-block;border-radius:6px;color:var(--ink)!important;background:color-mix(in srgb,var(--ink) 8%,transparent)}
-body.kasa-ukryta :is(#finModal,#bkModal,#sbModal) input:focus{filter:none}
+body.kasa-ukryta :is(#finModal,#bkModal,#sbModal,.tr-modal.ok-out) input:focus{filter:none}
 body.kasa-ukryta .fin-skbar i{opacity:.25}
 .kw-oko{display:inline-grid;place-items:center;width:34px;height:34px;flex:none;border-radius:999px;border:1px solid var(--line);background:var(--surface,transparent);color:var(--muted);cursor:pointer;padding:0;transition:color .15s,border-color .15s,background .15s}
 .kw-oko svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
