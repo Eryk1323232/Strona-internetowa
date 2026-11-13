@@ -315,7 +315,7 @@ function finStaleHtml(F){
 const finIleL = (n,a,b,c) => n===1?a:(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?b:c;
 function finSkCell(F){ const C=FIN.cfg, cel=C.skCel, pct=cel?Math.min(100,F.skarb/cel*100):0;
   return `<div class="cell fin-acc fin-skc${finPrz==='sk'?' open':''}"><span class="label">Skarbonka${C.skNa?' · '+esc(C.skNa):''}</span><span class="big">${fmt(F.skarb,2)}<small>zł</small></span>
-    ${cel?`<div class="fin-skbar" title="${fmt(pct,0)} % celu"><i style="width:${pct.toFixed(1)}%"></i></div><p>${pct>=100?'cel osiągnięty 🎉':`${fmt(pct,0)} % z ${fmt(cel,0)} zł · brakuje ${fmt(cel-F.skarb,2)} zł`}</p>`:''}
+    ${cel?`<div class="fin-skbar" title="${fmt(pct,0)} % celu"><i style="width:${pct.toFixed(1)}%"></i></div><p>${pct>=100?`<span class="ic-ok">${icn('cel')} cel osiągnięty</span>`:`${fmt(pct,0)} % z ${fmt(cel,0)} zł · brakuje ${fmt(cel-F.skarb,2)} zł`}</p>`:''}
     <p>${finSign(F.skMies)} zł w tym miesiącu</p>${finSkPanel(F)}</div>`; }
 function finSkPanel(F){
   const msg=finPrzMsg&&finPrzMsg.k==='sk'?`<div class="fin-pmsg">${esc(finPrzMsg.txt)}<button type="button" data-finundo="${esc(finPrzMsg.id)}">Cofnij</button></div>`:'';
@@ -341,7 +341,7 @@ function finSkHtml(F){
       <div class="cell"><span class="label">Średnio</span><span class="big">${fmt(Math.max(0,tempo),2)}<small>zł / tydz.</small></span><p>${pierwsza?`od ${dPL(pierwsza)} · ≈ ${fmt(Math.max(0,tempo)*52/12,0)} zł / mies.`:'policzę po pierwszej wpłacie'}</p></div>
       <div class="cell fin-skcel"><span class="label">Cel</span><div class="fin-skin"><input class="g-in g-num" inputmode="decimal" data-fn="${k('x','skCel')}" value="${C.skCel?fmt(C.skCel,2).replace(/ /g,''):''}" placeholder="np. 2000" aria-label="Cel skarbonki w zł"><span>zł</span></div>
         <input class="g-in g-txt" data-fn="${k('x','skNa')}" value="${esc(C.skNa)}" placeholder="na co? np. wakacje" aria-label="Na co oszczędzasz" maxlength="40">
-        <p>${C.skCel?(brak>0.004?`brakuje ${fmt(brak,2)} zł${kiedyTxt?' · '+kiedyTxt:''}`:'cel osiągnięty 🎉'):'opcjonalnie — pokaże pasek postępu'}</p></div></div>
+        <p>${C.skCel?(brak>0.004?`brakuje ${fmt(brak,2)} zł${kiedyTxt?' · '+kiedyTxt:''}`:`<span class="ic-ok">${icn('cel')} cel osiągnięty</span>`):'opcjonalnie — pokaże pasek postępu'}</p></div></div>
     ${L.length?`<ul class="fin-skl">${L.slice(0,8).map(o=>`<li><span class="fin-skd">${esc(dPL(o.d).slice(0,5))}</span><span class="fin-skn">${opis(o)}</span><b class="${o.sk>0?'bk-plus':'bk-minus'}">${o.sk>0?'+':'−'}${fmt(o.a,2)} zł</b></li>`).join('')}${L.length>8?`<li class="fin-skmore">+ ${L.length-8} starszych — w Historii (oznaczone „Skarbonka”)</li>`:''}</ul>`:'<p class="nt-none">Jeszcze nic nie odłożono.</p>'}`;
 }
 

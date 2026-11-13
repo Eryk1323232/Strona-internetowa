@@ -96,7 +96,7 @@ function cvEditHtml(){
 }
 function pCV(){
   return `<h1>Curriculum <span class="acc">vitae</span></h1>
-  <div class="cv-bar"><button type="button" class="cv-btn${cvEd?' on':''}" data-cv="${cvEd?'done':'edit'}">${cvEd?'✓ Gotowe':'✎ Edytuj CV'}</button>
+  <div class="cv-bar"><button type="button" class="cv-btn${cvEd?' on':''}" data-cv="${cvEd?'done':'edit'}">${cvEd?'✓ Gotowe':icn('olowek')+' Edytuj CV'}</button>
     <button type="button" class="cv-btn cv-pdf" data-cv="pdf"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.5h5.5L13 5v9.5H4z"/><path d="M9.5 1.5V5H13M8.5 7.5v5M6.5 10.5l2 2 2-2"/></svg>Pobierz PDF</button>
     <span class="cv-stat" id="cvStat"></span></div>
   <div id="cvApp">${cvEd?cvEditHtml():cvViewHtml()}</div>`;
@@ -105,7 +105,7 @@ function cvRefresh(force){
   const app=$('#cvApp'); if(!app) return;
   const a=document.activeElement; if(!force && a && app.contains(a) && a.matches('input,textarea')) return;
   const y=window.scrollY; app.innerHTML=cvEd?cvEditHtml():cvViewHtml(); window.scrollTo(0,y);
-  const b=$('.cv-bar .cv-btn'); if(b){ b.dataset.cv=cvEd?'done':'edit'; b.textContent=cvEd?'✓ Gotowe':'✎ Edytuj CV'; b.classList.toggle('on',cvEd); }
+  const b=$('.cv-bar .cv-btn'); if(b){ b.dataset.cv=cvEd?'done':'edit'; b.innerHTML=cvEd?'✓ Gotowe':icn('olowek')+' Edytuj CV'; b.classList.toggle('on',cvEd); }
 }
 
 /* ——— PDF: A4 w stylu CV z Worda ——— */

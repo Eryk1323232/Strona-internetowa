@@ -1,0 +1,49 @@
+/* ════════ WYGLĄD „NOWOCZESNY”: typografia, przejścia podstron, strona główna jako bento ════════
+   • Nagłówki i duże liczby: Space Grotesk (geometryczny, modernistyczny krój); tekst: Inter.
+   • #page.page-in — wejście podstrony (js/13-router.js, tylko przy zmianie podstrony).
+   • .bento — strona główna: kafle różnej wielkości w jednej siatce (pStart, js/03).
+   ═══════════════════════════════════════════════════════════════════════════════════════ */
+:root{--f-display:"Space Grotesk","Inter","Segoe UI",Roboto,Arial,sans-serif}
+
+/* ——— typografia ——— */
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,3.4vw,42px);letter-spacing:-.035em;line-height:1.05;margin-bottom:30px}
+h2,.tr-top h2,.calc-card h2{font-family:var(--f-display);letter-spacing:-.025em}
+.big,.hd-big b,.hello-time b,.bk-cbil,.calc-card h2,.wc-big,.fin-skc .big{font-family:var(--f-display);letter-spacing:-.03em;font-feature-settings:"tnum" 1}
+.label,.navtree li.grp{letter-spacing:.07em}
+h1.hello-t{font-size:clamp(28px,3.6vw,46px);letter-spacing:-.04em}
+.hello-time b{font-size:clamp(34px,4vw,52px);font-weight:600}
+@media (max-width:900px){ h1{font-size:30px;margin-bottom:22px} }
+
+/* ——— przejście między podstronami ——— */
+@media (prefers-reduced-motion:no-preference){
+  #page.page-in{animation:pageIn .42s cubic-bezier(.2,.8,.25,1)}
+  #page.page-in .bento>*,#page.page-in .bento #homeDash>*,#page.page-in .bento .home-widgets>*{animation:pageIn .5s cubic-bezier(.2,.8,.25,1) backwards}
+  #page.page-in .bento .hd-todo{animation-delay:.04s} #page.page-in .bento .hd-trening{animation-delay:.08s} #page.page-in .bento .hd-next{animation-delay:.12s}
+  #page.page-in .bento #hdCele{animation-delay:.14s} #page.page-in .bento .w-fin{animation-delay:.16s} #page.page-in .bento .w-weather{animation-delay:.06s} #page.page-in .bento .w-quick{animation-delay:.2s}
+}
+@keyframes pageIn{from{opacity:0;transform:translateY(14px)}}
+
+/* ——— strona główna: bento ——— */
+.bento{display:grid;gap:16px;width:min(1280px,100%);margin:0 auto;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-areas:"hello hello hello wx" "todo todo tr next" "todo todo cele next" "fin fin fin note"}
+.bento #homeDash,.bento .home-widgets{display:contents}
+.bento>.hello{grid-area:hello;margin:0;width:auto}
+.bento .hd-todo{grid-area:todo} .bento .hd-trening{grid-area:tr} .bento .hd-next{grid-area:next}
+.bento #hdCele{grid-area:cele;display:flex} .bento #hdCele>*{flex:1}
+.bento .w-fin{grid-area:fin} .bento .w-weather{grid-area:wx} .bento .w-quick{grid-area:note}
+.bento .widget,.bento .hd-card{margin:0;min-height:0}
+.bento .w-quick{display:flex;flex-direction:column} .bento .w-quick textarea{flex:1;min-height:120px}
+.bento .hd-todo .hd-list{flex:1}
+@media (max-width:1180px){
+  .bento{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"hello hello" "todo tr" "todo cele" "next wx" "fin fin" "note note"}
+}
+@media (max-width:700px){
+  .bento{grid-template-columns:minmax(0,1fr);gap:14px;grid-template-areas:"hello" "todo" "tr" "next" "fin" "cele" "wx" "note"}
+}
+
+/* ——— karty: delikatne uniesienie po najechaniu ——— */
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .bento .hd-card,.bento .widget,.calc-card,.nt-tile{transition:transform .25s cubic-bezier(.2,.8,.25,1),box-shadow .25s}
+  .bento .hd-card:hover,.bento .widget:hover,.calc-card:hover{transform:translateY(-2px);box-shadow:0 14px 34px -18px rgba(40,36,110,.35)}
+}

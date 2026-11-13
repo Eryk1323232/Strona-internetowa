@@ -39,6 +39,7 @@ function render(){
   const RD={'o-mnie':'cv','studia':'todo','gry':'wot','inne':'silownia'}; if(RD[key]){ history.replaceState(null,'','#'+RD[key]); key=RD[key]; }
   document.body.classList.toggle('is-home', key==='start');   /* strona główna: ciemny baner na całą szerokość */
   $('#page').innerHTML=ROUTES[key].render();
+  if(key!==render.ost){ const pg=$('#page'); pg.classList.remove('page-in'); void pg.offsetWidth; pg.classList.add('page-in'); render.ost=key; }   /* płynne wejście nowej podstrony */
   if(key==='start') tickClock();
   document.querySelectorAll('.navtree a').forEach(a=>{
     const r=a.dataset.r; a.toggleAttribute('aria-current',false);

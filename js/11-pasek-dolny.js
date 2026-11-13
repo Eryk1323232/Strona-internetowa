@@ -60,7 +60,7 @@ async function wxSetCity(q){
 function weatherWidgetHtml(){
   const head=`<div class="w-head"><span class="label">Pogoda</span>${WX.editing
     ?`<form class="wx-city-f"><input name="q" value="${esc(WX_CITY.n)}" aria-label="Miasto" autocomplete="off"><button type="submit">OK</button></form>`
-    :`<button type="button" class="wx-city" data-wx="edit" title="Zmień miasto">${esc(WX_CITY.n)} ✎</button>`}</div>`;
+    :`<button type="button" class="wx-city" data-wx="edit" title="Zmień miasto">${esc(WX_CITY.n)} ${icn('olowek')}</button>`}</div>`;
   if(WX.state==='err') return head+`<div class="wx-msg"><p>Nie udało się pobrać pogody.</p><button type="button" class="td-btn" data-wx="retry">Spróbuj ponownie</button></div>`;
   if(!WX.data) return head+`<div class="wx-msg"><p>Wczytywanie…</p></div>`;
   const c=WX.data.current, [lbl,ic]=wxInfo(c.weather_code, c.is_day!==0), dl=WX.data.daily;

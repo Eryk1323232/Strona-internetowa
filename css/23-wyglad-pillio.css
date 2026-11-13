@@ -276,3 +276,8 @@ input.sq,.td-chk{border-color:color-mix(in srgb,var(--muted) 75%,transparent)}
 .srch-tip b{color:var(--ink);font-weight:600}
 .srch-ok{margin:10px 12px;font-size:14px;font-weight:600;color:var(--ok,#2e9e6b)}
 @media (max-width:700px){ .srch-it.srch-ak small{display:none} }
+
+/* ——— ikony SVG zamiast emoji (icn() w js/02-narzedzia.js) ——— */
+svg.ic{width:1.05em;height:1.05em;vertical-align:-.16em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pg-nowy,.pg-new{color:var(--accent);font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.ic-ok{color:var(--ok,#2e9e6b);font-weight:600;display:inline-flex;align-items:center;gap:4px}

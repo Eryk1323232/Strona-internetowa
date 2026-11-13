@@ -80,7 +80,7 @@ function ntMdToHtml(src){
 function ntHtmlToMd(root){
   const inl=el=>[...el.childNodes].map(n=>{ if(n.nodeType===3) return n.nodeValue.replace(/ /g,' ');
     if(n.nodeType!==1) return ''; const t=n.tagName, s=inl(n);
-    if(t==='BR') return '\n'; if(t==='IMG') return '🖼 zdjęcie'; if(!s.trim()) return s;
+    if(t==='BR') return '\n'; if(t==='IMG') return '(zdjęcie)'; if(!s.trim()) return s;
     if(t==='B'||t==='STRONG') return `**${s}**`; if(t==='I'||t==='EM') return `*${s}*`; if(t==='S'||t==='STRIKE'||t==='DEL') return `~~${s}~~`;
     if(t==='CODE') return '`'+s+'`'; if(t==='A'){ const h=n.getAttribute('href')||''; return h&&h!==s?`${s} (${h})`:s; }
     return s; }).join('');
@@ -180,7 +180,7 @@ function ntSideHtml(){
       ${row('','Wszystkie',act.length,I.all)}${act.some(n=>n.pin)?row('__pin','Przypięte',act.filter(n=>n.pin).length,I.pin):''}</div>
     <div class="nt-sgrp"><span class="nt-sh">Foldery</span>
       ${F.map(c=>ntFoldEd===c?`<form class="nt-fren" data-old="${esc(c)}"><input name="n" value="${esc(c)}" maxlength="40" aria-label="Nowa nazwa folderu" autocomplete="off"><button type="submit">OK</button></form>`
-        :row(c,c,act.filter(n=>n.cat.trim()===c).length,I.fold, ntCat===c?`<span class="nt-fact"><i role="button" tabindex="0" data-ntfren="${esc(c)}" title="Zmień nazwę">✎</i><i role="button" tabindex="0" data-ntfdel="${esc(c)}" title="Usuń folder (notatki zostaną)">×</i></span>`:'')).join('')}
+        :row(c,c,act.filter(n=>n.cat.trim()===c).length,I.fold, ntCat===c?`<span class="nt-fact"><i role="button" tabindex="0" data-ntfren="${esc(c)}" title="Zmień nazwę">${icn('olowek')}</i><i role="button" tabindex="0" data-ntfdel="${esc(c)}" title="Usuń folder (notatki zostaną)">×</i></span>`:'')).join('')}
       <form class="nt-fnew"><input name="n" placeholder="+ Nowy folder" maxlength="40" aria-label="Nowy folder" autocomplete="off"></form></div>
     ${T.length?`<div class="nt-sgrp"><span class="nt-sh">Tagi</span><div class="nt-tags">${T.map(t=>`<button type="button" class="nt-tag${ntCat==='#'+t?' on':''}" data-ntcat="#${esc(t)}">#${esc(t)}</button>`).join('')}</div></div>`:''}
     <div class="nt-sgrp nt-sbot">${row('__arch','Archiwum',A.filter(n=>n.arch).length,I.arch)}${row('__bin','Ostatnio usunięte',N.filter(n=>n.del).length,I.bin)}</div>`;

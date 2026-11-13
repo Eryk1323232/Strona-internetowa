@@ -58,7 +58,7 @@ async function zdjSprawdz(){
   try{ const L=await skGet('zdjeciaLista'), U=zdjUzywane(), granica=Date.now()-7*864e5;
     const nieuz=L.filter(x=>!U.has(x.zid)), doUsun=nieuz.filter(x=>x.kiedy<granica), naDysku=new Set(L.map(x=>x.zid));
     zdjStan={ile:L.length, rozm:L.reduce((a,x)=>a+x.rozmiar,0), nieuz:nieuz.length, doUsun, rozmUsun:doUsun.reduce((a,x)=>a+x.rozmiar,0), brak:[...U].filter(z=>!naDysku.has(z)).length}; zdjMsg=''; }
-  catch(e){ zdjStan=null; zdjMsg=/Nieznana akcja/.test(e.message)?'Najpierw zaktualizuj skrypt (⚙ → Synchronizacja).':'Nie udało się połączyć z Dyskiem.'; }
+  catch(e){ zdjStan=null; zdjMsg=/Nieznana akcja/.test(e.message)?'Najpierw zaktualizuj skrypt (Ustawienia → Synchronizacja).':'Nie udało się połączyć z Dyskiem.'; }
   setRender();
 }
 async function zdjSprzataj(){
