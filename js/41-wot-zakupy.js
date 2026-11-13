@@ -5,8 +5,9 @@
      kat  'czolg' | 'magazyn' | 'premium' | 'zloto' | 'inne'   (WZ_KAT)
      n nazwa · nacja · tier (czołg) · cb cena bazowa za sztukę · r zniżka % · cz cena po zniżce za sztukę
      il ilość · w waluta 'zl' | 'gold' | 'kr' · done kupione · dk data kupna · c kolejność
-   Czołg: wpisujesz cenę bazową i cenę po zniżce (zniżka % liczy się sama).
-   Magazyn / premium / złoto / inne: cena, ilość, zniżka % → cena po zniżce = cena × (1 − zniżka), całość = po zniżce × ilość.
+   Każda kategoria: cena bazowa + zniżka % → cena po zniżce = cena × (1 − zniżka) (0% = cena bazowa);
+   magazyn / premium / złoto / inne mają też ilość → całość = cena po zniżce × ilość.
+   Waluta wynika z kategorii (WZ_WAL_KAT): czołg i magazyn — kredyty, premium i złoto — zł; „Inne” — do wyboru.
    Odhaczone trafiają do zwijanej sekcji „Kupione”; wykres kołowy (chowany przyciskiem) pokazuje
    wydane pieniądze wg kategorii, osobno dla każdej waluty.
    Panel wstawia wotPanel('zak') w js/04-world-of-tanks.js; synchronizacja w js/12-synchronizacja.js.
@@ -15,11 +16,11 @@ const WZ_KAT = { czolg:['Czołg','#6C5CE7'], magazyn:['Magazyn','#18A999'], prem
 const WZ_WAL = { zl:['zł','zł'], gold:['złoto','złota'], kr:['kredyty','kr'] };
 const WZ_NACJE = ['ZSRR','Niemcy','USA','Wielka Brytania','Francja','Chiny','Japonia','Czechosłowacja','Szwecja','Polska','Włochy','Międzynarodowe'];
 const WZ_TIERY = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+const WZ_WAL_KAT = { czolg:'kr', magazyn:'kr', premium:'zl', zloto:'zl' };   /* „inne” — waluta do wyboru */
 const wzR = v => Math.round((+v||0)*100)/100;
 const wzNorm = (id,v={}) => { const kat=WZ_KAT[v.kat]?v.kat:'inne', il=kat==='czolg'?1:Math.max(1,Math.round(+v.il||1)), cb=Math.max(0,wzR(v.cb));
-  let r=Math.min(100,Math.max(0,+v.r||0)), cz=v.cz!=null&&v.cz!==''?Math.max(0,wzR(v.cz)):wzR(cb*(1-r/100));
-  if(kat==='czolg'){ if(!(v.cz!=null&&v.cz!=='')) cz=cb; r=cb>0?Math.max(0,Math.round((1-cz/cb)*1000)/10):0; } else cz=wzR(cb*(1-r/100));
-  return {id, kat, n:String(v.n||'').slice(0,80), nacja:String(v.nacja||''), tier:String(v.tier||''), cb, r, cz, il, w:WZ_WAL[v.w]?v.w:'zl', done:!!v.done, dk:String(v.dk||''), c:+v.c||0}; };
+  const r=Math.min(100,Math.max(0,+v.r||0)), cz=wzR(cb*(1-r/100)), w=WZ_WAL_KAT[kat]||(WZ_WAL[v.w]?v.w:'zl');
+  return {id, kat, n:String(v.n||'').slice(0,80), nacja:String(v.nacja||''), tier:String(v.tier||''), cb, r, cz, il, w, done:!!v.done, dk:String(v.dk||''), c:+v.c||0}; };
 let WZ=[]; try{ const c=JSON.parse(store.get('wotZakupy','null')); if(Array.isArray(c)) WZ=c.map(x=>wzNorm(x.id,x)); }catch(e){}
 const saveWz = () => store.set('wotZakupy', JSON.stringify(WZ));
 const wzPush = x => cloud(db=>{ const {id,...v}=x; return db.collection('wotZakupy').doc(id).set(v); });
@@ -27,17 +28,18 @@ const wzDel = id => cloud(db=>db.collection('wotZakupy').doc(id).delete());
 let wzKat = store.get('wzKat','czolg');
 const wzSuma = x => wzR(x.cz*x.il);
 const wzKw = (v,w) => w==='zl' ? fmt(v, Number.isInteger(v)?0:2)+' zł' : fmt(v,0)+' '+WZ_WAL[w][1];
-const wzWalLast = k => store.get('wzWal_'+k, k==='magazyn'?'kr':'zl');
+const wzWal = k => WZ_WAL_KAT[k] || store.get('wzWal_inne','zl');
 
 function wzFormHtml(){
-  const k=wzKat, w=wzWalLast(k), walSel=`<label class="wz-f wz-fw"><span class="label">Waluta</span><select name="w">${Object.entries(WZ_WAL).map(([v,[n]])=>`<option value="${v}"${v===w?' selected':''}>${n}</option>`).join('')}</select></label>`;
+  const k=wzKat, w=wzWal(k), walSel=WZ_WAL_KAT[k]?`<input type="hidden" name="w" value="${w}">`:`<label class="wz-f wz-fw"><span class="label">Waluta</span><select name="w">${Object.entries(WZ_WAL).map(([v,[n]])=>`<option value="${v}"${v===w?' selected':''}>${n}</option>`).join('')}</select></label>`;
+  const jedn=w==='zl'?'zł':w==='kr'?'kr':'złoto';
   const pole=(name,lab,ph,cls='',typ='text')=>`<label class="wz-f ${cls}"><span class="label">${lab}</span><input name="${name}" ${typ==='num'?'inputmode="decimal"':''} placeholder="${ph}" autocomplete="off"></label>`;
   const pola = k==='czolg'
     ? `<label class="wz-f"><span class="label">Nacja</span><select name="nacja"><option value="">—</option>${WZ_NACJE.map(n=>`<option>${n}</option>`).join('')}</select></label>
        <label class="wz-f wz-fs"><span class="label">Tier</span><select name="tier"><option value="">—</option>${WZ_TIERY.map(t=>`<option>${t}</option>`).join('')}</select></label>
-       ${pole('n','Nazwa','np. Progetto 46','wz-fn')}${pole('cb','Cena bazowa','0','wz-fp','num')}${pole('cz','Cena po zniżce','0','wz-fp','num')}${walSel}`
+       ${pole('n','Nazwa','np. Progetto 46','wz-fn')}${pole('cb',`Cena bazowa (${jedn})`,'0','wz-fp','num')}${pole('r','Zniżka %','0','wz-fs','num')}${walSel}`
     : `${pole('n','Nazwa',k==='magazyn'?'np. Mała apteczka':k==='premium'?'np. 30 dni premium':k==='zloto'?'np. 2500 złota':'np. przepustka bojowa','wz-fn')}
-       ${pole('cb','Cena (szt.)','0','wz-fp','num')}${pole('il','Ilość','1','wz-fs','num')}${pole('r','Zniżka %','0','wz-fs','num')}${walSel}`;
+       ${pole('cb',`Cena za szt.${WZ_WAL_KAT[k]?' ('+jedn+')':''}`,'0','wz-fp','num')}${pole('il','Ilość','1','wz-fs','num')}${pole('r','Zniżka %','0','wz-fs','num')}${walSel}`;
   return `<form class="wz-form" autocomplete="off"><div class="seg wz-kat" role="tablist">${Object.entries(WZ_KAT).map(([v,[n]])=>`<button type="button" data-wzkat="${v}" aria-selected="${v===k}">${n}</button>`).join('')}</div>
     <div class="wz-pola">${pola}</div>
     <div class="wz-fbot"><span class="wz-prev" id="wzPrev">Całość: —</span><span class="tr-err" id="wzErr"></span><button type="submit" class="wz-add">Dodaj do planu</button></div></form>`;
@@ -92,13 +94,13 @@ function wzSet(id,patch){ const x=WZ.find(y=>y.id===id); if(!x) return; const n=
 function wzPodglad(f){
   const v=n=>{ const e=f.elements[n]; return e?bkNum(e.value||''):NaN; }, w=f.elements.w.value, out=$('#wzPrev'); if(!out) return;
   const cb=v('cb'); if(isNaN(cb)||!f.elements.cb.value){ out.textContent='Całość: —'; return; }
-  if(wzKat==='czolg'){ const cz=f.elements.cz.value?v('cz'):cb; out.innerHTML=`Zniżka: <b>${cb>0?fmt(Math.max(0,(1-cz/cb)*100),0):0}%</b> · Całość: <b>${wzKw(wzR(cz),w)}</b>`; return; }
-  const il=Math.max(1,Math.round(f.elements.il.value?v('il'):1)), r=f.elements.r.value?Math.min(100,v('r')):0, cz=wzR(cb*(1-(r||0)/100));
-  out.innerHTML=`Po zniżce: <b>${wzKw(cz,w)}</b> / szt. · Całość: <b>${wzKw(wzR(cz*il),w)}</b>`;
+  const il=f.elements.il&&f.elements.il.value?Math.max(1,Math.round(v('il'))):1, r=f.elements.r.value?Math.min(100,Math.max(0,v('r')||0)):0, cz=wzR(cb*(1-r/100));
+  out.innerHTML=wzKat==='czolg'?`Cena po zniżce: <b>${wzKw(cz,w)}</b>${r?` (oszczędzasz ${wzKw(wzR(cb-cz),w)})`:''}`
+    :`Po zniżce: <b>${wzKw(cz,w)}</b> / szt. · Całość: <b>${wzKw(wzR(cz*il),w)}</b>`;
 }
 document.addEventListener('input', e=>{ const f=e.target.closest&&e.target.closest('.wz-form'); if(f) wzPodglad(f); });
 document.addEventListener('change', e=>{
-  const f=e.target.closest&&e.target.closest('.wz-form'); if(f){ if(e.target.name==='w') store.set('wzWal_'+wzKat, e.target.value); wzPodglad(f); return; }
+  const f=e.target.closest&&e.target.closest('.wz-form'); if(f){ if(e.target.name==='w') store.set('wzWal_inne', e.target.value); wzPodglad(f); return; }
   if(e.target.matches && e.target.matches('.wz-cb')){ const on=e.target.checked; wzSet(e.target.dataset.id,{done:on, dk:on?todayISO():''}); const li=e.target.closest('.wz-it'); if(li) li.classList.toggle('done',on); setTimeout(wzRefresh, 350); }
 });
 document.addEventListener('toggle', e=>{ if(e.target.id==='wzKup') store.set('wzKupOtw', e.target.open?'1':'0'); }, true);
@@ -116,8 +118,9 @@ document.addEventListener('submit', e=>{
   const cb=bkNum(g('cb')); if(!g('cb')||isNaN(cb)||cb<0) return err('Wpisz cenę.');
   if(!g('n') && wzKat==='czolg') return err('Wpisz nazwę czołgu.');
   const v={kat:wzKat, n:g('n'), cb, w:g('w')||'zl', c:Date.now()};
-  if(wzKat==='czolg'){ const cz=g('cz')?bkNum(g('cz')):cb; if(isNaN(cz)||cz<0) return err('Zła cena po zniżce.'); if(cz>cb) return err('Cena po zniżce jest wyższa niż bazowa.'); Object.assign(v,{nacja:g('nacja'), tier:g('tier'), cz}); }
-  else { const il=g('il')?Math.round(bkNum(g('il'))):1, r=g('r')?bkNum(g('r')):0; if(isNaN(il)||il<1) return err('Ilość musi być co najmniej 1.'); if(isNaN(r)||r<0||r>100) return err('Zniżka od 0 do 100%.'); Object.assign(v,{il, r}); }
+  const r=g('r')?bkNum(g('r')):0; if(isNaN(r)||r<0||r>100) return err('Zniżka od 0 do 100%.'); v.r=r;
+  if(wzKat==='czolg') Object.assign(v,{nacja:g('nacja'), tier:g('tier')});
+  else { const il=g('il')?Math.round(bkNum(g('il'))):1; if(isNaN(il)||il<1) return err('Ilość musi być co najmniej 1.'); v.il=il; }
   const x=wzNorm(uid('wz'), v); WZ=[...WZ,x]; saveWz(); wzPush(x);
   const y=scrollY; $('#wotPanel').innerHTML=wzHtml(); scrollTo(0,y); const n=$('.wz-form [name=n]'); n&&n.focus();
 });
