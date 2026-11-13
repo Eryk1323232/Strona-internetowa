@@ -167,6 +167,9 @@ function arkuszDb(url, klucz){
     let dkF=true;
     gdb.collection('dyski').onSnapshot(s=>{ if(dkF&&s.empty&&wyslijLokalne()&&DK.length){ dkF=false; DK.forEach(d=>{ const {id,...v}=d; cloud(db=>db.collection('dyski').doc(id).set(v)); }); return ok(); }
       dkF=false; DK=s.docs.map(d=>dkNorm(d.id,d.data())); saveDk(); ok(); }, fail);
+    let grF=true;   /* WoT → Garaż (js/42-wot-garaz.js) */
+    gdb.collection('wotGaraz').onSnapshot(s=>{ if(grF&&s.empty&&wyslijLokalne()&&GR.length){ grF=false; GR.forEach(grPush); return ok(); }
+      grF=false; GR=s.docs.map(d=>grNorm(d.id,d.data())); saveGr(); grRefresh(); ok(); }, fail);
     let wzF=true;   /* WoT → Zakupy (js/41-wot-zakupy.js) */
     gdb.collection('wotZakupy').onSnapshot(s=>{ if(wzF&&s.empty&&wyslijLokalne()&&WZ.length){ wzF=false; WZ.forEach(wzPush); return ok(); }
       wzF=false; WZ=s.docs.map(d=>wzNorm(d.id,d.data())); saveWz(); wzRefresh(); ok(); }, fail);
