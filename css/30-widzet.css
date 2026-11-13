@@ -1,0 +1,47 @@
+/* ════════ WIDŻET NA PULPIT (js/39-widzet.js): ./?widzet=1 ════════ */
+html.tryb-widzet body{padding:0!important;min-height:100vh;background:var(--page-bg)}
+html.tryb-widzet :is(aside.side,.side-scrim,header.hdr,#sbar,.kp-wrap,#skBtn,.sk-fab){display:none!important}
+html.tryb-widzet .shell{display:block;min-height:100vh;margin:0!important;border:0;border-radius:0;background:transparent;box-shadow:none}
+html.tryb-widzet .mainc{padding:0}
+html.tryb-widzet main{border:0;border-radius:0;background:transparent}
+html.tryb-widzet .page{padding:0!important}
+.wz{display:flex;flex-direction:column;min-height:100vh;padding:calc(env(titlebar-area-height,0px) + 10px) 12px 10px;gap:10px}
+.wz-top{display:flex;align-items:center;gap:8px;-webkit-app-region:drag;app-region:drag;min-height:36px;padding-right:calc(100vw - env(titlebar-area-x,0px) - env(titlebar-area-width,100vw))}
+.wz-top button{-webkit-app-region:no-drag;app-region:no-drag}
+.wz-tabs{flex:1;min-width:0;display:flex}
+.wz-tabs button{flex:1;padding:7px 6px;font-size:13px}
+.wz-ref{flex:none;width:34px;height:34px;border-radius:999px;border:1px solid var(--line);background:var(--surface,#fff);color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.wz-ref svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wz-ref.spin svg{animation:rf-spin .7s linear infinite}
+.wz-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px}
+.wz-foot{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);padding:0 4px}
+.wz-foot a{color:var(--accent);font-weight:600;text-decoration:none}
+/* kalendarz */
+.wz-kh{display:flex;align-items:center;justify-content:space-between;background:var(--surface,#fff);border:1px solid var(--line);border-radius:14px;padding:6px 8px}
+.wz-kh b{font-size:14.5px;text-transform:capitalize}
+.wz-kh button{width:30px;height:30px;border-radius:9px;border:0;background:transparent;font-size:18px;color:var(--ink);cursor:pointer}
+.wz-kh button:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.wz-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;background:var(--surface,#fff);border:1px solid var(--line);border-radius:14px;padding:8px}
+.wz-wd{text-align:center;font-size:10.5px;font-weight:600;color:var(--muted);padding-bottom:4px}
+.wz-d{aspect-ratio:1/1;min-height:30px;border:0;border-radius:9px;background:transparent;color:var(--ink);font:600 13px var(--f-body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:0}
+.wz-d:hover{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.wz-d.out{color:var(--muted);opacity:.5}
+.wz-d.today span{background:var(--accent);color:#fff;border-radius:999px;width:24px;height:24px;display:grid;place-items:center}
+.wz-d.sel{background:color-mix(in srgb,var(--accent) 14%,transparent);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 55%,transparent)}
+.wz-d i{display:flex;gap:2px;height:5px} .wz-d i b{width:5px;height:5px;border-radius:50%}
+.wz-lh{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);padding:2px 4px 0}
+.wz-l{list-style:none;margin:0;padding:4px 10px;background:var(--surface,#fff);border:1px solid var(--line);border-radius:14px;overflow:auto}
+.wz-l li{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}
+.wz-l li:first-child{border-top:0}
+.wz-l li>b{flex:none;width:8px;height:8px;border-radius:50%}
+.wz-l li span{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.wz-l li small{font-size:11.5px;color:var(--muted)}
+.wz-l li em{font-style:normal;font-family:var(--f-mono);font-size:12.5px;white-space:nowrap}
+.wz-l li em.plus{color:var(--ok,#2e9e6b)} .wz-l li em.minus{color:var(--bad,#d64545)}
+.wz-l li.done span{text-decoration:line-through;opacity:.55}
+.wz-pusto{margin:0;padding:14px;text-align:center;font-size:13px;color:var(--muted);background:var(--surface,#fff);border:1px solid var(--line);border-radius:14px}
+/* Dziś / Kasa: karty ze strony głównej w jednej kolumnie */
+.wz-hd{display:flex!important;flex-direction:column;gap:10px}
+.wz-hd .hd-card,.wz-body .w-fin{margin:0;padding:14px}
+.wz-body .w-fin .wf-form{flex-wrap:wrap}
+.wz-body .w-fin .wf-form>*{flex:1 1 120px;min-width:0}

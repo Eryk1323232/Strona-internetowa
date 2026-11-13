@@ -1,0 +1,18 @@
+{
+  "id": "./?widzet=1",
+  "name": "Pracownia – widżet",
+  "short_name": "Widżet",
+  "description": "Kalendarz, zadania na dziś i szybki wydatek w małym okienku.",
+  "lang": "pl",
+  "start_url": "./?widzet=1#widzet",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#E6E7FC",
+  "theme_color": "#E6E7FC",
+  "icons": [
+    {"src": "img/ikona-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "img/ikona-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "img/ikona-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

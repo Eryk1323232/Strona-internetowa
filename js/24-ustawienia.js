@@ -39,6 +39,7 @@ function setTresc(k){
     ${setRow('Strona po otwarciu','Co ma się pokazać, gdy wchodzisz na stronę bez konkretnego adresu',`<select class="set-in" data-setin="startStrona">${setNav().map(([r,n])=>`<option value="${r}"${store.get('startStrona','start')===r?' selected':''}>${esc(n)}</option>`).join('')}</select>`)}
     ${setRow('Aplikacja na telefon i komputer', setJestApka()?'Działa jako zainstalowana aplikacja — także bez internetu.':setInstal?'Ikona na ekranie głównym, pełny ekran, działa też bez internetu.':'W Chrome: menu ⋮ → „Dodaj do ekranu głównego” / „Zainstaluj aplikację”. Działa też bez internetu.', setJestApka()?'<span class="set-ok">✓ Zainstalowana</span>':setInstal?`<button type="button" class="set-main" data-setact="instaluj">Zainstaluj</button>`:'')}
     ${setRow('Ukrywaj kwoty po uruchomieniu','Przy każdym otwarciu strony kwoty w Pieniądzach i w widżecie wydatków są rozmyte (jak w aplikacji banku). Odkrywasz okiem.',setSeg('kasaStart', store.get('kasaStart','0'), [['0','Nie'],['1','Tak']]))}
+    ${typeof wzUstawieniaHtml==='function'?wzUstawieniaHtml():''}
     ${setRow('Skróty klawiszowe','<kbd>Ctrl</kbd> + <kbd>K</kbd> lub <kbd>/</kbd> — wyszukiwarka · <kbd>Esc</kbd> — zamyka okienka','')}`;
   if(k==='wyglad'){ const m=store.get('motyw','jasny');
     return `<h3>Wygląd</h3>
@@ -100,6 +101,8 @@ document.addEventListener('click', e=>{
   if(act==='zamknij'){ setOpen=false; return setRender(); }
   if(act==='eksport' && typeof kopiaPobierz==='function'){ kopiaPobierz(); return setRender(); }
   if(act==='eksportzip' && typeof kopiaPobierz==='function'){ a.disabled=true; a.textContent='Pobieram zdjęcia…'; kopiaPobierz(true); return; }
+  if(act==='wzopen' && typeof wzOtworz==='function') return wzOtworz();
+  if(act==='wzlively' && typeof wzKopiujLively==='function') return wzKopiujLively(a);
   if(typeof szAkcjaUstawien==='function' && szAkcjaUstawien(act, a)) return;
   if(act==='odswiez'){ location.reload(); return; }
   if(act==='instaluj' && setInstal){ setInstal.prompt(); setInstal.userChoice.finally(()=>{ setInstal=null; setRender(); }); return; }

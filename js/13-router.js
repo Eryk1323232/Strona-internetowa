@@ -24,6 +24,7 @@ const ROUTES = {
   'kalkulatory':{title:'Kalkulatory', parent:'studia', render:pCalcs},
   'dyski':   {title:'Dyski', parent:'studia', render:pDiski},
   'praca':   {title:'Praca', parent:'studia', render:pPraca},
+  'widzet':  {title:'Widżet', parent:null, render:pWidzet},   /* tryb widżetu na pulpit: ./?widzet=1 (js/39-widzet.js) */
 };
 
 /* ——— router ——— */
