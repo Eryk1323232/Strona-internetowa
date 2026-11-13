@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════════
-   WORLD OF TANKS → zakładka „Zakupy” (planowane zakupy w grze, odhaczanie, wykres wydatków)
+   WORLD OF TANKS → zakładka „Zakupy” (planowane zakupy w grze, odhaczanie, wykres planu zakupów)
    ════════════════════════════════════════════════════════════════════════
    WZ – pozycje (chmura: kolekcja „wotZakupy”):
      kat  'czolg' | 'magazyn' | 'premium' | 'zloto' | 'inne'   (WZ_KAT)
@@ -8,10 +8,12 @@
    Każda kategoria: cena bazowa + zniżka % → cena po zniżce = cena × (1 − zniżka) (0% = cena bazowa);
    magazyn / premium / złoto / inne mają też ilość → całość = cena po zniżce × ilość.
    Waluta wynika z kategorii (WZ_WAL_KAT): czołg i magazyn — kredyty, premium i złoto — zł; „Inne” — do wyboru.
+   Domyślne zniżki: magazyn 50%, czołg wg tieru (WZ_ZN_TIER: I–V 50%, VI–VII 30%, VIII–X 15%) — wpisują się same, można zmienić.
+   Kafelki „Do kupienia” i „Oszczędzone” pokazują kredyty bez dopisku „kr”.
    Magazyn: nazwa z listy zakładki „Magazyn” (D.mag wyposażenie + D.kons materiały, cena wpisuje się sama).
    Odhaczenie zakupu z magazynu dodaje kupione sztuki do stanu w zakładce „Magazyn” (setMag), odznaczenie — odejmuje.
    Odhaczone trafiają do zwijanej sekcji „Kupione”; wykres kołowy (chowany przyciskiem) pokazuje
-   wydane pieniądze wg kategorii, osobno dla każdej waluty.
+   plan zakupów (to, co jeszcze do kupienia) wg kategorii, osobno dla każdej waluty.
    Panel wstawia wotPanel('zak') w js/04-world-of-tanks.js; synchronizacja w js/12-synchronizacja.js.
    ════════════════════════════════════════════════════════════════════════ */
 const WZ_KAT = { czolg:['Czołg','#6C5CE7'], magazyn:['Magazyn','#18A999'], premium:['Konto premium','#E2A93B'], zloto:['Złoto','#D9A400'], inne:['Inne','#8E94AB'] };
@@ -29,6 +31,8 @@ const wzPush = x => cloud(db=>{ const {id,...v}=x; return db.collection('wotZaku
 const wzDel = id => cloud(db=>db.collection('wotZakupy').doc(id).delete());
 let wzKat = store.get('wzKat','czolg');
 const wzSuma = x => wzR(x.cz*x.il);
+const WZ_ZN_MAG = 50;
+const wzZnTier = t => { const n=({I:1,II:2,III:3,IV:4,V:5,VI:6,VII:7,VIII:8,IX:9,X:10})[t]||parseInt(t)||0; return !n?'':n<=5?50:n<=7?30:15; };
 const wzKw = (v,w) => w==='zl' ? fmt(v, Number.isInteger(v)?0:2)+' zł' : fmt(v,0)+' '+WZ_WAL[w][1];
 /* lista przedmiotów z zakładki „Magazyn” (js/04-world-of-tanks.js) */
 const wzMagLista = () => [...D.mag.map(x=>({n:x[0], p:x[1], g:'Wyposażenie'})), ...D.kons.map(x=>({n:x[0], p:x[1], g:'Materiały eksploatacyjne'}))];
@@ -40,14 +44,14 @@ const wzWal = k => WZ_WAL_KAT[k] || store.get('wzWal_inne','zl');
 function wzFormHtml(){
   const k=wzKat, w=wzWal(k), walSel=WZ_WAL_KAT[k]?`<input type="hidden" name="w" value="${w}">`:`<label class="wz-f wz-fw"><span class="label">Waluta</span><select name="w">${Object.entries(WZ_WAL).map(([v,[n]])=>`<option value="${v}"${v===w?' selected':''}>${n}</option>`).join('')}</select></label>`;
   const jedn=w==='zl'?'zł':w==='kr'?'kr':'złoto';
-  const pole=(name,lab,ph,cls='',typ='text')=>`<label class="wz-f ${cls}"><span class="label">${lab}</span><input name="${name}" ${typ==='num'?'inputmode="decimal"':''} placeholder="${ph}" autocomplete="off"></label>`;
+  const pole=(name,lab,ph,cls='',typ='text',val='')=>`<label class="wz-f ${cls}"><span class="label">${lab}</span><input name="${name}" ${typ==='num'?'inputmode="decimal"':''} placeholder="${ph}"${val!==''?` value="${val}"`:''} autocomplete="off"></label>`;
   const pola = k==='czolg'
     ? `<label class="wz-f"><span class="label">Nacja</span><select name="nacja"><option value="">—</option>${WZ_NACJE.map(n=>`<option>${n}</option>`).join('')}</select></label>
        <label class="wz-f wz-fs"><span class="label">Tier</span><select name="tier"><option value="">—</option>${WZ_TIERY.map(t=>`<option>${t}</option>`).join('')}</select></label>
        ${pole('n','Nazwa','np. Progetto 46','wz-fn')}${pole('cb',`Cena bazowa (${jedn})`,'0','wz-fp','num')}${pole('r','Zniżka %','0','wz-fs','num')}${walSel}`
     : `${k==='magazyn'?`<label class="wz-f wz-fn"><span class="label">Przedmiot z magazynu</span><select name="n"><option value="">— wybierz —</option>${['Wyposażenie','Materiały eksploatacyjne'].map(g=>`<optgroup label="${g}">${wzMagLista().filter(x=>x.g===g).map(x=>`<option value="${esc(x.n)}" data-p="${x.p}">${esc(x.n)} · masz ${wzMagIle(x.n)}</option>`).join('')}</optgroup>`).join('')}</select></label>`
         :pole('n','Nazwa',k==='premium'?'np. 30 dni premium':k==='zloto'?'np. 2500 złota':'np. przepustka bojowa','wz-fn')}
-       ${pole('cb',`Cena za szt.${WZ_WAL_KAT[k]?' ('+jedn+')':''}`,'0','wz-fp','num')}${pole('il','Ilość','1','wz-fs','num')}${pole('r','Zniżka %','0','wz-fs','num')}${walSel}`;
+       ${pole('cb',`Cena za szt.${WZ_WAL_KAT[k]?' ('+jedn+')':''}`,'0','wz-fp','num')}${pole('il','Ilość','1','wz-fs','num')}${pole('r','Zniżka %','0','wz-fs','num',k==='magazyn'?WZ_ZN_MAG:'')}${walSel}`;
   return `<form class="wz-form" autocomplete="off"><div class="seg wz-kat" role="tablist">${Object.entries(WZ_KAT).map(([v,[n]])=>`<button type="button" data-wzkat="${v}" aria-selected="${v===k}">${n}</button>`).join('')}</div>
     <div class="wz-pola">${pola}</div>
     <div class="wz-fbot"><span class="wz-prev" id="wzPrev">Całość: —</span><span class="tr-err" id="wzErr"></span><button type="submit" class="wz-add">Dodaj do planu</button></div></form>`;
@@ -60,13 +64,13 @@ function wzWiersz(x){
     <div class="wz-ceny">${x.r>0?`<s>${wzKw(wzR(x.cb*x.il),x.w)}</s><span class="wz-r">−${fmt(x.r, Number.isInteger(x.r)?0:1)}%</span>`:''}<b>${wzKw(wzSuma(x),x.w)}</b></div>
     <button type="button" class="del" data-wzdel="${esc(x.id)}" aria-label="Usuń">×</button></li>`;
 }
-/* wykres kołowy (donut) wydatków wg kategorii — dla jednej waluty */
+/* wykres kołowy (donut) planu zakupów wg kategorii — dla jednej waluty */
 function wzKolo(L, w){
   const S=Object.keys(WZ_KAT).map(k=>({k, v:wzR(L.filter(x=>x.kat===k&&x.w===w).reduce((a,x)=>a+wzSuma(x),0))})).filter(s=>s.v>0), tot=S.reduce((a,s)=>a+s.v,0);
   if(!tot) return '<p class="wz-pusto">Brak wydatków w tej walucie.</p>';
   const R=54, C=2*Math.PI*R; let off=0;
   const luki=S.map(s=>{ const dl=s.v/tot*C, gap=S.length>1?2:0, el=`<circle r="${R}" cx="70" cy="70" fill="none" stroke="${WZ_KAT[s.k][1]}" stroke-width="22" stroke-dasharray="${Math.max(0,dl-gap)} ${C}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"><title>${WZ_KAT[s.k][0]}: ${wzKw(s.v,w)}</title></circle>`; off+=dl; return el; }).join('');
-  return `<div class="wz-kolo"><svg viewBox="0 0 140 140" role="img" aria-label="Wydatki wg kategorii">${luki}<text x="70" y="66" text-anchor="middle" class="wz-kt">razem</text><text x="70" y="84" text-anchor="middle" class="wz-kv">${esc(wzKw(tot,w))}</text></svg>
+  return `<div class="wz-kolo"><svg viewBox="0 0 140 140" role="img" aria-label="Plan zakupów wg kategorii">${luki}<text x="70" y="66" text-anchor="middle" class="wz-kt">do kupienia</text><text x="70" y="84" text-anchor="middle" class="wz-kv">${esc(wzKw(tot,w))}</text></svg>
     <ul class="wz-leg">${S.sort((a,b)=>b.v-a.v).map(s=>`<li><i style="background:${WZ_KAT[s.k][1]}"></i><span>${WZ_KAT[s.k][0]}</span><b>${wzKw(s.v,w)}</b><small>${fmt(s.v/tot*100,0)}%</small></li>`).join('')}</ul></div>`;
 }
 function wzHtml(){
@@ -75,8 +79,8 @@ function wzHtml(){
   const sumy=L=>Object.keys(WZ_WAL).map(w=>[w,wal(w)(L)]).filter(([,v])=>v>0);
   const oszcz=sumy(WZ.map(x=>({...x, cz:wzR(x.cb-x.cz)})));
   const mies=todayISO().slice(0,7), kupM=kup.filter(x=>(x.dk||'').startsWith(mies));
-  const kw=L=>L.length?L.map(([w,v])=>wzKw(v,w)).join('<br>'):'0 zł';
-  const walKup=[...new Set(kup.map(x=>x.w))], wybW=walKup.includes(store.get('wzWykW',''))?store.get('wzWykW',''):walKup[0];
+  const kw=L=>L.length?L.map(([w,v])=>w==='kr'?fmt(v,0):wzKw(v,w)).join('<br>'):'0';
+  const walKup=[...new Set(plan.map(x=>x.w))], wybW=walKup.includes(store.get('wzWykW',''))?store.get('wzWykW',''):walKup[0];
   const wyk=store.get('wzWyk','1')==='1', otw=store.get('wzKupOtw','0')==='1';
   return `<div class="wz">
     <div class="grid g4 px-cells wz-cells">
@@ -87,12 +91,13 @@ function wzHtml(){
     ${wzFormHtml()}
     <h3 class="wz-h">Plan zakupów</h3>
     ${plan.length?`<ul class="wz-l">${plan.map(wzWiersz).join('')}</ul>`:'<p class="wz-pusto">Nic nie zaplanowano — dodaj pierwszą pozycję wyżej.</p>'}
-    <details class="wz-kup" id="wzKup"${otw?' open':''}><summary><span>Kupione <b>${kup.length}</b></span><span class="wz-ksum">${sumy(kup).map(([w,v])=>wzKw(v,w)).join(' · ')||''}</span></summary>
-      ${kup.length?`<ul class="wz-l">${kup.map(wzWiersz).join('')}</ul>`:'<p class="wz-pusto">Odhaczone zakupy pojawią się tutaj.</p>'}</details>
-    <section class="wz-wyk"><div class="wz-wh"><h3 class="wz-h">Wydatki wg kategorii</h3>
+    <section class="wz-wyk"><div class="wz-wh"><h3 class="wz-h">Plan zakupów wg kategorii</h3>
       ${walKup.length>1&&wyk?`<div class="seg wz-wsel">${walKup.map(w=>`<button type="button" data-wzwykw="${w}" aria-selected="${w===wybW}">${WZ_WAL[w][0]}</button>`).join('')}</div>`:''}
       <button type="button" class="td-btn wz-wtog" data-wzwyk="1" aria-expanded="${wyk}">${wyk?'Ukryj wykres':'Pokaż wykres'}</button></div>
-      ${wyk?(kup.length?wzKolo(kup,wybW):'<p class="wz-pusto">Wykres pokaże wydatki po odhaczeniu pierwszych zakupów.</p>'):''}</section></div>`;
+      ${wyk?(plan.length?wzKolo(plan,wybW):'<p class="wz-pusto">Wykres pojawi się po dodaniu pierwszej pozycji do planu.</p>'):''}</section>
+    <details class="wz-kup" id="wzKup"${otw?' open':''}><summary><span>Kupione <b>${kup.length}</b></span><span class="wz-ksum">${sumy(kup).map(([w,v])=>wzKw(v,w)).join(' · ')||''}</span></summary>
+      ${kup.length?`<ul class="wz-l">${kup.map(wzWiersz).join('')}</ul>`:'<p class="wz-pusto">Odhaczone zakupy pojawią się tutaj.</p>'}</details>
+</div>`;
 }
 function wzRefresh(){ if(typeof wotTab==='undefined'||wotTab!=='zak'||!$('#wotPanel')) return; const a=document.activeElement;
   if(a && a.closest && a.closest('.wz-form') && (a.value||a.tagName==='SELECT')) return; const y=scrollY; $('#wotPanel').innerHTML=wzHtml(); scrollTo(0,y); }
@@ -109,6 +114,7 @@ function wzPodglad(f){
 document.addEventListener('input', e=>{ const f=e.target.closest&&e.target.closest('.wz-form'); if(f) wzPodglad(f); });
 document.addEventListener('change', e=>{
   const f=e.target.closest&&e.target.closest('.wz-form'); if(f){ if(e.target.name==='w') store.set('wzWal_inne', e.target.value);
+    if(e.target.name==='tier') f.elements.r.value=wzZnTier(e.target.value);   /* domyślna zniżka wg tieru */
     if(e.target.name==='n' && e.target.tagName==='SELECT'){ const o=e.target.selectedOptions[0]; if(o&&o.dataset.p) f.elements.cb.value=grp(o.dataset.p); }
     wzPodglad(f); return; }
   if(e.target.matches && e.target.matches('.wz-cb')){ const on=e.target.checked, x=WZ.find(y=>y.id===e.target.dataset.id); if(x && x.done!==on) wzMagDodaj(x, on?1:-1);   /* stan w zakładce Magazyn */

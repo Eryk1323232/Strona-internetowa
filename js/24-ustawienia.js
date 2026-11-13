@@ -17,7 +17,7 @@ const SET_KAT = [
   ['sync','Synchronizacja','<path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/>'],
   ['info','O stronie','<circle cx="12" cy="12" r="8.5"/><path d="M12 11v6M12 7.5v.5"/>']
 ];
-const SET_WERSJA = 'v59';
+const SET_WERSJA = 'v60';
 const SET_ROZM = [['0.9','Mały'],['1','Normalny'],['1.1','Duży'],['1.2','Bardzo duży']];
 let setOpen=false, setKat=store.get('setKat','ogolne');
 /* instalacja jako aplikacja: Chrome/Android wysyła „beforeinstallprompt” — zapamiętujemy i pokazujemy przycisk */
