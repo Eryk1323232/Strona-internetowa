@@ -167,6 +167,9 @@ function arkuszDb(url, klucz){
     let dkF=true;
     gdb.collection('dyski').onSnapshot(s=>{ if(dkF&&s.empty&&wyslijLokalne()&&DK.length){ dkF=false; DK.forEach(d=>{ const {id,...v}=d; cloud(db=>db.collection('dyski').doc(id).set(v)); }); return ok(); }
       dkF=false; DK=s.docs.map(d=>dkNorm(d.id,d.data())); saveDk(); ok(); }, fail);
+    let wzF=true;   /* WoT → Zakupy (js/41-wot-zakupy.js) */
+    gdb.collection('wotZakupy').onSnapshot(s=>{ if(wzF&&s.empty&&wyslijLokalne()&&WZ.length){ wzF=false; WZ.forEach(wzPush); return ok(); }
+      wzF=false; WZ=s.docs.map(d=>wzNorm(d.id,d.data())); saveWz(); wzRefresh(); ok(); }, fail);
     let wcF=true;   /* WoT → Cele (js/23-wot-cele.js) */
     gdb.collection('wotCele').onSnapshot(s=>{ if(wcF&&s.empty&&wyslijLokalne()&&WC.length){ wcF=false; WC.forEach(wcPush); return ok(); }
       wcF=false; WC=s.docs.map(d=>wcNorm(d.id,d.data())); saveWc(); wcRefresh(); ok(); }, fail);
