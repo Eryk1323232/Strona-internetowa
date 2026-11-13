@@ -214,8 +214,9 @@ h1.hello-t{margin:0;font-size:clamp(26px,3.2vw,36px)}
 @media (max-width:900px){
   body{padding:0 0 var(--sbar-h)}
   .shell{display:block;min-height:100vh;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
-  .side{position:fixed;left:0;top:0;bottom:0;z-index:80;width:min(290px,84vw);height:auto;background:var(--surface);border-right:1px solid var(--line);box-shadow:20px 0 60px -30px rgba(28,29,60,.5);
-    transform:translateX(-102%);transition:transform .25s cubic-bezier(.3,.7,.2,1);padding-top:calc(18px + env(safe-area-inset-top,0px))}
+  .side{position:fixed;left:0;top:0;bottom:0;z-index:80;width:min(290px,84vw);height:auto;align-self:stretch;   /* bez tego Chrome (align-self:start z widoku komputerowego) skraca menu do wysokości treści */
+    background:var(--surface);border-right:1px solid var(--line);box-shadow:20px 0 60px -30px rgba(28,29,60,.5);
+    transform:translateX(-102%);transition:transform .25s cubic-bezier(.3,.7,.2,1);padding-top:calc(18px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
   .side.open{transform:none}
   .topnav{display:block;flex-basis:auto;order:0;border:0;margin:0;padding:0;max-height:none}   /* nadpisuje stare menu z 09-telefon.css */
   .side-scrim{display:block;position:fixed;inset:0;z-index:79;background:rgba(24,25,52,.32);opacity:0;pointer-events:none;transition:opacity .2s}
