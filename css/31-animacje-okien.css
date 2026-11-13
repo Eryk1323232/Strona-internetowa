@@ -1,31 +1,31 @@
 /* animacje okienek (js/40-animacje-okien.js) */
 @media (prefers-reduced-motion:no-preference){
   /* otwieranie */
-  .tr-scrim:not(.ok-out),.sk-scrim:not(.ok-out){animation:okFadeIn .2s ease-out}
-  .tr-modal:not(.ok-out){animation:okUp .24s cubic-bezier(.2,.85,.25,1)}
+  .tr-scrim:not(.ok-out),.sk-scrim:not(.ok-out){animation:okFadeIn .35s ease-out}
+  .tr-modal:not(.ok-out){animation:okUp .42s cubic-bezier(.2,.85,.25,1)}
   .tr-modal>.tr-panel{animation:none}   /* stara animacja panelu — teraz animuje się całe okienko */
-  .set-modal:not(.ok-out)>*{animation:okPop .22s cubic-bezier(.2,.85,.25,1)}
-  .ntz-lb:not(.ok-out),.sk-lb:not(.ok-out){animation:okFadeIn .18s ease-out}
-  .ntz-lb:not(.ok-out) img,.sk-lb:not(.ok-out) .sk-lbc>*{animation:okZoom .22s cubic-bezier(.2,.85,.25,1)}
+  .set-modal:not(.ok-out)>*{animation:okPop .38s cubic-bezier(.2,.85,.25,1)}
+  .ntz-lb:not(.ok-out),.sk-lb:not(.ok-out){animation:okFadeIn .3s ease-out}
+  .ntz-lb:not(.ok-out) img,.sk-lb:not(.ok-out) .sk-lbc>*{animation:okZoom .38s cubic-bezier(.2,.85,.25,1)}
   /* zamykanie (kopia okienka) */
   .ok-out{pointer-events:none!important}
-  .tr-scrim.ok-out,.sk-scrim.ok-out{animation:okFadeOut .19s ease-in forwards}
-  .tr-modal.ok-out{animation:okDown .19s cubic-bezier(.5,0,.75,.3) forwards}
-  .set-modal.ok-out>*{animation:okPopOut .17s ease-in forwards}
-  .sk-panel.ok-out{animation:okRight .19s cubic-bezier(.5,0,.75,.3) forwards}
-  .ntz-lb.ok-out,.sk-lb.ok-out{animation:okFadeOut .17s ease-in forwards}
+  .tr-scrim.ok-out,.sk-scrim.ok-out{animation:okFadeOut .32s ease-in forwards}
+  .tr-modal.ok-out{animation:okDown .32s cubic-bezier(.5,0,.75,.3) forwards}
+  .set-modal.ok-out>*{animation:okPopOut .28s ease-in forwards}
+  .sk-panel.ok-out{animation:okRight .32s cubic-bezier(.5,0,.75,.3) forwards}
+  .ntz-lb.ok-out,.sk-lb.ok-out{animation:okFadeOut .28s ease-in forwards}
 }
 @keyframes okFadeIn{from{opacity:0}}
 @keyframes okFadeOut{to{opacity:0}}
-@keyframes okUp{from{opacity:0;transform:translateY(18px) scale(.985)}}
-@keyframes okDown{to{opacity:0;transform:translateY(14px) scale(.985)}}
-@keyframes okPop{from{opacity:0;transform:scale(.95)}}
-@keyframes okPopOut{to{opacity:0;transform:scale(.96)}}
-@keyframes okZoom{from{opacity:0;transform:scale(.94)}}
-@keyframes okRight{to{opacity:0;transform:translateX(40px)}}
+@keyframes okUp{from{opacity:0;transform:translateY(36px) scale(.92)}}
+@keyframes okDown{to{opacity:0;transform:translateY(28px) scale(.92)}}
+@keyframes okPop{from{opacity:0;transform:scale(.9)}}
+@keyframes okPopOut{to{opacity:0;transform:scale(.92)}}
+@keyframes okZoom{from{opacity:0;transform:scale(.88)}}
+@keyframes okRight{to{opacity:0;transform:translateX(70px)}}
 @media (max-width:640px) and (prefers-reduced-motion:no-preference){
-  .tr-modal:not(.ok-out){animation:okUpTel .26s cubic-bezier(.2,.85,.25,1)}
-  .tr-modal.ok-out{animation:okDownTel .2s cubic-bezier(.5,0,.75,.3) forwards}
+  .tr-modal:not(.ok-out){animation:okUpTel .45s cubic-bezier(.2,.85,.25,1)}
+  .tr-modal.ok-out{animation:okDownTel .34s cubic-bezier(.5,0,.75,.3) forwards}
 }
-@keyframes okUpTel{from{opacity:0;transform:translateY(40px)}}
-@keyframes okDownTel{to{opacity:0;transform:translateY(40px)}}
+@keyframes okUpTel{from{opacity:0;transform:translateY(80px)}}
+@keyframes okDownTel{to{opacity:0;transform:translateY(80px)}}

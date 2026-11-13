@@ -19,7 +19,7 @@ const SZ_SLOWA = {
   notatki:'notes zapiski',
   kalkulatory:'mma mieszanki asfalt liczenie masa receptura',
   dyski:'drive google linki semestr materiały',
-  praca:'inżynierska badania dziennik laboratorium wyniki weryfikacja ai mma wyniki pawła moje lepiszcze sbs olej mieszanki',
+  praca:'inżynierska badania laboratorium wyniki mma wyniki pawła moje lepiszcze sbs olej mieszanki',
   wot:'world of tanks czołgi obligacje gry cele expienie free xp',
   silownia:'trening siłownia plan ćwiczenia waga serie gymrun',
   pozostale:'pozostałe posiadówki imprezy domówki rozliczenie znajomi',

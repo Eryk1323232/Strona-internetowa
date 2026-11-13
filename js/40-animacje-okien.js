@@ -10,7 +10,7 @@
    Wyłączone przy systemowym „ogranicz animacje” (prefers-reduced-motion).
    ════════════════════════════════════════════════════════════════════════ */
 const OK_SEL = '.tr-modal,.tr-scrim,.set-modal,.sk-panel,.sk-scrim,.ntz-lb,.sk-lb';
-const OK_CZAS = 190;
+const OK_CZAS = 340;
 const okRuch = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
 document.addEventListener('scroll', e=>{ const t=e.target; if(t && t.nodeType===1) t.__okST=t.scrollTop; }, true);
 function okDuch(el){

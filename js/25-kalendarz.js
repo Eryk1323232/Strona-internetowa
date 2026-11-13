@@ -9,7 +9,7 @@
    Dodatkowo w komórce: suma wydatków z tego dnia (Finanse).
    kalM — oglądany miesiąc 'RRRR-MM' · kalSel — zaznaczony dzień · kalOff — wyłączone kategorie (filtr, pamiętany).
    ════════════════════════════════════════════════════════════════════════ */
-const KAL_KAT = {todo:['Zadania','#5B5BD6'], tren:['Treningi','#2E9E68'], plat:['Płatności','#E0832F'], bad:['Badania','#D9536F']};
+const KAL_KAT = {todo:['Zadania','#5B5BD6'], tren:['Treningi','#2E9E68'], plat:['Płatności','#E0832F']};   /* „Badania” usunięte razem z dziennikiem w Pracy */
 let kalM = todayISO().slice(0,7), kalSel = todayISO();
 let kalOff = new Set(); try{ const o=JSON.parse(store.get('kalOff','[]')); if(Array.isArray(o)) kalOff=new Set(o); }catch(e){}
 const kalIso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -31,7 +31,6 @@ function kalZbierz(od, doI){
     const st=[...s.przerwy].reverse().find(p=>p.do)?.do || s.od, cena=pxEval(s.p);
     for(let k=0;k<2000;k++){ const d=kalIso(subNth(s,k,st)); if(d>doI) break; add(d,{k:'plat', n:s.n, kw:isNaN(cena)?0:cena, sub:s.tryb==='reczne'?'subskrypcja · zapłać':'subskrypcja'}); }
   });
-  if(typeof PR!=='undefined') PR.forEach(x=>add(x.d,{k:'bad', id:x.id, n:x.b||'Badanie', sub:x.p}));
   Object.values(M).forEach(L=>L.sort((a,b)=>(a.tm?0:1)-(b.tm?0:1)||(a.tm||'').localeCompare(b.tm||'')));   /* z godziną — na górze, po kolei */
   return M;
 }
@@ -63,9 +62,8 @@ function kalSideHtml(){
   const todo=grp('todo').map(e=>`<div class="kal-it${e.done?' done':''}"><button type="button" class="td-chk sm" data-kaltodo="${esc(e.id)}" aria-pressed="${e.done}" aria-label="Zadanie zrobione"></button>${e.tm?`<span class="kal-tm">${e.tm}</span>`:''}<span>${esc(e.n)}</span>${e.imp?'<span class="kal-imp" title="Ważne">★</span>':''}</div>`).join('');
   const tren=grp('tren').map(e=>`<div class="kal-it"><b>${esc(e.n)}</b><small>${esc(e.sub||'')}${e.done?'':' · w trakcie'}</small></div>`).join('');
   const plat=grp('plat').map(e=>`<div class="kal-it"><span>${esc(e.n)}<small>${esc(e.sub||'')}</small></span>${e.kw?`<b class="${e.wpl?'plus':'minus'}">${e.wpl?'+':'−'}${kalZl(e.kw)}</b>`:''}</div>`).join('')+(W?`<div class="kal-it kal-wyd"><span>Wydane tego dnia</span><b class="minus">−${kalZl(W)}</b></div>`:'');
-  const bad=grp('bad').map(e=>`<div class="kal-it"><b>${esc(e.n)}</b><small>${esc(e.sub||'')}</small></div>`).join('');
   return `<div class="kal-sh"><span class="label">${d===td?'Dziś':dt.toLocaleDateString('pl-PL',{weekday:'long'})}</span><h3>${dt.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})}</h3></div>
-    ${sek('todo',todo)}${sek('tren',tren)}${sek('plat',plat)}${sek('bad',bad)}
+    ${sek('todo',todo)}${sek('tren',tren)}${sek('plat',plat)}
     ${!E.length&&!W?'<p class="kal-pusto">Nic nie zaplanowano.</p>':''}
     <form class="kal-add"><input name="t" placeholder="+ Wydarzenie / zadanie" aria-label="Nowe wydarzenie na ten dzień" autocomplete="off" maxlength="200"><input name="tm" type="time" class="kal-tmin" aria-label="Godzina (opcjonalnie)" title="Godzina (opcjonalnie)"><button type="submit">Dodaj</button></form>
     <div class="kal-links"><a href="#todo">To-Do →</a><a href="#silownia">Siłownia →</a><a href="#pieniadze">Pieniądze →</a></div>`;
