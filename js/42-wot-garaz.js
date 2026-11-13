@@ -4,6 +4,7 @@
      nac nacja (kody jak w Expieniu: NATIONS / NAT_NAMES z js/04) · n nazwa · tier I–XI
      p true = premium, false = drzewkowy · cs cena sprzedaży (kredyty, wpisywana ręcznie) · c kolejność dodania
    Formularz dodawania na górze; lista grupowana po nacji (kolejność jak w Expieniu), w nacji wg tieru i nazwy.
+   Duplikaty: nazwa porównywana bez wielkości liter, spacji, kropek i myślników (grKlucz) — drugi raz nie da się dodać.
    Filtr Wszystkie / Drzewkowe / Premium (store 'grFiltr'); rozwinięte nacje — store 'grZwin' (zwinięte).
    Dane: localStorage 'wotGaraz' + kolekcja 'wotGaraz' w arkuszu (synchronizacja w js/12-synchronizacja.js).
    ════════════════════════════════════════════════════════════════ */
@@ -16,6 +17,8 @@ const saveGr = () => store.set('wotGaraz', JSON.stringify(GR));
 const grPush = x => cloud(db=>{ const {id,...v}=x; return db.collection('wotGaraz').doc(id).set(v); });
 const grDel = id => cloud(db=>db.collection('wotGaraz').doc(id).delete());
 const grZwin = () => { try{ return JSON.parse(store.get('grZwin','[]'))||[]; }catch(e){ return []; } };
+const grKlucz = n => String(n||'').toLowerCase().replace(/[\s.\-_]+/g,'');
+const grJest = n => GR.find(x=>grKlucz(x.n)===grKlucz(n));
 const grOdm = (n,a,b,c) => n===1?a:(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?b:c;
 
 function grFormHtml(){
@@ -65,6 +68,7 @@ function grSet(id,patch){ const x=GR.find(y=>y.id===id); if(!x) return; const n=
 document.addEventListener('submit', e=>{ const f=e.target; if(!f.matches||!f.matches('.gr-form')) return; e.preventDefault();
   const g=k=>(f.elements[k].value||'').trim(), msg=f.querySelector('.gr-msg'), p=f.querySelector('[data-grtyp="1"]').getAttribute('aria-pressed')==='true';
   if(!g('n')){ msg.textContent='Wpisz nazwę czołgu.'; f.elements.n.focus(); return; }
+  const dup=grJest(g('n')); if(dup){ msg.innerHTML=`<span class="gr-blad">${esc(dup.n)} już jest w garażu (${esc(NAT_NAMES[dup.nac]||dup.nac)}${dup.tier?', tier '+dup.tier:''}).</span>`; f.elements.n.focus(); f.elements.n.select(); return; }
   const cs=g('cs')?bkNum(g('cs')):0; if(isNaN(cs)||cs<0){ msg.textContent='Cena sprzedaży musi być liczbą.'; return; }
   const x=grNorm(uid('gr'),{nac:g('nac'), n:g('n'), tier:g('tier'), p, cs, c:Date.now()});
   GR=[...GR,x]; saveGr(); grPush(x); store.set('grOst', JSON.stringify({nac:x.nac, p}));
@@ -85,3 +89,6 @@ document.addEventListener('change', e=>{ const t=e.target; if(!t.matches||!t.mat
 document.addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.matches && e.target.matches('.gr-cs')) e.target.blur(); });
 document.addEventListener('toggle', e=>{ const d=e.target; if(!d.matches||!d.matches('details.gr-nat')) return;
   const s=new Set(grZwin()); d.open?s.delete(d.dataset.nac):s.add(d.dataset.nac); store.set('grZwin', JSON.stringify([...s])); }, true);
+document.addEventListener('input', e=>{ const t=e.target; if(!t.matches||!t.matches('.gr-form [name=n]')) return;
+  const msg=t.form.querySelector('.gr-msg'), dup=t.value.trim()&&grJest(t.value.trim());
+  t.classList.toggle('gr-dup', !!dup); msg.innerHTML=dup?`<span class="gr-blad">${esc(dup.n)} już jest w garażu (${esc(NAT_NAMES[dup.nac]||dup.nac)}).</span>`:''; });

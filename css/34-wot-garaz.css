@@ -29,3 +29,5 @@
 :root[data-theme="dark"] .gr-it.prem .gr-n,:root[data-theme="dark"] .gr-it.prem .gr-pill{color:#F0C564}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .gr-it.prem .gr-n,:root:not([data-theme="light"]) .gr-it.prem .gr-pill{color:#F0C564}}
 @media (max-width:620px){ .gr-it{flex-wrap:wrap;gap:8px} .gr-n{flex:1 1 calc(100% - 60px)} .gr-pill{margin-left:50px} .gr-cena{margin-left:auto} .gr-cena input{width:110px} }
+.gr-blad{color:var(--bad,#d64545);font-weight:600}
+.gr-form .wz-f input.gr-dup{border-color:var(--bad,#d64545)}
