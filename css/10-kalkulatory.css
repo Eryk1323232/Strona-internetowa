@@ -131,3 +131,8 @@ td.mx-pct{color:var(--muted);width:70px}
 .mx-bt .mx-gal{margin-top:2px;grid-template-columns:repeat(auto-fill,minmax(90px,120px))}
 .mx-test .mx-phs{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));margin-top:2px}
 .mx-test-g div.w{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;min-width:0}
+/* karty wyników w Studia → Praca */
+.pr-wyn{margin-bottom:26px}
+.pr-wyn .calc-card{min-height:150px}
+.pr-wyn .calc-card h2{font-size:24px}
+.pr-h{font-size:20px;margin:0 0 14px}

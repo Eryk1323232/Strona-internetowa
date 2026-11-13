@@ -53,7 +53,7 @@ function render(){
   tdDrawerRender();
   if(key==='notatki') ntGrow(); else { ntFlush(); ntSel=''; }
   if(key!=='silownia' && trM){ trM=null; trRender(); }
-  if(key!=='kalkulatory' && mxM){ mxM=null; mxRender(); }
+  if(key!=='praca' && mxM){ mxM=null; mxRender(); }   /* Wyniki Pawła / moje są w Pracy */
   if(key!=='pozostale' && pozM){ pozM=null; pozRender(); }
   if(key!=='dyski' && dkM){ dkM=null; dkRender(); }
   if(key!=='praca' && prM){ prM=null; prRender(); }

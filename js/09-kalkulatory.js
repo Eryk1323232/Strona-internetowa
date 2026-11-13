@@ -8,15 +8,18 @@
    Nowy kalkulator = nowa karta w pCalcs() + własny kod pod spodem.
    ════════════════════════════════════════════════════════════════════════ */
 
+/* karty „Wyniki Pawła / Wyniki moje” — wyświetlane w Studia → Praca (pPraca, js/21-praca.js) */
+function mxKarty(){
+  return `    <button type="button" class="calc-card res" data-mxact="open" data-set="pawel"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6h12M20 6v12L9 38a3 3 0 0 0 2.6 4.5h24.8A3 3 0 0 0 39 38L28 18V6"/><path d="M13.5 30h21"/><circle cx="21" cy="35" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="37" r="1.2" fill="currentColor" stroke="none"/></svg></div>
+      <h2>Wyniki Pawła</h2><span class="calc-count" id="mxCount-pawel">${mxCnt(MXS.pawel.length)}</span><span class="calc-open">Otwórz →</span></button>
+    <button type="button" class="calc-card res mine" data-mxact="open" data-set="moje"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6h12M20 6v12L9 38a3 3 0 0 0 2.6 4.5h24.8A3 3 0 0 0 39 38L28 18V6"/><path d="M13.5 30h21"/><circle cx="21" cy="35" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="37" r="1.2" fill="currentColor" stroke="none"/></svg></div>
+      <h2>Wyniki moje</h2><span class="calc-count" id="mxCount-moje">${mxCnt(MXS.moje.length)}</span><span class="calc-open">Otwórz →</span></button>`;
+}
 function pCalcs(){
   return `<h1>Kalkula<span class="acc">tory</span></h1>
   <div class="calc-cards" id="calcPage">
     <button type="button" class="calc-card res" data-mmaact="open"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 36h40"/><path d="M4 30h40" stroke-dasharray="3 4"/><circle cx="12" cy="24" r="2.2" fill="currentColor" stroke="none"/><circle cx="20" cy="21" r="1.6" fill="currentColor" stroke="none"/><circle cx="28" cy="25" r="2.6" fill="currentColor" stroke="none"/><circle cx="36" cy="22" r="1.8" fill="currentColor" stroke="none"/><path d="M4 42h40"/></svg></div>
       <h2>Liczenie MMA</h2><span class="calc-count">kalkulator MASA Web · skład, lepiszcze, receptura</span><span class="calc-open">Otwórz →</span></button>
-    <button type="button" class="calc-card res" data-mxact="open" data-set="pawel"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6h12M20 6v12L9 38a3 3 0 0 0 2.6 4.5h24.8A3 3 0 0 0 39 38L28 18V6"/><path d="M13.5 30h21"/><circle cx="21" cy="35" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="37" r="1.2" fill="currentColor" stroke="none"/></svg></div>
-      <h2>Wyniki Pawła</h2><span class="calc-count" id="mxCount-pawel">${mxCnt(MXS.pawel.length)}</span><span class="calc-open">Otwórz →</span></button>
-    <button type="button" class="calc-card res mine" data-mxact="open" data-set="moje"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6h12M20 6v12L9 38a3 3 0 0 0 2.6 4.5h24.8A3 3 0 0 0 39 38L28 18V6"/><path d="M13.5 30h21"/><circle cx="21" cy="35" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="37" r="1.2" fill="currentColor" stroke="none"/></svg></div>
-      <h2>Wyniki moje</h2><span class="calc-count" id="mxCount-moje">${mxCnt(MXS.moje.length)}</span><span class="calc-open">Otwórz →</span></button>
   </div>`;
 }
 
@@ -191,7 +194,7 @@ async function mxPdf(k, id){
 }
 function mxRender(){
   let sc=$('#mxScrim'), md=$('#mxModal');
-  if(!mxM || !$('#calcPage')){ sc&&sc.remove(); md&&md.remove(); mxM=null; document.body.classList.remove('tr-lock'); return; }
+  if(!mxM || !$('#prWyn')){ sc&&sc.remove(); md&&md.remove(); mxM=null; document.body.classList.remove('tr-lock'); return; }
   if(!md){ sc=document.createElement('div'); sc.id='mxScrim'; sc.className='tr-scrim'; document.body.appendChild(sc);
     md=document.createElement('div'); md.id='mxModal'; md.className='tr-modal'; md.setAttribute('role','dialog'); md.setAttribute('aria-modal','true'); document.body.appendChild(md); }
   document.body.classList.add('tr-lock'); md.innerHTML=`<div class="tr-panel">${mxModalHtml()}</div>`; mxSum();

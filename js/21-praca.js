@@ -115,7 +115,7 @@ function prHtml(){
     :`<div class="nt-blank"><p>Brak wpisów. Kliknij „+ Nowy wpis” i dodaj dzisiejsze badanie.</p></div>`}`;
 }
 function prRefresh(){ const a=$('#prApp'); if(a) a.innerHTML=prHtml(); }
-function pPraca(){ return `<h1>Pra<span class="acc">ca</span></h1><div id="prApp">${prHtml()}</div>`; }
+function pPraca(){ return `<h1>Pra<span class="acc">ca</span></h1>${typeof mxKarty==='function'?`<div class="calc-cards pr-wyn" id="prWyn">${mxKarty()}</div><h2 class="pr-h">Dziennik badań</h2>`:''}<div id="prApp">${prHtml()}</div>`; }
 
 /* ——— okienko wpisu ——— */
 function prModalHtml(){
