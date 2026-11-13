@@ -38,6 +38,7 @@ function setTresc(k){
     ${setRow('Imię w powitaniu','Na stronie głównej: „Dzień dobry, …”',`<input class="set-in" data-setin="imie" value="${esc(store.get('imie','Eryk'))}" maxlength="30" placeholder="Eryk">`)}
     ${setRow('Strona po otwarciu','Co ma się pokazać, gdy wchodzisz na stronę bez konkretnego adresu',`<select class="set-in" data-setin="startStrona">${setNav().map(([r,n])=>`<option value="${r}"${store.get('startStrona','start')===r?' selected':''}>${esc(n)}</option>`).join('')}</select>`)}
     ${setRow('Aplikacja na telefon i komputer', setJestApka()?'Działa jako zainstalowana aplikacja — także bez internetu.':setInstal?'Ikona na ekranie głównym, pełny ekran, działa też bez internetu.':'W Chrome: menu ⋮ → „Dodaj do ekranu głównego” / „Zainstaluj aplikację”. Działa też bez internetu.', setJestApka()?'<span class="set-ok">✓ Zainstalowana</span>':setInstal?`<button type="button" class="set-main" data-setact="instaluj">Zainstaluj</button>`:'')}
+    ${setRow('Ukrywaj kwoty po uruchomieniu','Przy każdym otwarciu strony kwoty w Pieniądzach i w widżecie wydatków są rozmyte (jak w aplikacji banku). Odkrywasz okiem.',setSeg('kasaStart', store.get('kasaStart','0'), [['0','Nie'],['1','Tak']]))}
     ${setRow('Skróty klawiszowe','<kbd>Ctrl</kbd> + <kbd>K</kbd> lub <kbd>/</kbd> — wyszukiwarka · <kbd>Esc</kbd> — zamyka okienka','')}`;
   if(k==='wyglad'){ const m=store.get('motyw','jasny');
     return `<h3>Wygląd</h3>
