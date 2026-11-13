@@ -46,7 +46,7 @@ function wotSummary(k){
   if(k==='mag'){
     const it=magItems(), ko=konsItems();
     return cells([
-      ['Wartość magazynu', `${fmt(magValue()/1e6,2)}<small>mln kr</small>`, 'przy sprzedaży za 50% ceny'],
+      ['Wartość magazynu', `${fmt(magValue()/1e6,2)}<small>mln</small>`, 'przy sprzedaży za 50% ceny'],
       ['Wyposażenie', `${it.reduce((a,i)=>a+i.q,0)}<small>szt.</small>`, `${it.filter(i=>i.q>0).length} z ${it.length} rodzajów`],
       ['Materiały', `${ko.reduce((a,i)=>a+i.q,0)}<small>szt.</small>`, `${ko.filter(i=>i.q>0).length} z ${ko.length} rodzajów`]]);
   }
@@ -107,9 +107,9 @@ function wotPanel(k){
     const it=magItems(), ko=konsItems();
     const row=i=>`<tr class="${i.q?'':'dim'}"><td>${esc(i.n)}</td><td class="n">${fmt(i.p)}</td><td class="n">${numIn('mq','data-n="'+esc(i.n)+'"',i.q,i.n+' w magazynie')}</td><td class="n">${fmt(i.p*i.q*0.5)}</td></tr>`;
     const v1=it.reduce((a,i)=>a+i.p*i.q*0.5,0), v2=ko.reduce((a,i)=>a+i.p*i.q*0.5,0);
-    return `${top}<div class="split even"><div class="tbl-wrap"><table><thead><tr><th>Wyposażenie</th><th class="n">Cena [kr]</th><th class="n">W magazynie</th><th class="n">Wartość</th></tr></thead><tbody>${it.map(row).join('')}</tbody>
+    return `${top}<div class="split even"><div class="tbl-wrap"><table><thead><tr><th>Wyposażenie</th><th class="n">Cena</th><th class="n">W magazynie</th><th class="n">Wartość</th></tr></thead><tbody>${it.map(row).join('')}</tbody>
       <tfoot><tr><td colspan="3">Razem wyposażenie</td><td class="n">${fmt(v1)}</td></tr></tfoot></table></div>
-      <div class="tbl-wrap"><table><thead><tr><th>Materiały eksploatacyjne</th><th class="n">Cena [kr]</th><th class="n">W magazynie</th><th class="n">Wartość</th></tr></thead><tbody>${ko.map(row).join('')}</tbody>
+      <div class="tbl-wrap"><table><thead><tr><th>Materiały eksploatacyjne</th><th class="n">Cena</th><th class="n">W magazynie</th><th class="n">Wartość</th></tr></thead><tbody>${ko.map(row).join('')}</tbody>
       <tfoot><tr><td colspan="3">Razem materiały</td><td class="n">${fmt(v2)}</td></tr></tfoot></table></div></div>`;
   }
   if(k==='exp'){
