@@ -2,7 +2,7 @@
    UKRYWANIE KWOT (jak w aplikacji banku) — przycisk z okiem
    ════════════════════════════════════════════════════════════════════════
    Gdzie: strona Pieniądze (karty), okienka Finanse / Zakłady / Subskrypcje, widżet „Szybki wydatek”
-   na stronie głównej i kwoty w „Najbliższe 2 tygodnie”.
+   na stronie głównej, kwoty w „Najbliższe 2 tygodnie” i w Kalendarzu (opłaty, wpływy, subskrypcje).
    Jak: kwoty w tekście (np. „1 250,00 zł”, „−50,00”, „100 zł”) są owijane w <span class="kw">
    (MutationObserver — działa też po każdym odświeżeniu widoku), pola z kwotami i liczby na wykresach
    rozmywa CSS. Przy włączonym ukrywaniu body ma klasę „kasa-ukryta”.
@@ -10,7 +10,7 @@
    po uruchomieniu” (store „kasaStart”) — przy każdym otwarciu strony kwoty są zakryte.
    Krótki klik w zakrytą kwotę nic nie odkrywa (żeby nie pokazać jej przypadkiem) — tylko oko.
    ════════════════════════════════════════════════════════════════════════ */
-const KW_ZAKRES = '#bkPage, #finModal, #bkModal, #sbModal, .w-fin, .hd-next';
+const KW_ZAKRES = '#bkPage, #finModal, #bkModal, #sbModal, .w-fin, .hd-next, #kalApp';
 const KW_RE = /[-−+]?\d{1,3}(?:[  ]\d{3})*(?:,\d{1,2})(?:[  ]?zł)?|[-−+]?\d[\d  ]*[  ]?zł/g;
 let kasaUkryta = store.get('kasaStart','0')==='1' ? true : store.get('kasaUkryta','0')==='1';
 const KW_OKO = on => on
@@ -37,7 +37,8 @@ function kwOwin(root){
 function kwPrzyciski(){
   document.querySelectorAll('#finModal .tr-top, #bkModal .tr-top, #sbModal .tr-top').forEach(t=>{ if(t.querySelector('[data-kwoko]')) return; const x=t.querySelector('.tr-x'); if(x){ const g=document.createElement('div'); g.className='kw-topg'; x.replaceWith(g); g.insertAdjacentHTML('beforeend', kwBtn('kw-tr')); g.appendChild(x); } });
   document.querySelectorAll('.w-fin .w-head').forEach(h=>{ if(!h.querySelector('[data-kwoko]')) h.lastElementChild.insertAdjacentHTML('beforebegin', kwBtn('kw-w')); });
-  const bp=document.getElementById('bkPage'); if(bp){ const h=bp.previousElementSibling; if(h && h.tagName==='H1' && !h.querySelector('[data-kwoko]')){ h.classList.add('kw-h1'); h.insertAdjacentHTML('beforeend', kwBtn('kw-page')); } }
+  ['bkPage','kalApp'].forEach(id=>{ const bp=document.getElementById(id); if(!bp) return; const h=bp.previousElementSibling;
+    if(h && h.tagName==='H1' && !h.querySelector('[data-kwoko]') && (id!=='kalApp' || bp.querySelector('.kw'))) h.insertAdjacentHTML('beforeend', kwBtn('kw-page')); });
 }
 let kwT=0;
 function kwSkan(){ kwT=0; kwPrzyciski(); document.querySelectorAll(KW_ZAKRES).forEach(kwOwin); }
