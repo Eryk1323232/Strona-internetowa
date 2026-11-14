@@ -173,6 +173,7 @@ function arkuszDb(url, klucz){
     gdb.collection('Garaż').onSnapshot(s=>{ gaZChmury(s.docs); ok(); }, fail);
     gdb.collection('Garaż_status').onSnapshot(s=>{ gaStZChmury(s.docs); ok(); }, fail);
     gdb.collection('wotGarazCeny').onSnapshot(s=>{ gaCenyZChmury(s.docs); ok(); }, fail);   /* ceny sprzedaży wpisane na stronie */
+    gdb.collection('Garaż_konto').onSnapshot(s=>{ gkZChmury(s.docs); ok(); }, fail);   /* zasoby konta → panel obok tytułu (js/44-wot-zasoby.js) */
     let wzF=true;   /* WoT → Zakupy (js/41-wot-zakupy.js) */
     gdb.collection('wotZakupy').onSnapshot(s=>{ if(wzF&&s.empty&&wyslijLokalne()&&WZ.length){ wzF=false; WZ.forEach(wzPush); return ok(); }
       wzF=false; WZ=s.docs.map(d=>wzNorm(d.id,d.data())); saveWz(); wzRefresh(); ok(); }, fail);
