@@ -172,6 +172,7 @@ function arkuszDb(url, klucz){
        Stara ręczna lista (kolekcja 'wotGaraz') zostaje w Arkuszu, ale nie jest już wczytywana. */
     gdb.collection('Garaż').onSnapshot(s=>{ gaZChmury(s.docs); ok(); }, fail);
     gdb.collection('Garaż_status').onSnapshot(s=>{ gaStZChmury(s.docs); ok(); }, fail);
+    gdb.collection('wotGarazCeny').onSnapshot(s=>{ gaCenyZChmury(s.docs); ok(); }, fail);   /* ceny sprzedaży wpisane na stronie */
     let wzF=true;   /* WoT → Zakupy (js/41-wot-zakupy.js) */
     gdb.collection('wotZakupy').onSnapshot(s=>{ if(wzF&&s.empty&&wyslijLokalne()&&WZ.length){ wzF=false; WZ.forEach(wzPush); return ok(); }
       wzF=false; WZ=s.docs.map(d=>wzNorm(d.id,d.data())); saveWz(); wzRefresh(); ok(); }, fail);

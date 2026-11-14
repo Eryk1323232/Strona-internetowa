@@ -16,8 +16,12 @@
    Adres wkleja się raz (pole na dole zakładki); zapisuje się w przeglądarce ('gaUrl')
    i w chmurze (kolekcja cfg, dokument 'wotGarazUrl'), więc działa na każdym urządzeniu.
 
-   Ręczne ceny sprzedaży i czołgi bez bitew dopisuje się w Arkuszu (kolumna
-   „Sprzedaż ręcznie (kr)” w „Garaż” i zakładka „Garaż_dodatki”).
+   RĘCZNE CENY SPRZEDAŻY wpisuje się na stronie (pole w kolumnie „Sprzedaż”). Zapis idzie
+   zwykłą drogą strony (cloud → Kod.gs) do kolekcji 'wotGarazCeny' {id: tank_id, cena}
+   — dokument bez ceny = cena usunięta. Strona od razu przelicza wartość (gaZCena), a projekt
+   „WoT Garaż” przy odświeżeniu przepisuje te ceny do kolumny „Sprzedaż ręcznie (kr)”
+   (cena ze strony ma pierwszeństwo przed wpisaną ręcznie w Arkuszu).
+   Czołgi bez bitew dopisuje się w Arkuszu, w zakładce „Garaż_dodatki”.
 
    Wejście: grHtml() – wołane przez wotPanel('gar') w js/04-world-of-tanks.js.
    Stara ręczna lista (kolekcja 'wotGaraz') zostaje w Arkuszu, ale nie jest już wyświetlana.
@@ -33,6 +37,22 @@ const gaZArkusza = (id,v={}) => ({ id:String(id), n:String(v['Nazwa']||''), nac:
   sz:gaLiczba(v['Szac. sprzedaż (kr)']), rr:gaLiczba(v['Sprzedaż ręcznie (kr)']), w:+v['Wartość do sumy (kr)']||0,
   st:String(v['Status wyceny']||''), b:+v['Bitwy']||0, wr:gaLiczba(v['Wygrane %']), m:+v['Mistrzostwo']||0,
   tk:String(v['Typ (kod)']||''), ik:String(v['Ikona']||'').replace(/^http:\/\//,'https://') });
+/* ceny wpisane na stronie: {tank_id: liczba | null (usunięta)} — nakładane na dane z Arkusza */
+let GA_CENY = {}; try{ GA_CENY=JSON.parse(store.get('wotGarazCeny','{}'))||{}; }catch(e){ GA_CENY={}; }
+const saveGaCeny = () => store.set('wotGarazCeny', JSON.stringify(GA_CENY));
+function gaCenyZChmury(docs){ const m={}; docs.forEach(d=>{ const v=d.data()||{}; m[d.id]=gaLiczba(v.cena); }); GA_CENY=m; saveGaCeny(); gaRefresh(); }
+function gaZCena(x){
+  if(!(x.id in GA_CENY)) return x;
+  const rr=GA_CENY[x.id];
+  if(rr!==null) return {...x, rr, w:rr, st:'Ręcznie'};
+  const st = x.st==='Ręcznie' ? (x.sz!==null ? 'Szacunek 50%' : 'Brak ceny – weryfikuj w grze') : x.st;
+  return {...x, rr:null, w:x.sz!==null?x.sz:0, st};
+}
+const gaLista = () => GA.map(gaZCena);
+function gaZapiszCene(id, cena){
+  GA_CENY[id]=cena; saveGaCeny();
+  cloud(db=>db.collection('wotGarazCeny').doc(id).set(cena===null?{}:{cena}));
+}
 const gaWer = x => /weryfikuj|popraw/i.test(x.st);
 
 let GA=[], GA_ST=null;
@@ -68,7 +88,7 @@ const gaMinOdOst = () => { const t=+store.get('gaOstOdsw','0'); return t?(Date.n
 /* ——— widok ——— */
 function gaFiltruj(){
   const q=gaF.q.trim().toLowerCase();
-  const L=GA.filter(x=>(!gaF.tier||x.tier===+gaF.tier) && (!gaF.nac||x.nac===gaF.nac) && (!gaF.typ||x.typ===gaF.typ)
+  const L=gaLista().filter(x=>(!gaF.tier||x.tier===+gaF.tier) && (!gaF.nac||x.nac===gaF.nac) && (!gaF.typ||x.typ===gaF.typ)
     && (!gaF.wer||gaWer(x)) && (!q||x.n.toLowerCase().includes(q)));
   const k=gaF.sort, d=gaF.dir;
   const val = x => k==='n'?x.n : k==='nac'?x.nac : k==='typ'?x.typ : k==='w'?x.w : k==='b'?x.b : k==='wr'?(x.wr??-1) : x.tier;
@@ -78,13 +98,17 @@ function gaFiltruj(){
 }
 function gaWiersz(x){
   const wer=gaWer(x), recz=x.rr!==null && x.st==='Ręcznie';
-  const wart = recz ? `<b>${fmt(x.w,0)}</b><small class="ga-zr">ręcznie</small>`
-             : x.sz!==null ? `<b>${fmt(x.w,0)}</b><small class="ga-zr">szac. 50%</small>`
-             : `<span class="ga-wer" title="${esc(x.st)}">weryfikuj</span>`;
+  const opis = recz ? '<small class="ga-zr">ręcznie</small>'
+             : x.sz!==null ? '<small class="ga-zr">szac. 50%</small>'
+             : `<small class="ga-zr ga-wer" title="${esc(x.st)}">weryfikuj</small>`;
+  const wart = `<label class="ga-cena${recz?' recz':''}"><span class="sr">Cena sprzedaży ${esc(x.n)}</span>
+      <input class="num-in grp ga-cs" data-gacena="${esc(x.id)}" inputmode="numeric" autocomplete="off"
+        value="${recz?grp(String(Math.round(x.rr))):''}" placeholder="${x.sz!==null?grp(String(Math.round(x.sz))):'wpisz cenę'}"
+        title="Wpisz cenę sprzedaży z gry (puste = szacunek 50%)"></label>${opis}`;
   return `<tr class="${wer?'ga-r-wer':''}${x.wg==='TAK (ręcznie)'?' ga-r-dop':''}">
     <td class="ga-ik">${x.ik?`<img src="${esc(x.ik)}" alt="" loading="lazy" width="62" height="16">`:''}</td>
     <td class="ga-t"><span class="ga-tier">${GA_RZ[x.tier]||'—'}</span></td>
-    <td class="ga-nm"><b>${esc(x.n)}</b>${/Premium/.test(x.st)?'<span class="ga-prem">premium</span>':''}${x.wg==='TAK (ręcznie)'?'<span class="ga-dop" title="Dopisany w zakładce Garaż_dodatki (bez bitew)">dopisany</span>':''}</td>
+    <td class="ga-nm"><b>${esc(x.n)}</b>${x.cz>0||/Premium/.test(x.st)?'<span class="ga-prem">premium</span>':''}${x.wg==='TAK (ręcznie)'?'<span class="ga-dop" title="Dopisany w zakładce Garaż_dodatki (bez bitew)">dopisany</span>':''}</td>
     <td class="ga-nac">${esc(x.nac)}</td>
     <td class="ga-typ" title="${esc(x.typ)}">${esc(GA_TYP_SKROT[x.tk]||x.typ)}</td>
     <td class="n ga-w">${wart}</td>
@@ -123,10 +147,11 @@ function grHtml(){
       ${typeof gdb!=='undefined'&&gdb?'Strona pokaże je po najbliższej synchronizacji (do ~30 s).':'Ta przeglądarka nie jest połączona z Arkuszem (⚙ → Synchronizacja) — bez tego dane garażu nie dotrą.'}</p></div>
       ${gaUrlHtml(!url)}</div>`;
   }
-  const naTier={}; GA.forEach(x=>{ naTier[x.tier]=(naTier[x.tier]||0)+1; });
+  const GL=gaLista();
+  const naTier={}; GL.forEach(x=>{ naTier[x.tier]=(naTier[x.tier]||0)+1; });
   const tiery=[1,2,3,4,5,6,7,8,9,10,11].filter(t=>t<=10||naTier[t]);
-  const suma=GA.reduce((a,x)=>a+x.w,0), wer=GA.filter(gaWer).length, dop=GA.filter(x=>x.wg==='TAK (ręcznie)').length;
-  const recz=GA.filter(x=>x.st==='Ręcznie').length;
+  const suma=GL.reduce((a,x)=>a+x.w,0), wer=GL.filter(gaWer).length, dop=GL.filter(x=>x.wg==='TAK (ręcznie)').length;
+  const recz=GL.filter(x=>x.st==='Ręcznie').length;
   const nacje=[...new Set(GA.map(x=>x.nac).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pl'));
   const typy=[...new Set(GA.map(x=>x.typ).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pl'));
   const opt=(v,n,sel)=>`<option value="${esc(v)}"${String(sel)===String(v)?' selected':''}>${esc(n)}</option>`;
@@ -136,7 +161,7 @@ function grHtml(){
       <div class="cell"><span class="label">W garażu</span><span class="big wz-big">${GA.length}</span><p>${dop?`w tym ${dop} ${gaOdm(dop,'dopisany','dopisane','dopisanych')} ręcznie`:gaOdm(GA.length,'czołg','czołgi','czołgów')}</p></div>
       <div class="cell"><span class="label">Wartość przy sprzedaży</span><span class="big wz-big">${fmt(suma,0)}</span><p>kredyty · szacunek dolny</p></div>
       <div class="cell"><span class="label">Do weryfikacji</span><span class="big wz-big">${wer}</span><p>premium, nagrody — bez wyceny</p></div>
-      <div class="cell"><span class="label">Ceny ręczne</span><span class="big wz-big">${recz}</span><p>wpisane w Arkuszu</p></div></div>
+      <div class="cell"><span class="label">Ceny ręczne</span><span class="big wz-big">${recz}</span><p>wpisane przez Ciebie</p></div></div>
     <div class="ga-tiery" role="group" aria-label="Liczba czołgów na tier (kliknij, żeby filtrować)">
       ${tiery.map(t=>`<button type="button" class="ga-tb${String(gaF.tier)===String(t)?' on':''}" data-gatier="${t}" ${naTier[t]?'':'disabled'}><span>${GA_RZ[t]}</span><b>${naTier[t]||0}</b></button>`).join('')}</div>
     <div class="ga-filtr">
@@ -148,8 +173,9 @@ function grHtml(){
       ${gaF.q||gaF.tier||gaF.nac||gaF.typ||gaF.wer?'<button type="button" class="ga-wyczysc" data-gawyczysc>Wyczyść filtry</button>':''}
     </div>
     <div id="gaTab">${gaTabelaHtml()}</div>
-    <p class="gr-hint">Zwykłe czołgi: 50% ceny zakupu (bez modułów i wyposażenia — w grze wyjdzie trochę więcej). Premium i nagrody: wpisz cenę z gry w Arkuszu,
-      kolumna „Sprzedaż ręcznie (kr)”. Czołgi bez rozegranej bitwy dopisuje się w zakładce „Garaż_dodatki”.</p>
+    <p class="gr-hint">Zwykłe czołgi: 50% ceny zakupu (bez modułów i wyposażenia — w grze wyjdzie trochę więcej). Premium i nagrody: kliknij pole w kolumnie
+      „Sprzedaż” i wpisz cenę z gry (w grze: prawy klik na czołg → Sprzedaj → odczytaj kwotę → Anuluj). Wyczyszczenie pola = powrót do szacunku.
+      Czołgi bez rozegranej bitwy dopisuje się w Arkuszu, w zakładce „Garaż_dodatki”.</p>
     ${gaUrlHtml(false)}
   </div>`;
 }
@@ -166,6 +192,7 @@ function gaUrlHtml(otwarte){
 function gaRefresh(calosc){
   if(typeof wotTab==='undefined'||wotTab!=='gar'||!$('#wotPanel')) return;
   const a=document.activeElement;
+  if(!calosc && a && a.matches && a.matches('.ga-cs')) return;   /* nie przerywaj wpisywania ceny */
   if(!calosc && a && a.closest && a.closest('.ga') && a.matches('input,select')){
     if(a.closest('.ga-url-f')) return;
     const t=$('#gaTab'); if(t) t.innerHTML=gaTabelaHtml(); return;
@@ -208,6 +235,11 @@ document.addEventListener('click', e=>{
 });
 document.addEventListener('input', e=>{ const t=e.target; if(!t.matches||!t.matches('.ga [data-gaf="q"]')) return;
   gaF.q=t.value; const tb=$('#gaTab'); if(tb) tb.innerHTML=gaTabelaHtml(); });
+document.addEventListener('change', e=>{ const t=e.target; if(!t.matches||!t.matches('.ga-cs')) return;
+  const raw=t.value.trim(), v=raw?gaLiczba(raw):null;
+  if(raw && (v===null||v<0)){ t.classList.add('zle'); return; }
+  t.classList.remove('zle'); gaZapiszCene(t.dataset.gacena, v===null?null:Math.round(v)); t.blur(); gaRefresh(true); });
+document.addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.matches && e.target.matches('.ga-cs')) e.target.blur(); });
 document.addEventListener('change', e=>{ const t=e.target; if(!t.matches||!t.matches('.ga [data-gaf]')) return; const k=t.dataset.gaf;
   if(k==='q') return;
   gaF[k] = t.type==='checkbox' ? t.checked : t.value; saveGaF(); gaRefresh(true); });

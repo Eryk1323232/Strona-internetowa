@@ -49,7 +49,15 @@
 .ga-w{white-space:nowrap}
 .ga-w b{font-family:var(--f-display);font-size:14.5px}
 .ga-zr{display:block;font-size:11px;color:var(--muted)}
-.ga-wer{display:inline-block;font:600 11.5px var(--f-body);padding:3px 9px;border-radius:999px;color:#8a5f00;background:color-mix(in srgb,#E2A93B 18%,transparent);cursor:help}
+.ga-wer{color:#8a5f00!important;font-weight:600;cursor:help}
+.ga-cena{display:inline-block}
+.ga-cena input{width:118px;height:30px;padding:0 9px;border:1px solid var(--line);border-radius:9px;background:none;font:600 14px var(--f-display);color:var(--ink);text-align:right}
+.ga-cena input::placeholder{color:var(--muted);font-weight:500;opacity:.8}
+.ga-cena input:hover{border-color:color-mix(in srgb,var(--ink) 30%,transparent)}
+.ga-cena input:focus{outline:none;border-color:var(--accent);background:var(--page-bg,#f6f6fb)}
+.ga-cena.recz input{border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.ga-cena input.zle{border-color:var(--bad,#d64545)}
+.ga-r-wer .ga-cena input{border-color:color-mix(in srgb,#E2A93B 70%,transparent);background:color-mix(in srgb,#E2A93B 7%,transparent)}
 .ga-b,.ga-wr{color:var(--muted);font-size:13.5px;white-space:nowrap}
 
 .ga-pusto{padding:22px;border:1px dashed var(--line);border-radius:18px;margin-bottom:18px}
@@ -67,5 +75,6 @@
   .ga-akcje{width:100%} .ga-akcje>*{flex:1;justify-content:center}
   .ga-ik,.ga-nac,.ga-wr{display:none}
   .ga-tab th,.ga-tab td{padding:8px 6px}
+  .ga-cena input{width:96px}
   .ga-tb{min-width:44px;padding:6px}
 }
