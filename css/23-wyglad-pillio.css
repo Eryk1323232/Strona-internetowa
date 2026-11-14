@@ -193,7 +193,6 @@ h1.hello-t{margin:0;font-size:clamp(26px,3.2vw,36px)}
 
 .home-widgets{margin-top:22px}
 .widget{padding:18px 20px}
-.ac-face{fill:var(--soft)}
 
 /* ——— dolny pasek: dopasowany do ramy ——— */
 .sbar{left:14px;right:14px;bottom:8px;height:var(--sbar-h);border:1px solid var(--shell-line);border-radius:14px;background:var(--shell);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 10px 30px -18px rgba(28,29,60,.35)}

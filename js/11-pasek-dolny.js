@@ -80,19 +80,12 @@ document.addEventListener('submit', async e=>{ if(!e.target.matches('form.wx-cit
   const q=e.target.q.value.trim(); WX.editing=false; if(!q||q===WX_CITY.n){ wxRefreshUI(); return; }
   try{ await wxSetCity(q); }catch(err){ wxRefreshUI(); const w=$('#wWeather .wx-msg, #wWeather .wx-meta'); if(w) w.insertAdjacentHTML('beforebegin','<p class="wx-err">Nie znaleziono miasta „'+esc(q)+'”.</p>'); } });
 
-/* ——— zegar: pasek + widżet na stronie głównej ——— */
-function isoWeek(d){ const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day);
-  const y=new Date(Date.UTC(t.getUTCFullYear(),0,1)); return Math.ceil(((t-y)/864e5+1)/7); }
+/* ——— zegar: pasek dolny + godzina na stronie głównej ——— */
 function tickClock(){
   const n=new Date(), hm=n.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}), s=String(n.getSeconds()).padStart(2,'0');
   const bt=$('#sbTime'); if(bt) bt.innerHTML=`${hm}<em>:${s}</em>`;
   const ht=$('#heroTime'); if(ht) ht.textContent=hm;
   const bd=$('#sbDate'); if(bd) bd.textContent=n.toLocaleDateString('pl-PL',{weekday:'short',day:'numeric',month:'short'});
-  const wt=$('#wcTime'); if(!wt) return;
-  wt.innerHTML=`${hm}<em>:${s}</em>`; $('#wcDate').textContent=n.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  $('#wcWeek').textContent=`tydzień ${isoWeek(n)}`;
-  const H=(n.getHours()%12+n.getMinutes()/60)*30, M=(n.getMinutes()+n.getSeconds()/60)*6, S=n.getSeconds()*6;
-  [['acH',H],['acM',M],['acS',S]].forEach(([id,a])=>{ const el=document.getElementById(id); if(el) el.setAttribute('transform',`rotate(${a} 50 50)`); });
 }
 
 /* ——— pasek ——— */

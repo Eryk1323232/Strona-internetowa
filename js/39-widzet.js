@@ -24,7 +24,6 @@ if(WZ_TRYB){
   addEventListener('focus', ()=>wzOdswiez());
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) wzOdswiez(); });
 }
-const wzIle = (n,a,b,c) => n===1?a:(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?b:c;
 
 function wzKal(){
   const [y,m]=wzM.split('-').map(Number), pierw=new Date(y,m-1,1,12), start=new Date(pierw); start.setDate(1-(pierw.getDay()+6)%7);

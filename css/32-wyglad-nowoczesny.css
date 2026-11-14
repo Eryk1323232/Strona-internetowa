@@ -8,7 +8,7 @@
 /* ——— typografia ——— */
 h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,3.4vw,42px);letter-spacing:-.035em;line-height:1.05;margin-bottom:30px}
 h2,.tr-top h2,.calc-card h2{font-family:var(--f-display);letter-spacing:-.025em}
-.big,.hd-big b,.hello-time b,.bk-cbil,.calc-card h2,.wc-big,.fin-skc .big{font-family:var(--f-display);letter-spacing:-.03em;font-feature-settings:"tnum" 1}
+.big,.hd-big b,.hello-time b,.bk-cbil,.calc-card h2,.fin-skc .big{font-family:var(--f-display);letter-spacing:-.03em;font-feature-settings:"tnum" 1}
 .label,.navtree li.grp{letter-spacing:.07em}
 h1.hello-t{font-size:clamp(28px,3.6vw,46px);letter-spacing:-.04em}
 .hello-time b{font-size:clamp(34px,4vw,52px);font-weight:600}

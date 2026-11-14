@@ -36,7 +36,6 @@ function subNth(s,k,start){ const st=subD(start||s.od), n=s.co*k;
   return new Date(y, m, Math.min(st.getDate(), new Date(y,m+1,0).getDate())); }
 const subDni = dt => { const t=new Date(); t.setHours(0,0,0,0); return Math.round((dt-t)/864e5); };
 const subMies = s => { const p=pxEval(s.p), c=isNaN(p)?0:p; return s.j==='m'?c/s.co : s.j==='r'?c/(12*s.co) : s.j==='t'?c*52/12/s.co : c*365/12/s.co; };
-const subOkres = s => s.co===1 ? `co ${SUB_J[s.j][0]}` : `co ${s.co} ${SUB_J[s.j][s.co<5?1:2]}`;
 const subDniTxt = n => n===0?'dziś':n===1?'jutro':n===-1?'wczoraj':n>0?`za ${n} dni`:`${-n} dni temu`;
 
 function subCalc(s){
@@ -128,7 +127,6 @@ function subRefresh(){
   if(key){ const el=box.querySelector(`[data-sk="${CSS.escape(key)}"]`); if(el){ el.focus(); el.select&&el.type==='text'&&el.select(); } }
   else if(inAdd){ const el=box.querySelector(`form.sub-add [name="${fname}"]`); el&&el.focus(); }
 }
-function pSub(){ return `<h1>Subskryp<span class="acc">cje</span></h1><div id="subApp">${subHtml()}</div>`; }
 function subUpdate(id, fn){ const s=SUB.find(x=>x.id===id); if(!s) return; const ns={...s}; fn(ns); const fixed=subNorm(id,ns); SUB=SUB.map(x=>x.id===id?fixed:x); saveSub(); subRefresh(); subPush(fixed); }
 
 document.addEventListener('submit', e=>{

@@ -74,7 +74,6 @@ document.addEventListener('click',e=>{ const b=e.target.closest('.tabs button');
 $('#menuBtn').addEventListener('click',()=>{ const o=$('#side').classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded',o); document.body.classList.toggle('side-open',o); });
 
 /* motyw */
-const THEMES=['auto','jasny','ciemny'];
 function applyTheme(t){ const r=document.documentElement; if(t==='jasny') r.setAttribute('data-theme','light'); else if(t==='ciemny') r.setAttribute('data-theme','dark'); else r.removeAttribute('data-theme'); document.querySelectorAll('.theme-seg').forEach(seg=>{ seg.dataset.pos=['jasny','auto','ciemny'].indexOf(t); seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.th===t)); }); }
 let theme=store.get('motyw','jasny'); applyTheme(theme);   /* wygląd „Pillio”: domyślnie jasny (zmiana na jasny raz — js/22-wyszukiwarka.js) */
 document.querySelectorAll('.theme-seg button').forEach(b=>b.addEventListener('click',()=>{ theme=b.dataset.th; store.set('motyw',theme); applyTheme(theme); }));

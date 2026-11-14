@@ -26,14 +26,6 @@ function pStart(){
   </section></div>`;   /* .bento: układ kafli różnej wielkości (css/32-wyglad-nowoczesny.css) */
 }
 
-/* ——— widżet: zegar ——— */
-function widgetClock(){
-  let ticks=''; for(let i=0;i<12;i++){ const a=i*30*Math.PI/180, r1=i%3?40:36; ticks+=`<line x1="${50+r1*Math.sin(a)}" y1="${50-r1*Math.cos(a)}" x2="${50+44*Math.sin(a)}" y2="${50-44*Math.cos(a)}"/>`; }
-  return `<article class="widget w-clock"><div class="w-head"><span class="label">Zegar</span></div>
-    <div class="clock-wrap"><svg class="aclock" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47" class="ac-face"/><g class="ac-ticks">${ticks}</g>
-      <line id="acH" x1="50" y1="50" x2="50" y2="27" class="ac-h"/><line id="acM" x1="50" y1="50" x2="50" y2="16" class="ac-m"/><line id="acS" x1="50" y1="56" x2="50" y2="12" class="ac-s"/><circle cx="50" cy="50" r="2.6" class="ac-c"/></svg>
-      <div class="clock-txt"><b id="wcTime">--:--</b><span id="wcDate"></span><span id="wcWeek" class="w-sub"></span></div></div></article>`;
-}
 /* ——— widżet: pogoda (dane z js/11-pasek-dolny.js) ——— */
 function widgetWeather(){
   return `<article class="widget w-weather" id="wWeather">${weatherWidgetHtml()}</article>`;

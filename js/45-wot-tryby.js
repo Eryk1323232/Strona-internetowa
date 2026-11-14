@@ -4,8 +4,7 @@
    Tryb: {id, n nazwa, u jednostka (np. klucze), k koniec 'RRRR-MM-DD' lub '', o kolejność,
           lv [{c cena przejścia, s cena pominięcia (null = nie da się pominąć), d ukończony}]}
    Dane: localStorage 'wotTryby' + kolekcja 'wotTryby' w arkuszu (js/12-synchronizacja.js).
-   Dawna zakładka „Ostatni Bastion” (S.bast, cfg/bastion) przeniesiona jednorazowo jako tryb o id 'bastion'
-   (stałe id → kilka urządzeń nie zrobi duplikatów; znacznik store 'tryMig').
+   Dawna zakładka „Ostatni Bastion” jest tu zwykłym trybem (id 'bastion').
    ════════════════════════════════════════════════════════════════ */
 const tyLv = l => ({ c:Math.max(0,Math.round(+(l&&l.c)||0)), s:(l&&l.s!==null&&l.s!==undefined&&l.s!==''&&isFinite(+l.s))?Math.max(0,Math.round(+l.s)):null, d:!!(l&&l.d) });
 const tyNorm = (id,v={}) => ({ id, n:String(v.n||'Nowy tryb').slice(0,60), u:String(v.u||'pkt').slice(0,20), k:/^\d{4}-\d{2}-\d{2}$/.test(v.k||'')?v.k:'',
@@ -16,12 +15,6 @@ const saveTy = () => store.set('wotTryby', JSON.stringify(TY));
 const tyPush = x => cloud(db=>{ const {id,...v}=x; return db.collection('wotTryby').doc(id).set(v); });
 const tyDel = id => cloud(db=>db.collection('wotTryby').doc(id).delete());
 const tyLista = () => [...TY].sort((a,b)=>a.o-b.o);
-function tyMigruj(){   /* Ostatni Bastion → tryb */
-  if(store.get('tryMig','') || TY.some(x=>x.id==='bastion')) return store.set('tryMig','1');
-  const B=(typeof S!=='undefined'&&Array.isArray(S.bast))?S.bast:[];
-  const x=tyNorm('bastion',{n:'Ostatni Bastion', u:'klucze', o:0, lv:B.map(r=>({c:r[1], s:(r[2]===null||r[2]==='-'||r[2]==='')?null:r[2]}))});
-  TY=[...TY,x]; saveTy(); tyPush(x); store.set('tryMig','1');
-}
 const tyDni = k => { if(!k) return null; return Math.ceil((new Date(k+'T23:59:59')-new Date())/864e5); };
 function tyStat(x){
   const zost=x.lv.filter(l=>!l.d), zrob=x.lv.length-zost.length;
@@ -30,7 +23,6 @@ function tyStat(x){
 }
 const TY_IC = '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 40V22l8-6 8 6 8-6 8 6v18z"/><path d="M8 22V10h6v4h6v-4h8v4h6v-4h6v12"/><path d="M20 40v-8a4 4 0 0 1 8 0v8"/></svg>';
 function tyHtml(){
-  tyMigruj();
   return `<div class="calc-cards ty-cards">${tyLista().map(x=>{ const st=tyStat(x), pr=st.ile?Math.round(st.zrob/st.ile*100):0;
     return `<button type="button" class="calc-card res ty-card" data-tyopen="${esc(x.id)}"><div class="calc-ic" aria-hidden="true">${TY_IC}</div>
       <h2>${esc(x.n)}</h2><span class="calc-count">${st.zrob}/${st.ile} poziomów${st.ile&&st.zrob<st.ile?` · zostało ${fmt(st.cena,0)} ${esc(x.u)}`:st.ile?' · ukończony ✓':''}${st.dni!==null?` · ${st.dni<0?'zakończony':st.dni===0?'kończy się dziś':`${st.dni} dni do końca`}`:''}</span>

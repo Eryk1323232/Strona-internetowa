@@ -87,7 +87,6 @@ function pxRefresh(){
   if(key){ const el=box.querySelector(`[data-xk="${CSS.escape(key)}"]`); if(el){ el.focus(); el.select&&el.type!=='date'&&el.select(); } }
   else if(fsel){ const el=box.querySelector(`${fsel} [name="${fname}"]`); el&&el.focus(); }
 }
-function pPos(){ return `<h1>Posiadów<span class="acc">ki</span></h1><div id="posApp">${posHtml()}</div>`; }
 document.addEventListener('submit', e=>{
   const f=e.target;
   if(f.matches('form.px-new')){ e.preventDefault(); const n=f.n.value.trim(); if(!n) return; const prev=pxCur();

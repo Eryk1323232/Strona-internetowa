@@ -199,8 +199,6 @@ function gaRefresh(calosc){
   }
   const y=scrollY; $('#wotPanel').innerHTML=grHtml(); scrollTo(0,y);
 }
-/* zgodność ze starą nazwą (js/12-synchronizacja.js, starsze wersje) */
-const grRefresh = () => gaRefresh();
 
 async function gaOdswiez(){
   const u=gaUrl(); if(!u||gaTrwa) return;

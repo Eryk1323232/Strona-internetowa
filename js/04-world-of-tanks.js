@@ -190,10 +190,9 @@ function moeCalc(){
 const slug = n => String(n).toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'x';
 const DEF_OBLIG = D.oblig.flatMap(t=>t.t.map((x,i)=>({id:'xl-'+t.tier+'-'+i, tier:t.tier, n:x[0], p:x[1], o:i})));
 const DEF_EXP = D.exp2.map((r,i)=>({id:'xe-'+i, modOk:false, czOk:false, ...r}));
-const DEF_BAST = D.bastion.map(x=>[x[0], x[1], typeof x[2]==='number'?x[2]:null]);
 const NATIONS = D.nations;
 const NAT_NAMES = {'NIEMCY':'Niemcy','ZSRR':'ZSRR','USA':'USA','FRANCJA':'Francja','G.B':'Wielka Brytania','CHINY':'Chiny','JAPONIA':'Japonia','CZECHY':'Czechosłowacja','POLSKA':'Polska','SZWECJA':'Szwecja','WŁOCHY':'Włochy'};
-let S = {garage:{}, mag:{}, tok:{free:[5,5,5], ulep:[3,3,3]}, oblig:DEF_OBLIG, exp:DEF_EXP, bast:DEF_BAST};
+let S = {garage:{}, mag:{}, tok:{free:[5,5,5], ulep:[3,3,3]}, oblig:DEF_OBLIG, exp:DEF_EXP};
 try{ const c=JSON.parse(store.get('wotState','null')); if(c) S={...S,...c}; else { const g=JSON.parse(store.get('garaz','{}')); if(g) S.garage=g; } }catch(e){}
 const saveLocal = () => store.set('wotState', JSON.stringify(S));
 if(!Array.isArray(S.exp)||!S.exp.length||S.exp[0].mod===undefined) S.exp=DEF_EXP;
@@ -211,7 +210,7 @@ function fixExp(){
   S.exp=E; saveLocal(); return ch;
 }
 fixExp();
-if(!Array.isArray(S.bast)) S.bast=DEF_BAST;
+delete S.bast;   /* stary Ostatni Bastion — dane są w Trybach (js/45-wot-tryby.js) */
 /* ——— ile XP zostało do zdobycia — liczone po kolei w gałęzi, jak w grze ———
    Potrzebne XP = koszt tego czołgu, Moduły = jego moduły, Posiadane = XP zebrane NA TYM czołgu.
    XP z czołgu idzie najpierw na jego moduły, a reszta na koszt NASTĘPNEGO czołgu w gałęzi
@@ -238,7 +237,6 @@ const expRaw = r => (expCalcAll().get(r.id)||{left:0}).left;
 const expZPopr = r => (expCalcAll().get(r.id)||{zPopr:0}).zPopr;
 /* wolne XP na koncie + światełko: brakujące XP danej rzeczy vs. wolne XP */
 const FXP_PROG = 0.8;
-function toIntS(v){ return Math.max(0, Math.round(+String(v).replace(/[\s\u00a0]/g,'').replace(',','.')||0)); }
 /* wolne XP zawsze z panelu zasobów (Wargaming API → GK, js/44-wot-zasoby.js); bez danych z API — 0 */
 const fxpWolne = () => { const v=(typeof GK!=='undefined'&&GK)?gkNum(GK['Wolne XP']):null; return v===null?0:Math.round(v); };
 function fxpNeed(r, f){   /* ile kosztuje rzecz i ile XP z czołgu można na nią wydać */
