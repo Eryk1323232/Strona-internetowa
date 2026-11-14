@@ -57,7 +57,7 @@ Jeden wiersz = jeden czołg. Sortowanie: tier malejąco, potem nazwa.
 | `Cena zakupu (kr)` | liczba | `price_credit`; 0 = premium / nagroda / obligacje |
 | `Cena zakupu (złoto)` | liczba | `price_gold` |
 | `Szac. sprzedaż (kr)` | liczba / puste | 50% ceny zakupu; puste, gdy nie da się oszacować |
-| `Sprzedaż ręcznie (kr)` | liczba / puste | **wpisywane ręcznie w Arkuszu**, przeżywa odświeżanie |
+| `Sprzedaż ręcznie (kr)` | liczba / puste | cena ręczna: ze strony (`wotGarazCeny`) albo wpisana w Arkuszu; przeżywa odświeżanie |
 | `Wartość do sumy (kr)` | liczba | ręczna cena, jeśli jest; inaczej szacunek; inaczej 0 |
 | `Status wyceny` | tekst | `Szacunek 50%` · `Ręcznie` · `Premium/prezent – weryfikuj w grze` · `Brak ceny (nagroda/event) – weryfikuj w grze` · `Brak w encyklopedii – weryfikuj w grze` · `Ręczna cena nie jest liczbą – popraw` |
 | `Bitwy` | liczba | `all.battles` (0 dla dopisanych) |
@@ -89,7 +89,18 @@ Jeden wiersz, `id` = `stan`.
 | `Encyklopedia` | tekst | data pobrania encyklopedii |
 | `Dopisane ręcznie` | liczba | ile czołgów z `Garaż_dodatki` |
 
-### 2.3 `Garaż_dodatki` — czołgi bez rozegranej bitwy (NIE czytana przez stronę)
+### 2.3 `wotGarazCeny` — ceny sprzedaży wpisane na stronie (zapisuje strona, A1 = `id`)
+
+Strona zapisuje tu cenę po wpisaniu jej w kolumnie „Sprzedaż” (zwykłą drogą: `cloud` → `Kod.gs`).
+Projekt „WoT Garaż” przy odświeżeniu przepisuje te ceny do `Garaż` → `Sprzedaż ręcznie (kr)`.
+**Cena ze strony ma pierwszeństwo** przed wpisem w kolumnie K w Arkuszu.
+
+| Pole | Typ | Opis |
+|---|---|---|
+| `id` | tekst | `tank_id` |
+| `cena` | liczba / brak | cena sprzedaży w kredytach; **wiersz bez ceny = cenę usunięto** (powrót do szacunku) |
+
+### 2.4 `Garaż_dodatki` — czołgi bez rozegranej bitwy (NIE czytana przez stronę)
 
 Wargaming API nie zwraca czołgów, którymi nie rozegrano ani jednej bitwy — te dopisuje się tutaj.
 A1 to celowo **nie** `id`.
@@ -101,12 +112,12 @@ A1 to celowo **nie** `id`.
 | `Wynik (skrypt)` | skrypt | `✔ dodano` · `✔ jest już z API` · `✖ nie znaleziono` · `✖ pasuje kilka: …` · `⚠ API: nie ma w garażu` · `✖ duplikat` |
 | `Dopasowany czołg (skrypt)` | skrypt | nazwa, tier, tank_id |
 
-### 2.4 `WoT_Encyklopedia` — cache encyklopedii (NIE czytana przez stronę)
+### 2.5 `WoT_Encyklopedia` — cache encyklopedii (NIE czytana przez stronę)
 
 A1 = `tank_id`. ~1000 pojazdów, odświeżana w środy i gdy w garażu pojawi się nieznany czołg.
 Kolumny: `tank_id`, `Nazwa`, `Nazwa krótka`, `Nacja (kod)`, `Typ (kod)`, `Tier`, `Cena kredyty`, `Cena złoto`, `Premium`, `Prezent`, `Ikona`.
 
-### 2.5 Web app „WoT Garaż” (inny adres niż Arkusz strony)
+### 2.6 Web app „WoT Garaż” (inny adres niż Arkusz strony)
 
 | Wywołanie | Wynik |
 |---|---|
@@ -123,7 +134,7 @@ Adres zapisany w kolekcji `cfg`, dokument `wotGarazUrl`, pole `u`.
 
 Kolekcje używane przez stronę, jeszcze bez opisu pól — uzupełniać przy pracy nad danym modułem:
 
-- **World of Tanks:** `garaz` (czołgi z przepustki/obligacji w garażu: `g`, `n`), `mag`, `exp`, `oblig`, `wotZakupy`, `wotCele`, `wotGaraz` (stara ręczna lista — nieużywana od v67)
+- **World of Tanks:** `garaz` (czołgi z przepustki/obligacji w garażu: `g`, `n`), `mag`, `exp`, `oblig`, `wotZakupy`, `wotCele`, `wotGarazCeny` (opis wyżej), `wotGaraz` (stara ręczna lista — nieużywana od v67)
 - **Studia:** `todo`, `todoListy`, `notatki`, `notatkiCfg`, `dyski`, `mieszanki`, `mieszankiMoje`
 - **Prywatne:** `treningi`, `plany`, `posiadowki`, `subskrypcje`, `bukKonta`, `bukOps`, `bukCfg`, `finOps`, `finStale`, `finCfg`, `cv`
 - **Ustawienia:** `cfg` (dokumenty m.in. `zetony`, `bastion`, `uklad`, `szybkie`, `kopia`, `cwiczenia`, `wotFxp`, `wotGarazUrl`)
