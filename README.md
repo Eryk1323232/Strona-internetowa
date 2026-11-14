@@ -61,6 +61,7 @@ kalkulatory/
 
 apps-script/
   Kod.gs                    kod do wklejenia w Arkusz Google → Rozszerzenia → Apps Script
+kontrakt-danych.md          jakie zakładki/kolumny są w Arkuszu (strona + aplikacja na Androida)
 ```
 
 Każdy plik ma na górze opis, co zawiera i jak go zmieniać.
