@@ -128,6 +128,22 @@ Kolumny: `tank_id`, `Nazwa`, `Nazwa krótka`, `Nacja (kod)`, `Typ (kod)`, `Tier`
 
 Adres zapisany w kolekcji `cfg`, dokument `wotGarazUrl`, pole `u`.
 
+### 2.7 `Garaż_konto` — zasoby konta (czytana przez stronę, A1 = `id`)
+
+Jeden wiersz, `id` = `konto`. Zapisuje projekt „WoT Garaż” co godzinę i przy każdym odświeżeniu garażu (wymaga tokenu).
+
+| Pole | Typ | Opis |
+|---|---|---|
+| `Kredyty` | liczba | `private.credits` |
+| `Złoto` | liczba | `private.gold` |
+| `Wolne XP` | liczba | `private.free_xp` |
+| `Obligacje` | liczba | `private.bonds` |
+| `Premium do` | tekst | `private.premium_expires_at` — **tylko stary typ premium**; obecnego „WoT Premium” API nie podaje |
+| `Premium` | tekst | `TAK` / `NIE` (wg API) |
+| `Aktualizacja` | tekst | `yyyy-MM-dd HH:mm` |
+
+Koniec obecnego konta premium wpisuje się ręcznie na stronie: kolekcja `cfg`, dokument `wotPremium`, pole `d` = `RRRR-MM-DD` (ma pierwszeństwo przed API).
+
 ---
 
 ## 3. Pozostałe kolekcje (do opisania)
@@ -137,4 +153,4 @@ Kolekcje używane przez stronę, jeszcze bez opisu pól — uzupełniać przy pr
 - **World of Tanks:** `garaz` (czołgi z przepustki/obligacji w garażu: `g`, `n`), `mag`, `exp`, `oblig`, `wotZakupy`, `wotCele`, `wotGarazCeny` (opis wyżej), `wotGaraz` (stara ręczna lista — nieużywana od v67)
 - **Studia:** `todo`, `todoListy`, `notatki`, `notatkiCfg`, `dyski`, `mieszanki`, `mieszankiMoje`
 - **Prywatne:** `treningi`, `plany`, `posiadowki`, `subskrypcje`, `bukKonta`, `bukOps`, `bukCfg`, `finOps`, `finStale`, `finCfg`, `cv`
-- **Ustawienia:** `cfg` (dokumenty m.in. `zetony`, `bastion`, `uklad`, `szybkie`, `kopia`, `cwiczenia`, `wotFxp`, `wotGarazUrl`)
+- **Ustawienia:** `cfg` (dokumenty m.in. `zetony`, `bastion`, `uklad`, `szybkie`, `kopia`, `cwiczenia`, `wotFxp`, `wotGarazUrl`, `wotPremium`)
