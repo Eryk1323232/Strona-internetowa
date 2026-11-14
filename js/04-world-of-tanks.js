@@ -45,8 +45,7 @@ function wotSummary(k){
     const rows=S.oblig, n=obligNeed(rows), got=rows.filter(r=>has(r.n)).length;
     return cells([
       ['Brakująca pula', fmt(n), 'obligacji na czołgi bez kwadratu'],
-      ['W garażu', `${got}<small>/ ${rows.length}</small>`, 'czołgów ze sklepu za obligacje'],
-      ['Potrzebne miejsca', `${rows.length-got}`, 'w garażu na brakujące czołgi']]);
+      ['W garażu', `${got}<small>/ ${rows.length}</small>`, 'czołgów ze sklepu za obligacje']]);
   }
   if(k==='mag'){
     const it=magItems(), ko=konsItems();
