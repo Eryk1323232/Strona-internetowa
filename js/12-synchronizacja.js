@@ -160,7 +160,7 @@ function arkuszDb(url, klucz){
         cloud(db=>db.collection('cfg').doc('bastion').set({rows:S.bast.map(x=>({lvl:x[0],k:x[1],s:x[2]}))}));
         if(store.get('uklad','')) cloud(db=>db.collection('cfg').doc('uklad').set({j:store.get('uklad',''), u:Date.now()}));
         if(store.get('quickNote','')) cloud(db=>db.collection('cfg').doc('szybkie').set({t:store.get('quickNote',''), u:Date.now()}));
-        return ok(); } cfF=false; s.docs.forEach(d=>{ if(d.id==='szybkie'){ quickNoteFromCloud((d.data()||{}).t); } if(d.id==='uklad' && typeof ukZChmury==='function') ukZChmury((d.data()||{}).j); if(d.id==='kopia' && typeof kopiaFromCloud==='function'){ kopiaFromCloud((d.data()||{}).t); } if(d.id==='cwiczenia' && typeof cwlFromCloud==='function'){ cwlFromCloud((d.data()||{}).l); } if(d.id==='wotFxp' && typeof fxpFromCloud==='function'){ fxpFromCloud((d.data()||{}).v); } if(d.id==='zetony'){const v=d.data()||{}; if(Array.isArray(v.free)&&Array.isArray(v.ulep)) S.tok={free:[...v.free],ulep:[...v.ulep]};}
+        return ok(); } cfF=false; s.docs.forEach(d=>{ if(d.id==='szybkie'){ quickNoteFromCloud((d.data()||{}).t); } if(d.id==='uklad' && typeof ukZChmury==='function') ukZChmury((d.data()||{}).j); if(d.id==='kopia' && typeof kopiaFromCloud==='function'){ kopiaFromCloud((d.data()||{}).t); } if(d.id==='cwiczenia' && typeof cwlFromCloud==='function'){ cwlFromCloud((d.data()||{}).l); } if(d.id==='wotFxp' && typeof fxpFromCloud==='function'){ fxpFromCloud((d.data()||{}).v); } if(d.id==='wotGarazUrl' && typeof gaUrlFromCloud==='function'){ gaUrlFromCloud((d.data()||{}).u); } if(d.id==='zetony'){const v=d.data()||{}; if(Array.isArray(v.free)&&Array.isArray(v.ulep)) S.tok={free:[...v.free],ulep:[...v.ulep]};}
       if(d.id==='bastion'){const v=d.data()||{}; if(Array.isArray(v.rows)) S.bast=v.rows.map(x=>[x.lvl, x.k??null, x.s??null]);} }); ok(); }, fail);
     gdb.collection('exp').onSnapshot(s=>{ if(exF&&s.empty&&wyslijLokalne()&&S.exp.length){ exF=false; fixExp(); S.exp.forEach(r=>{ const {id,...doc}=r; cloud(db=>db.collection('exp').doc(id).set(doc)); }); return ok(); } exF=false; if(!s.empty){ S.exp=s.docs.map(d=>{const v=d.data()||{}; return {id:d.id, nac:String(v.nac), br:+v.br||0, o:+v.o||0, n:String(v.n), mod:+v.mod||0, cz:+v.cz||0, zn:+v.zn||0, pos:+v.pos||0, modOk:!!v.modOk, czOk:!!v.czOk};});
       fixExp().forEach(r=>{ const {id,...doc}=r; cloud(db=>db.collection('exp').doc(id).set(doc)); }); } else fixExp(); ok(); }, fail);
@@ -168,9 +168,10 @@ function arkuszDb(url, klucz){
     let dkF=true;
     gdb.collection('dyski').onSnapshot(s=>{ if(dkF&&s.empty&&wyslijLokalne()&&DK.length){ dkF=false; DK.forEach(d=>{ const {id,...v}=d; cloud(db=>db.collection('dyski').doc(id).set(v)); }); return ok(); }
       dkF=false; DK=s.docs.map(d=>dkNorm(d.id,d.data())); saveDk(); ok(); }, fail);
-    let grF=true;   /* WoT → Garaż (js/42-wot-garaz.js) */
-    gdb.collection('wotGaraz').onSnapshot(s=>{ if(grF&&s.empty&&wyslijLokalne()&&GR.length){ grF=false; GR.forEach(grPush); return ok(); }
-      grF=false; GR=s.docs.map(d=>grNorm(d.id,d.data())); saveGr(); grRefresh(); ok(); }, fail);
+    /* WoT → Garaż (js/42-wot-garaz.js): TYLKO odczyt zakładek, które zapisuje projekt Apps Script „WoT Garaż”.
+       Stara ręczna lista (kolekcja 'wotGaraz') zostaje w Arkuszu, ale nie jest już wczytywana. */
+    gdb.collection('Garaż').onSnapshot(s=>{ gaZChmury(s.docs); ok(); }, fail);
+    gdb.collection('Garaż_status').onSnapshot(s=>{ gaStZChmury(s.docs); ok(); }, fail);
     let wzF=true;   /* WoT → Zakupy (js/41-wot-zakupy.js) */
     gdb.collection('wotZakupy').onSnapshot(s=>{ if(wzF&&s.empty&&wyslijLokalne()&&WZ.length){ wzF=false; WZ.forEach(wzPush); return ok(); }
       wzF=false; WZ=s.docs.map(d=>wzNorm(d.id,d.data())); saveWz(); wzRefresh(); ok(); }, fail);
