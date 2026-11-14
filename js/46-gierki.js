@@ -25,6 +25,7 @@ function gierkaOtworz(k){ const g=GIERKI.find(x=>x.k===k); if(!g) return; gierka
   document.body.appendChild(md); document.body.classList.add('tr-lock'); if(g.start) g.start(md.querySelector('.gk-gra')); }
 document.addEventListener('click', e=>{
   const c=e.target.closest('[data-gierka]'); if(c) return gierkaOtworz(c.dataset.gierka);
-  if(gkGra && (e.target.closest('[data-gkclose]') || e.target.id==='gkScrim' || e.target.id==='gkModal')){ gierkaZamknij(); if(typeof render==='function' && render.ost==='gierki') $('#page').innerHTML=pGierki(); }
+  if(gkGra && (e.target.closest('[data-gkclose]') || e.target.id==='gkScrim' || e.target.id==='gkModal')) gierkaWyjdz();
 });
-document.addEventListener('keydown', e=>{ if(gkGra && e.key==='Escape'){ e.stopPropagation(); gierkaZamknij(); } }, true);
+function gierkaWyjdz(){ gierkaZamknij(); if(typeof render==='function' && render.ost==='gierki') $('#page').innerHTML=pGierki(); }   /* rekord na kafelku od razu */
+document.addEventListener('keydown', e=>{ if(gkGra && e.key==='Escape'){ e.stopPropagation(); gierkaWyjdz(); } }, true);

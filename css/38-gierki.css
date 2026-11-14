@@ -1,0 +1,9 @@
+/* ════════ Gry → gierki offline (js/46-gierki.js, js/47-gra-kulki.js) ════════ */
+.gk-pusto svg{width:56px;height:56px;color:var(--muted);margin-bottom:6px}
+.gk-panel{width:min(560px,100%)}
+.ku-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 10px}
+.ku-info{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:10px}
+.ku-info b{color:var(--ink);font-family:var(--f-display);font-size:15px}
+.ku-cv{display:block;height:min(62vh,590px);width:auto;max-width:100%;margin:0 auto;aspect-ratio:352/520;border-radius:16px;border:1px solid var(--line);touch-action:none;cursor:crosshair;user-select:none}
+.ku-pom{font-size:12px;color:var(--muted);text-align:center;margin:10px 0 0}
+@media (max-width:620px){ .ku-cv{height:auto;width:100%;max-height:66vh;object-fit:contain} }
