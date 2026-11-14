@@ -95,6 +95,7 @@ function gkZChmury(docs){
   try{ store.set('wotKonto', JSON.stringify(GK)); }catch(e){}
   gkFxpDoExpienia();
   if(!gkPremEdycja) gkWstaw();
+  if(typeof wotTab!=='undefined' && wotTab==='oblig' && typeof refreshWot==='function' && $('#wotPanel')) refreshWot();   /* kropki „czy stać mnie” w Obligacjach */
 }
 /* nowy odczyt wolnego XP z API → pole „Wolne XP na koncie” w Expieniu */
 function gkFxpDoExpienia(){

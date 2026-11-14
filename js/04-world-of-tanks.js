@@ -19,6 +19,11 @@ const TIERS = ['V','VI','VII','VIII','IX','X'];
 const tok = () => S.tok;
 const tokSum = k => tok()[k].reduce((a,v)=>a+(+v||0),0);
 const przepMiss = () => D.przep.filter(x=>!has(x[2])).reduce((a,x)=>a+x[3],0);
+/* kropka „czy stać mnie” przy czołgach za obligacje (stan obligacji z panelu zasobów, js/44-wot-zasoby.js):
+   zielona — obligacji wystarcza · pomarańczowa — brakuje najwyżej 25% ceny · czerwona — brakuje więcej */
+const obDot = r => { if(has(r.n) || typeof GK==='undefined' || !GK) return ''; const ob=gkNum(GK['Obligacje']), p=+r.p||0; if(ob===null||!p) return '';
+  const c=ob>=p?'ok':ob>=p*0.75?'blisko':'brak', t=ob>=p?'Stać Cię — zostanie '+fmt(ob-p,0)+' obl.':'Brakuje '+fmt(p-ob,0)+' obl.';
+  return `<span class="ob-dot ${c}" title="${t}" role="img" aria-label="${t}"></span>`; };
 const obligNeed = rows => rows.filter(r=>!has(r.n)).reduce((a,r)=>a+(+r.p||0),0);
 const magQty = (n, def) => { const v=S.mag[slug(n)]; return (v===undefined||v===null)? def : v; };
 const magItems = () => D.mag.map(x=>({n:x[0], p:x[1], q:magQty(x[0], x[2])}));
@@ -100,7 +105,7 @@ function wotPanel(k){
       const rows=S.oblig.filter(r=>r.tier===tier).sort((a,b)=>a.o-b.o);
       const g=rows.filter(r=>has(r.n)).length;
       return `<div class="tier${rows.length>10?' wide':''}"><div class="tier-head"><b>${tier}</b><span class="label">${g}/${rows.length} · ${fmt(obligNeed(rows))} obl.</span></div>
-        ${rows.length?`<ul>${rows.map(r=>`<li class="${has(r.n)?'got':''}"><span class="nm">${box(r.n)}<span class="tn">${esc(r.n)}</span></span><span class="pr">${fmt(r.p)}<button type="button" class="del" data-del="${esc(r.id)}" aria-label="Usuń ${esc(r.n)}">×</button></span></li>`).join('')}</ul>`:'<div class="empty">Brak pozycji</div>'}
+        ${rows.length?`<ul>${rows.map(r=>`<li class="${has(r.n)?'got':''}"><span class="nm">${box(r.n)}<span class="tn">${esc(r.n)}</span></span><span class="pr">${obDot(r)}${fmt(r.p)}<button type="button" class="del" data-del="${esc(r.id)}" aria-label="Usuń ${esc(r.n)}">×</button></span></li>`).join('')}</ul>`:'<div class="empty">Brak pozycji</div>'}
         <form class="addrow" data-tier="${tier}"><input name="n" id="add-n-${tier}" placeholder="Nazwa czołgu" aria-label="Nazwa czołgu, tier ${tier}" required><input name="p" id="add-p-${tier}" type="number" min="0" step="any" placeholder="Cena" aria-label="Cena w obligacjach" required><button type="submit">Dodaj</button></form>
       </div>`}).join('')}</div>`;
   }
