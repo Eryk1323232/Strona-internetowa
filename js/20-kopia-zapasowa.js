@@ -11,7 +11,7 @@
      (Mechanizm podglądu: PODGLAD w js/02-narzedzia.js, wyłączenie chmury w js/12-synchronizacja.js.)
    ════════════════════════════════════════════════════════════════════════ */
 let KOPIA_DNI = 7;   /* zmieniane w Ustawieniach → Dane i kopie (store „kopiaDni”, 0 = bez przypomnień) */
-const KOPIA_POMIN = k => /^(arkusz|szkic:|kopiaT$|podglad)/.test(k);   /* hasło do Arkusza, kolejka, szkice formularzy */
+const KOPIA_POMIN = k => /^(arkusz|aiKlucz|szkic:|kopiaT$|podglad)/.test(k);   /* hasło do Arkusza, klucze API asystenta, kolejka, szkice formularzy */
 const kopiaT = () => { try{ return +localStorage.getItem('kopiaT')||0; }catch(e){ return 0; } };
 const kopiaDue = () => { KOPIA_DNI=+store.get('kopiaDni','7')||0; return !PODGLAD && KOPIA_DNI>0 && Date.now()-kopiaT() > KOPIA_DNI*864e5; };
 const kopiaDzien = t => new Date(t).toLocaleDateString('pl-PL',{day:'numeric', month:'long', year:'numeric'});
