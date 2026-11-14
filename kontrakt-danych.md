@@ -136,7 +136,7 @@ Jeden wiersz, `id` = `konto`. Zapisuje projekt „WoT Garaż” co godzinę i pr
 |---|---|---|
 | `Kredyty` | liczba | `private.credits` |
 | `Złoto` | liczba | `private.gold` |
-| `Wolne XP` | liczba | `private.free_xp` |
+| `Wolne XP` | liczba | `private.free_xp` — strona przy każdym nowym odczycie wpisuje je też do Expienia (`cfg/wotFxp` lokalnie) |
 | `Obligacje` | liczba | `private.bonds` |
 | `Premium do` | tekst | `private.premium_expires_at` — **tylko stary typ premium**; obecnego „WoT Premium” API nie podaje |
 | `Premium` | tekst | `TAK` / `NIE` (wg API) |

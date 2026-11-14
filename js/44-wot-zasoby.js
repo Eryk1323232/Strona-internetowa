@@ -12,6 +12,10 @@
    Zapis: przeglądarka ('gkPremium') + chmura (kolekcja cfg, dokument 'wotPremium', pole d = 'RRRR-MM-DD').
    Data wpisana ręcznie ma pierwszeństwo przed API.
 
+   WOLNE XP W EXPIENIU: każdy nowy odczyt z API (inna „Aktualizacja” niż ostatnio przeniesiona,
+   store 'gkFxpAkt') wpisuje wolne XP do zakładki Expienie (fxpFromCloud z js/04-world-of-tanks.js).
+   Ręczna zmiana pola w Expieniu dalej działa — do następnego odczytu z API (co godzinę).
+
    Panel wstawia się sam po tytule strony World of Tanks (#page > h1) — obserwator zmian
    w #page, bez zmian w js/04-world-of-tanks.js. Na szerokim ekranie stoi w jednej linii
    z tytułem (po prawej), na węższym — pod tytułem.
@@ -89,7 +93,16 @@ function gkPozycja(){
 function gkZChmury(docs){
   const d=docs.find(x=>x.id==='konto'); GK=d?{...d.data()}:null;
   try{ store.set('wotKonto', JSON.stringify(GK)); }catch(e){}
+  gkFxpDoExpienia();
   if(!gkPremEdycja) gkWstaw();
+}
+/* nowy odczyt wolnego XP z API → pole „Wolne XP na koncie” w Expieniu */
+function gkFxpDoExpienia(){
+  const xp=gkNum(GK&&GK['Wolne XP']), akt=String((GK&&GK['Aktualizacja'])||'');
+  if(xp===null || !akt || typeof fxpFromCloud!=='function') return;
+  if(store.get('gkFxpAkt','')===akt) return;
+  store.set('gkFxpAkt', akt);
+  fxpFromCloud(Math.round(xp));
 }
 function gkPremFromCloud(d){
   d = /^\d{4}-\d{2}-\d{2}$/.test(String(d||'')) ? String(d) : '';
@@ -112,6 +125,7 @@ document.addEventListener('submit', e=>{ const f=e.target; if(!f.matches||!f.mat
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && gkPremEdycja){ gkPremEdycja=false; gkWstaw(); } });
 
 (()=>{
+  setTimeout(gkFxpDoExpienia, 0);   /* dane z poprzedniej wizyty, których Expienie jeszcze nie dostało */
   const pg=document.getElementById('page'); if(!pg) return;
   new MutationObserver(()=>{ if($('#wotPanel') && !$('#gkPanel')) gkWstaw(); }).observe(pg, {childList:true});
   window.addEventListener('resize', ()=>gkPozycja());
