@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════════════════
    WORLD OF TANKS + FARMING SIMULATOR
    ════════════════════════════════════════════════════════════════════════
-   WOT_TABS  – lista zakładek WoT (przepustka, obligacje, magazyn, expienie, MOE, Ostatni Bastion, Zakupy → js/41-wot-zakupy.js, Garaż → js/42-wot-garaz.js, Cele → js/23-wot-cele.js).
+   WOT_TABS  – lista zakładek WoT (przepustka, obligacje, magazyn, expienie, MOE, Tryby → js/45-wot-tryby.js (dawny Ostatni Bastion), Zakupy → js/41-wot-zakupy.js, Garaż → js/42-wot-garaz.js, Cele → js/23-wot-cele.js).
    wotPanel(k) – rysuje zawartość zakładki k; wotSummary(k) – kafle z liczbami nad nią.
    S         – stan WoT (garaż, magazyn, żetony, obligacje, expienie) zapisywany w przeglądarce.
    Expienie — „światełka” przy Modułach i Potrzebnym XP: czy starcza wolnego XP z konta (wotFxp — wpisywane samo z API przez js/44-wot-zasoby.js, bez pola na stronie):
@@ -12,7 +12,7 @@
    cloud(fn) – zapis do chmury (Arkusz Google, patrz 12-synchronizacja.js).
    ════════════════════════════════════════════════════════════════════════ */
 
-const WOT_TABS = [['przep','Przepustka'],['oblig','Obligacje'],['mag','Magazyn'],['gar','Garaż'],['exp','Expienie'],['moe','Kalkulator MOE'],['bast','Ostatni Bastion'],['zak','Zakupy'],['cele','Cele']];
+const WOT_TABS = [['przep','Przepustka'],['oblig','Obligacje'],['mag','Magazyn'],['gar','Garaż'],['exp','Expienie'],['moe','Kalkulator MOE'],['tryby','Tryby'],['zak','Zakupy'],['cele','Cele']];
 const TIERS = ['V','VI','VII','VIII','IX','X'];
 
 /* liczniki wyliczane ze stanu */
@@ -86,6 +86,7 @@ function wotPanel(k){
   if(k==='cele') return celeHtml();
   if(k==='zak') return wzHtml();   /* js/41-wot-zakupy.js */
   if(k==='gar') return grHtml();   /* js/42-wot-garaz.js */
+  if(k==='tryby') return tyHtml();   /* js/45-wot-tryby.js */
   const top = wotSummary(k);
   if(k==='przep'){
     const rows=D.przep.map(x=>`<tr class="${has(x[2])?'':'dim'}"><td>${box(x[2])}</td><td class="mono">${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}</td><td class="n">${x[3]}</td></tr>`).join('');
@@ -161,14 +162,7 @@ function wotPanel(k){
     </div></div>
     <div class="result" id="moeOut"></div></div>`;
   }
-  if(k==='bast'){
-    const B=S.bast;
-    const s1=B.reduce((a,x)=>a+(+x[1]||0),0), s2=B.reduce((a,x)=>a+(+x[2]||0),0);
-    const rows=B.map((x,i)=>`<tr><td class="mono">${x[0]}</td><td class="n">${numIn('bs','data-i="'+i+'" data-c="1"',x[1]??'','Poziom '+x[0]+' klucze')}</td><td class="n">${numIn('bs','data-i="'+i+'" data-c="2" placeholder="—"',x[2]??'','Poziom '+x[0]+' pominięcie')}</td></tr>`).join('');
-    return `<div class="split"><div class="tbl-wrap"><table><thead><tr><th>Poziom</th><th class="n">Klucze</th><th class="n">Pominięcie</th></tr></thead><tbody>${rows}</tbody>
-      <tfoot><tr><td>Suma</td><td class="n">${s1}</td><td class="n">${s2}</td></tr></tfoot></table></div>
-      <div class="ph"><b>Do rozbudowy:</b> średnia liczba kluczy i czas na trudność (Podstawowy, Wysoki, Koszmarny) oraz licznik dni do końca wydarzenia. W arkuszu te pola są puste.</div></div>`;
-  }
+
 }
 const MOE_DEF={m1p:85,m1v:3222,m2p:100,m2v:3974,mp:87.5,mc:3420,mb:0};
 function moeVals(){ try{ return {...MOE_DEF, ...JSON.parse(store.get('moe','{}'))}; }catch(e){ return {...MOE_DEF}; } }
@@ -280,10 +274,6 @@ function delExp(id){
   S.exp=S.exp.filter(r=>r.id!==id); saveLocal(); refreshWot();
   cloud(db=>db.collection('exp').doc(id).delete());
 }
-function setBast(i, c, v){
-  S.bast=S.bast.map((x,j)=>{ if(j!==i) return x; const y=[...x]; y[c]=v; return y; }); saveLocal(); refreshWot();
-  cloud(db=>db.collection('cfg').doc('bastion').set({rows:S.bast.map(x=>({lvl:x[0],k:x[1],s:x[2]}))}));
-}
 let gdb = null, syncState = 'local';
 const has = n => !!S.garage[slug(n)];
 const box = n => `<input type="checkbox" class="sq" data-t="${esc(String(n))}" aria-label="${esc(String(n))} w garażu"${has(n)?' checked':''}>`;
@@ -297,7 +287,7 @@ function refreshWot(force){
   $('#syncNote').textContent = syncText();
   const a=document.activeElement;
   if(!force && a && a.closest && a.closest('#wotPanel') && a.matches('input:not([type=checkbox])')) return; // nie przerywaj wpisywania
-  if(['przep','oblig','mag','exp','bast'].includes(wotTab)){ const y=window.scrollY; $('#wotPanel').innerHTML = wotPanel(wotTab); window.scrollTo(0,y); }
+  if(['przep','oblig','mag','exp'].includes(wotTab)){ const y=window.scrollY; $('#wotPanel').innerHTML = wotPanel(wotTab); window.scrollTo(0,y); }
 }
 async function cloud(fn){
   if(!gdb) return;
@@ -335,7 +325,6 @@ document.addEventListener('change', e=>{
   if(t.matches('input.tok')) { t.blur(); return setTok(t.dataset.k, +t.dataset.i, toInt(t.value)); }
   if(t.matches('input.ex')) { t.blur(); const v=t.dataset.f==='zn'?Math.min(100,Math.max(0,+t.value||0)):toInt(t.value); return setExp(t.dataset.id, t.dataset.f, v); }
   if(t.matches('input.ed-name')) { t.blur(); const v=t.value.trim(); if(v) return setExp(t.dataset.id, 'n', v); t.value=(S.exp.find(r=>r.id===t.dataset.id)||{}).n||''; return; }
-  if(t.matches('input.bs')) { t.blur(); return setBast(+t.dataset.i, +t.dataset.c, t.value.trim()===''?null:toInt(t.value)); }
 });
 document.addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.matches('input.num-in, input.ed')) e.target.blur(); });
 document.addEventListener('toggle', e=>{ const d=e.target; if(!d.matches||!d.matches('details.nation')) return; const s=new Set(expOpen()); d.open?s.add(d.dataset.nac):s.delete(d.dataset.nac); store.set('expOpen', JSON.stringify([...s])); }, true);

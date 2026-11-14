@@ -28,7 +28,7 @@ const ROUTES = {
 };
 
 /* ——— router ——— */
-let wotTab = store.get('wotTab','przep');
+let wotTab = store.get('wotTab','przep'); if(wotTab==='bast') wotTab='tryby';   /* Ostatni Bastion jest teraz w Trybach */
 function render(){
   let key=(location.hash||'#'+store.get('startStrona','start')).slice(1);   /* strona po otwarciu: Ustawienia → Ogólne */
   const RD0={'o-mnie':1,'studia':1,'gry':1,'inne':1,'subskrypcje':1};
@@ -60,6 +60,7 @@ function render(){
   if(key!=='pieniadze' && finM){ finM=false; finRender(); }
   if(key!=='pieniadze' && sbM){ sbM=false; sbRender(); }
   if(mmaM){ mmaM=false; mmaRender(); }
+  if(key!=='wot' && tyM){ tyM=null; tyRender(); }   /* okienko trybu WoT */
   window.scrollTo(0,0);
 }
 function setWotTab(k){

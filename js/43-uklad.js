@@ -14,6 +14,7 @@
 const ukNorm = v => ({ nav:Array.isArray(v&&v.nav)?v.nav.filter(x=>x&&(typeof x.g==='string'||typeof x.r==='string')):null,
   nazwy:(v&&v.nazwy)||{}, ord:(v&&v.ord)||{}, lab:(v&&v.lab)||{} });
 let UK = ukNorm((()=>{ try{ return JSON.parse(store.get('uklad','null')); }catch(e){ return null; } })());
+Object.values(UK.ord).forEach(O=>{ const i=O.indexOf('bast'); if(i>=0) O[i]='tryby'; });   /* WoT: Ostatni Bastion → Tryby */
 let ukT=0;
 function ukSave(){ store.set('uklad', JSON.stringify(UK)); clearTimeout(ukT);
   ukT=setTimeout(()=>cloud(db=>db.collection('cfg').doc('uklad').set({j:JSON.stringify(UK), u:Date.now()})), 600); }
