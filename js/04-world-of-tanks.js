@@ -4,7 +4,7 @@
    WOT_TABS  – lista zakładek WoT (przepustka, obligacje, magazyn, expienie, MOE, Ostatni Bastion, Zakupy → js/41-wot-zakupy.js, Garaż → js/42-wot-garaz.js, Cele → js/23-wot-cele.js).
    wotPanel(k) – rysuje zawartość zakładki k; wotSummary(k) – kafle z liczbami nad nią.
    S         – stan WoT (garaż, magazyn, żetony, obligacje, expienie) zapisywany w przeglądarce.
-   Expienie — „światełka” przy Modułach i Potrzebnym XP: czy starcza wolnego XP z konta (wotFxp):
+   Expienie — „światełka” przy Modułach i Potrzebnym XP: czy starcza wolnego XP z konta (wotFxp — wpisywane samo z API przez js/44-wot-zasoby.js, bez pola na stronie):
      zielone = starcza, pomarańczowe = masz co najmniej FXP_PROG (80 %) brakującego XP, czerwone = mniej.
      Każda rzecz osobno: XP z czołgu (Posiadane) + wolne XP. Moduły — XP na TYM czołgu; cena czołgu — XP na POPRZEDNIM
      czołgu w gałęzi (dla pierwszego w gałęzi — na nim samym). Np. 20 000 na czołgu + 30 000 wolnego → stać na działo za 50 000.
@@ -58,11 +58,7 @@ function wotSummary(k){
   if(k==='exp'){
     const nonzero=S.exp.filter(r=>expLeft(r)>0), eIn=S.exp.filter(r=>has(r.n)).length;
     const brs=[...new Set(S.exp.map(r=>r.br))].map(b=>({b, xp:S.exp.filter(r=>r.br===b).reduce((a,r)=>a+expLeft(r),0), last:S.exp.filter(r=>r.br===b).sort((x,y)=>x.o-y.o).pop()})).filter(x=>x.xp>0).sort((a,b)=>a.xp-b.xp);
-    let ng=0, no=0; S.exp.forEach(r=>['mod','cz'].forEach(f=>{ const l=fxpLight(r,f); if(l.includes('fxl g')) ng++; else if(l.includes('fxl o')) no++; }));
-    return `<div class="grid g4 sum-strip">
-      <div class="cell fxp-cell"><label class="label" for="fxpIn">Wolne XP na koncie</label>
-        <span class="big fxp-big"><input id="fxpIn" class="num-in grp fxp-in" type="text" inputmode="numeric" autocomplete="off" value="${grp(wotFxp)}" aria-label="Wolne XP na koncie"><small>XP</small></span>
-        <p><span class="fxl g" aria-hidden="true"></span> ${ng} starcza · <span class="fxl o" aria-hidden="true"></span> ${no} prawie</p></div>
+    return `<div class="grid g3 sum-strip">
       ${[['Do zdobycia', `${fmt(expAll()/1e6,2)}<small>mln XP</small>`, `${nonzero.length} czołgów z brakującym XP`],
       ['Skończone', `${eIn}<small>/ ${S.exp.length}</small>`, 'czołgów na liście'],
       ['Najbliższa gałąź', brs[0]?esc(brs[0].last.n):'—', brs[0]?`${fmt(brs[0].xp)} XP do końca gałęzi`:'brak danych']].map(c=>`<div class="cell"><span class="label">${c[0]}</span><span class="big">${c[1]}</span><p>${c[2]}</p></div>`).join('')}</div>`;
@@ -250,7 +246,6 @@ const expZPopr = r => (expCalcAll().get(r.id)||{zPopr:0}).zPopr;
 const FXP_PROG = 0.8;
 let wotFxp = toIntS(store.get('wotFxp','0'));
 function toIntS(v){ return Math.max(0, Math.round(+String(v).replace(/[\s\u00a0]/g,'').replace(',','.')||0)); }
-function setFxp(v){ wotFxp=v; store.set('wotFxp', String(v)); refreshWot(true); cloud(db=>db.collection('cfg').doc('wotFxp').set({v})); }
 function fxpFromCloud(v){ v=toIntS(v); if(v===wotFxp) return; wotFxp=v; store.set('wotFxp',String(v)); refreshWot(true); }
 function fxpNeed(r, f){   /* ile kosztuje rzecz i ile XP z czołgu można na nią wydać */
   if(f==='mod') return {koszt:r.modOk?0:Math.max(0,+r.mod||0), zCz:Math.max(0,+r.pos||0), skad:r.n};
@@ -338,7 +333,6 @@ document.addEventListener('change', e=>{
   if(t.matches('input.sq[data-t]')) return toggleTank(t.dataset.t, t.checked);
   if(t.matches('input.mq')) { t.blur(); return setMag(t.dataset.n, toInt(t.value)); }
   if(t.matches('input.tok')) { t.blur(); return setTok(t.dataset.k, +t.dataset.i, toInt(t.value)); }
-  if(t.matches('input.fxp-in')) { t.blur(); return setFxp(toInt(t.value)); }
   if(t.matches('input.ex')) { t.blur(); const v=t.dataset.f==='zn'?Math.min(100,Math.max(0,+t.value||0)):toInt(t.value); return setExp(t.dataset.id, t.dataset.f, v); }
   if(t.matches('input.ed-name')) { t.blur(); const v=t.value.trim(); if(v) return setExp(t.dataset.id, 'n', v); t.value=(S.exp.find(r=>r.id===t.dataset.id)||{}).n||''; return; }
   if(t.matches('input.bs')) { t.blur(); return setBast(+t.dataset.i, +t.dataset.c, t.value.trim()===''?null:toInt(t.value)); }
