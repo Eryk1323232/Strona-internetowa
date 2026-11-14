@@ -4,7 +4,7 @@
    WOT_TABS  – lista zakładek WoT (przepustka, obligacje, magazyn, expienie, MOE, Tryby → js/45-wot-tryby.js (dawny Ostatni Bastion), Zakupy → js/41-wot-zakupy.js, Garaż → js/42-wot-garaz.js, Cele → js/23-wot-cele.js).
    wotPanel(k) – rysuje zawartość zakładki k; wotSummary(k) – kafle z liczbami nad nią.
    S         – stan WoT (garaż, magazyn, żetony, obligacje, expienie) zapisywany w przeglądarce.
-   Expienie — „światełka” przy Modułach i Potrzebnym XP: czy starcza wolnego XP z konta (wotFxp — wpisywane samo z API przez js/44-wot-zasoby.js, bez pola na stronie):
+   Expienie — „światełka” przy Modułach i Potrzebnym XP: czy starcza wolnego XP z konta (fxpWolne() — wolne XP z panelu zasobów / Wargaming API, js/44-wot-zasoby.js):
      zielone = starcza, pomarańczowe = masz co najmniej FXP_PROG (80 %) brakującego XP, czerwone = mniej.
      Każda rzecz osobno: XP z czołgu (Posiadane) + wolne XP. Moduły — XP na TYM czołgu; cena czołgu — XP na POPRZEDNIM
      czołgu w gałęzi (dla pierwszego w gałęzi — na nim samym). Np. 20 000 na czołgu + 30 000 wolnego → stać na działo za 50 000.
@@ -238,16 +238,16 @@ const expRaw = r => (expCalcAll().get(r.id)||{left:0}).left;
 const expZPopr = r => (expCalcAll().get(r.id)||{zPopr:0}).zPopr;
 /* wolne XP na koncie + światełko: brakujące XP danej rzeczy vs. wolne XP */
 const FXP_PROG = 0.8;
-let wotFxp = toIntS(store.get('wotFxp','0'));
 function toIntS(v){ return Math.max(0, Math.round(+String(v).replace(/[\s\u00a0]/g,'').replace(',','.')||0)); }
-function fxpFromCloud(v){ v=toIntS(v); if(v===wotFxp) return; wotFxp=v; store.set('wotFxp',String(v)); refreshWot(true); }
+/* wolne XP zawsze z panelu zasobów (Wargaming API → GK, js/44-wot-zasoby.js); bez danych z API — 0 */
+const fxpWolne = () => { const v=(typeof GK!=='undefined'&&GK)?gkNum(GK['Wolne XP']):null; return v===null?0:Math.round(v); };
 function fxpNeed(r, f){   /* ile kosztuje rzecz i ile XP z czołgu można na nią wydać */
   if(f==='mod') return {koszt:r.modOk?0:Math.max(0,+r.mod||0), zCz:Math.max(0,+r.pos||0), skad:r.n};
   const rows=S.exp.filter(x=>x.br===r.br).sort((a,b)=>a.o-b.o), i=rows.findIndex(x=>x.id===r.id), src=i>0?rows[i-1]:r;
   return {koszt:r.czOk?0:Math.round((+r.cz||0)*(1-Math.min(100,+r.zn||0)/100)), zCz:Math.max(0,+src.pos||0), skad:src.n};
 }
 function fxpLight(r, f){   /* f: 'mod' | 'cz' */
-  const ok=f==='mod'?r.modOk:r.czOk, N=fxpNeed(r,f), need=Math.max(0, N.koszt-N.zCz), ma=Math.min(N.koszt,N.zCz)+wotFxp;
+  const wotFxp=fxpWolne(), ok=f==='mod'?r.modOk:r.czOk, N=fxpNeed(r,f), need=Math.max(0, N.koszt-N.zCz), ma=Math.min(N.koszt,N.zCz)+wotFxp;
   if(has(r.n) || ok || !(N.koszt>0)) return '<span class="fxl none" aria-hidden="true"></span>';
   const st=wotFxp>=need?'g':ma>=N.koszt*FXP_PROG?'o':'r';
   const sklad=`${N.zCz?`${fmt(Math.min(N.koszt,N.zCz))} XP na ${N.skad} + `:''}${fmt(wotFxp)} wolnego`;
