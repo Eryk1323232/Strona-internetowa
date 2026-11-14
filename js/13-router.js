@@ -16,6 +16,7 @@ const ROUTES = {
   'kalendarz':{title:'Kalendarz', parent:null, render:pKalendarz},
   'cv':      {title:'CV', parent:'o-mnie', render:pCV},
   'wot':     {title:'World of Tanks', parent:'gry', render:pWot},
+  'gierki':  {title:'Gry', parent:'gry', render:pGierki},   /* drobne gierki offline (js/46-gierki.js) */
   'silownia':{title:'Siłownia', parent:'inne', render:pGym},
   'pozostale':{title:'Pozostałe', parent:'inne', render:pPozostale},   /* Posiadówki są tu w okienku (js/29-pozostale.js) */
   'pieniadze':{title:'Pieniądze', parent:'inne', render:pPieniadze},
@@ -60,6 +61,7 @@ function render(){
   if(key!=='pieniadze' && finM){ finM=false; finRender(); }
   if(key!=='pieniadze' && sbM){ sbM=false; sbRender(); }
   if(mmaM){ mmaM=false; mmaRender(); }
+  if(key!=='gierki' && gkGra) gierkaZamknij();   /* okienko gierki */
   if(key!=='wot' && tyM){ tyM=null; tyRender(); }   /* okienko trybu WoT */
   window.scrollTo(0,0);
 }

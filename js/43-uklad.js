@@ -32,7 +32,9 @@ const UK_LI = {}, UK_N0 = {};
 [...UK_UL.children].filter(li=>!li.classList.contains('grp')).forEach(li=>{ const a=li.querySelector('a'); UK_LI[a.dataset.r]=li; UK_N0[a.dataset.r]=a.querySelector('span').textContent; });
 const ukNazwa = r => UK.nazwy[r] || UK_N0[r] || r;
 function ukNavLista(){ const L=(UK.nav||UK_NAV0).filter(x=>typeof x.g==='string'||UK_LI[x.r]).map(x=>({...x})), jest=new Set(L.map(x=>x.r).filter(Boolean));
-  Object.keys(UK_LI).forEach(r=>{ if(!jest.has(r)) L.push({r}); }); return L; }
+  Object.keys(UK_LI).forEach(r=>{ if(jest.has(r)) return; const i0=UK_NAV0.findIndex(x=>x.r===r);   /* nowa podstrona → po swoim poprzedniku z index.html */
+    let poz=-1; for(let i=i0-1;i>=0&&poz<0;i--){ const x=UK_NAV0[i]; poz=x.r?L.findIndex(y=>y.r===x.r):L.findIndex(y=>y.g===x.g); }
+    L.splice(poz+1, 0, {r}); jest.add(r); }); return L; }
 function ukNav(){
   const fr=document.createDocumentFragment();
   ukNavLista().forEach(x=>{ if(x.r){ const li=UK_LI[x.r]; li.querySelector('a span').textContent=ukNazwa(x.r); fr.appendChild(li); }
