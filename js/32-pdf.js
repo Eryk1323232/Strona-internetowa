@@ -10,6 +10,8 @@
    • szerokość dopasowuje się do papieru (A4 albo Letter), ramka liczona od krawędzi kartki;
      najlepiej drukować na „Zapisz jako PDF” (Chrome sam bierze A4 ze strony).
    pdfRamkaIframe() — ukryta ramka do druku o wymiarach kartki A4 (poza ekranem).
+   pdfDrukuj(html, tytul) — wpisuje dokument do ramki, czeka na wczytanie zdjęć, drukuje; ramka znika dopiero po
+     zamknięciu okna druku (afterprint) — wcześniejsze usuwanie psuło podgląd Chrome przy dużych dokumentach ze zdjęciami.
    Ustawienia (⚙ → Dane i kopie): pdfRamka '1'/'0', pdfMarg 'waskie' | 'normalne' | 'szerokie'.
    ════════════════════════════════════════════════════════════════════════ */
 const PDF_MARG = { waskie:[12.7,12.7,12.7,12.7], normalne:[15,15,16,15], szerokie:[25,25,25,25] };   /* góra, prawo, dół, lewo (mm) */
@@ -36,5 +38,18 @@ function pdfPrzygotuj(html){
     return `<body${attr}><table class="pdf-pg" role="presentation"><thead><tr><td><div class="pdf-sp-t"></div></td></tr></thead><tfoot><tr><td><div class="pdf-sp-b"></div></td></tr></tfoot><tbody><tr><td class="pdf-c">${tresc}</td></tr></tbody></table>${ramka?'<div class="pdf-ramka"></div>':''}${skrypty.join('')}</body>`; });
 }
 
+async function pdfDrukuj(html, tytul){
+  document.querySelectorAll('iframe.pdf-druk').forEach(x=>x.remove());   /* resztki po poprzednim wydruku */
+  const f=pdfRamkaIframe(); f.classList.add('pdf-druk');
+  const d=f.contentDocument; d.open(); d.write(html); d.close();
+  await Promise.all([...d.images].map(i=>i.complete?(i.decode?i.decode().catch(()=>{}):0):new Promise(ok=>{ i.onload=i.onerror=ok; })));
+  await new Promise(ok=>setTimeout(ok,150));
+  const t0=document.title; if(tytul) document.title=tytul;   /* nazwa pliku PDF w Chrome */
+  let koniec=false; const sprzataj=()=>{ if(koniec) return; koniec=true; document.title=t0; setTimeout(()=>f.remove(),500); };
+  f.contentWindow.addEventListener('afterprint', sprzataj);
+  f.contentWindow.focus(); f.contentWindow.print();
+  setTimeout(()=>{ if(!koniec){ document.title=t0; } }, 3000);   /* tytuł karty wraca, ramka czeka na afterprint */
+  setTimeout(sprzataj, 10*60*1000);   /* awaryjnie */
+}
 function pdfRamkaIframe(){ const f=document.createElement('iframe'); f.setAttribute('aria-hidden','true'); f.tabIndex=-1;
   f.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;height:297mm;border:0;opacity:0;pointer-events:none'; document.body.appendChild(f); return f; }

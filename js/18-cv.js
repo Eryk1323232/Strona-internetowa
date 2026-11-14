@@ -140,10 +140,7 @@ function cvPdf(){
   const html=pdfPrzygotuj(cvPrintHtml());
   if(matchMedia('(pointer:coarse)').matches){   /* telefon: nowa karta → Udostępnij/Drukuj → Zapisz jako PDF */
     const w=window.open('','_blank'); if(w){ w.document.open(); w.document.write(html.replace('</body>','<script>setTimeout(()=>print(),400)<\/script></body>')); w.document.close(); return; } }
-  const f=pdfRamkaIframe();
-  const d=f.contentDocument; d.open(); d.write(html); d.close();
-  const t0=document.title; document.title=`CV – ${CV.imie}`;   /* nazwa pliku PDF w Chrome */
-  setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); document.title=t0; setTimeout(()=>f.remove(),2000); },250);
+  pdfDrukuj(html, `CV – ${CV.imie}`);
 }
 /* zdjęcie: przycięte do 3:4 i zmniejszone, żeby zmieściło się w komórce Arkusza */
 function cvFoto(file){

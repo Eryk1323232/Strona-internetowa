@@ -416,9 +416,7 @@ function ntDownload(name, text, type){
   a.download=(name.replace(/[\\/:*?"<>|]+/g,' ').trim()||'notatka')+(type==='text/markdown'?'.md':'.txt'); document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
 }
 function ntPrint(n){
-  const f=pdfRamkaIframe();
-  const d=f.contentDocument; d.open(); d.write(pdfPrzygotuj(ntPrintHtml(n))); d.close();
-  setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); setTimeout(()=>f.remove(),1500); },150);
+  pdfDrukuj(pdfPrzygotuj(ntPrintHtml(n)));
 }
 /* dokument do druku (używa go też podgląd końca stron A4 w js/33-strony-a4.js) */
 function ntPrintHtml(n){
