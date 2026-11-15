@@ -172,6 +172,9 @@ function arkuszDb(url, klucz){
     gdb.collection('Garaż_status').onSnapshot(s=>{ gaStZChmury(s.docs); ok(); }, fail);
     gdb.collection('wotGarazCeny').onSnapshot(s=>{ gaCenyZChmury(s.docs); ok(); }, fail);   /* ceny sprzedaży wpisane na stronie */
     gdb.collection('Garaż_konto').onSnapshot(s=>{ gkZChmury(s.docs); ok(); }, fail);   /* zasoby konta → panel obok tytułu (js/44-wot-zasoby.js) */
+    let pfF=true;   /* Praca → Pliki (js/51-praca-pliki.js) */
+    gdb.collection('prPliki').onSnapshot(s=>{ if(pfF&&s.empty&&wyslijLokalne()&&PF.length){ pfF=false; PF.forEach(pfPush); return ok(); }
+      pfF=false; PF=s.docs.map(d=>pfNorm(d.id,d.data())).filter(x=>x.zid); savePf(); pfRefresh(); ok(); }, fail);
     let tyF=true;   /* WoT → Tryby (js/45-wot-tryby.js) */
     gdb.collection('wotTryby').onSnapshot(s=>{ if(tyF&&s.empty&&wyslijLokalne()&&TY.length){ tyF=false; TY.forEach(tyPush); return ok(); }
       tyF=false; TY=s.docs.map(d=>tyNorm(d.id,d.data())); saveTy(); tyRefresh(); ok(); }, fail);

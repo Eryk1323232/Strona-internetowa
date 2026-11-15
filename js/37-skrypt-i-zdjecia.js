@@ -49,6 +49,7 @@ function zdjUzywane(){
   const S=new Set();
   if(typeof N!=='undefined') N.forEach(n=>{ (String(n.h||'').match(/data-zid="[\w-]+"/g)||[]).forEach(m=>S.add(m.slice(10,-1))); });
   if(typeof MXS!=='undefined') Object.values(MXS).forEach(L=>L.forEach(m=>m.tests.forEach(t=>(t.z||[]).forEach(z=>S.add(z)))));
+  if(typeof PF!=='undefined') PF.forEach(x=>S.add(x.zid));   /* PDF-y z Pracy → Pliki (js/51) */
   return S;
 }
 const zdjIle = (n,a,b,c) => n+' '+(n===1?a:(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?b:c);

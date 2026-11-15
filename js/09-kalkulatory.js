@@ -14,7 +14,8 @@ function mxKarty(){
   return `    <button type="button" class="calc-card res" data-mxact="open" data-set="pawel"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6h12M20 6v12L9 38a3 3 0 0 0 2.6 4.5h24.8A3 3 0 0 0 39 38L28 18V6"/><path d="M13.5 30h21"/><circle cx="21" cy="35" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="37" r="1.2" fill="currentColor" stroke="none"/></svg></div>
       <h2>Wyniki Pawła</h2><span class="calc-count" id="mxCount-pawel">${mxCnt(MXS.pawel.length)}</span><span class="calc-open">Otwórz →</span></button>
     <button type="button" class="calc-card res mine" data-mxact="open" data-set="moje"><div class="calc-ic" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6h12M20 6v12L9 38a3 3 0 0 0 2.6 4.5h24.8A3 3 0 0 0 39 38L28 18V6"/><path d="M13.5 30h21"/><circle cx="21" cy="35" r="1.6" fill="currentColor" stroke="none"/><circle cx="27" cy="37" r="1.2" fill="currentColor" stroke="none"/></svg></div>
-      <h2>Wyniki moje</h2><span class="calc-count" id="mxCount-moje">${mxCnt(MXS.moje.length)}</span><span class="calc-open">Otwórz →</span></button>`;
+      <h2>Wyniki moje</h2><span class="calc-count" id="mxCount-moje">${mxCnt(MXS.moje.length)}</span><span class="calc-open">Otwórz →</span></button>
+    ${typeof pfKarta==='function'?pfKarta():''}`;   /* Pliki PDF — js/51-praca-pliki.js */
 }
 function pCalcs(){
   return `<h1>Kalkula<span class="acc">tory</span></h1>
