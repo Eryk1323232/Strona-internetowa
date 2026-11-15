@@ -1,27 +1,30 @@
 /* ════════════════════════════════════════════════════════════════
-   ASYSTENT AI — mały czat w prawym dolnym rogu (Claude / Gemini)
-   Silnik i model („moc”) wybierane w nagłówku czatu; lista modeli pobierana z API (GET /v1/models, /v1beta/models),
-   z zapasową listą AI_DOMYSLNE, gdy pobranie się nie uda.
-   KLUCZE API: wpisywane w ustawieniach czatu, trzymane WYŁĄCZNIE w tej przeglądarce (localStorage 'aiKluczClaude',
-   'aiKluczGemini') — nie idą do Arkusza ani do kopii zapasowej (KOPIA_POMIN w js/20-kopia-zapasowa.js).
-   Zapytania lecą prosto z przeglądarki do api.anthropic.com / generativelanguage.googleapis.com (strumieniowo, SSE).
+   ASYSTENT AI — mały czat w prawym dolnym rogu (Google Gemini, darmowy klucz z Google AI Studio)
+   Model wybierany w nagłówku czatu; lista modeli pobierana z API (GET /v1beta/models), darmowe (Flash) na górze,
+   płatne (Pro itp., aiPlatny) z dopiskiem; zapasowo aliasy AI_DOMYSLNE. Domyślnie: najnowszy Flash.
+   KLUCZ API: wpisywany w ustawieniach czatu, trzymany WYŁĄCZNIE w tej przeglądarce (localStorage 'aiKluczGemini') —
+   nie idzie do Arkusza ani do kopii zapasowej (KOPIA_POMIN w js/20-kopia-zapasowa.js).
+   Zapytania lecą prosto z przeglądarki do generativelanguage.googleapis.com (strumieniowo, SSE).
    KONTEKST: gdy włączone „dane ze strony”, do polecenia systemowego dochodzi skrót aiKontekst():
    otwarte zadania, najbliższe 14 dni z kalendarza, wydatki miesiąca, zasoby WoT.
    AKCJE: model może zaproponować akcję blokiem ```akcja {json}``` (zadanie / wydatek / wpływ / notatka) —
    czat pokazuje ją jako przycisk; nic nie dzieje się bez kliknięcia (wykonują funkcje sd* z js/36-szybko-dodaj.js).
-   Rozmowa: store 'aiRozmowa' (ostatnie 40 wiadomości), ustawienia: store 'aiUst' {silnik, model:{claude,gemini}, dane}.
+   Rozmowa: store 'aiRozmowa' (ostatnie 40 wiadomości), ustawienia: store 'aiUst' {model, dane}, lista modeli: 'aiModeleG'.
    ════════════════════════════════════════════════════════════════ */
-const AI_SIL = { claude:{n:'Claude', klucz:'aiKluczClaude', skad:'https://platform.claude.com/settings/keys'}, gemini:{n:'Gemini', klucz:'aiKluczGemini', skad:'https://aistudio.google.com/apikey'} };
-const AI_DOMYSLNE = { claude:[['claude-fable-5-2','Claude Fable 5.2'],['claude-opus-5-5','Claude Opus 5.5'],['claude-sonnet-5-5','Claude Sonnet 5.5'],['claude-haiku-5-5','Claude Haiku 5.5']],
-  gemini:[['gemini-2.5-pro','Gemini 2.5 Pro'],['gemini-2.5-flash','Gemini 2.5 Flash']] };
-let AI = { ust:(()=>{ let u={}; try{ u=JSON.parse(store.get('aiUst','{}'))||{}; }catch(e){} return {silnik:u.silnik==='gemini'?'gemini':'claude', model:Object.assign({claude:'claude-sonnet-5-5', gemini:''}, u.model||{}), dane:u.dane!==false}; })(),
+const AI_KLUCZ='aiKluczGemini', AI_SKAD='https://aistudio.google.com/apikey';
+/* zapasowa lista, gdy nie da się pobrać modeli z API — aliasy Google wskazujące zawsze najnowszy Flash */
+const AI_DOMYSLNE = [['gemini-flash-latest','Gemini Flash (najnowszy)'],['gemini-flash-lite-latest','Gemini Flash-Lite (najnowszy)']];
+const aiPlatny = id => /pro|ultra|argon|omni/i.test(id);   /* modele bez darmowego poziomu API */
+let AI = { ust:(()=>{ let u={}; try{ u=JSON.parse(store.get('aiUst','{}'))||{}; }catch(e){} return {model:typeof u.model==='string'?u.model:(u.model&&u.model.gemini)||'', dane:u.dane!==false}; })(),
   msg:(()=>{ try{ const m=JSON.parse(store.get('aiRozmowa','[]')); return Array.isArray(m)?m.filter(x=>x&&(x.r==='u'||x.r==='a')&&typeof x.t==='string'):[]; }catch(e){ return []; } })(),
-  otw:false, widok:'czat', pisze:null, modele:{}, blad:'' };
-const aiKlucz = s => { try{ return localStorage.getItem(AI_SIL[s].klucz)||''; }catch(e){ return ''; } };
+  otw:false, widok:'czat', pisze:null, modele:null, blad:'' };
+try{ ['aiKluczClaude','aiModele'].forEach(k=>localStorage.removeItem(k)); }catch(e){}   /* stare klucze z czasów czatu z Claude */
+const aiKlucz = () => { try{ return localStorage.getItem(AI_KLUCZ)||''; }catch(e){ return ''; } };
 const aiZapiszUst = () => store.set('aiUst', JSON.stringify(AI.ust));
 const aiZapiszRozm = () => store.set('aiRozmowa', JSON.stringify(AI.msg.slice(-40)));
-const aiModele = s => AI.modele[s] || AI_DOMYSLNE[s];
-const aiModel = s => { const L=aiModele(s), m=AI.ust.model[s]; return L.some(x=>x[0]===m)?m:(L[0]||[''])[0]; };
+const aiModele = () => AI.modele || AI_DOMYSLNE;
+const aiModel = () => { const L=aiModele(), m=AI.ust.model; if(L.some(x=>x[0]===m)) return m;
+  return (L.find(x=>/flash/i.test(x[0])&&!/lite|preview|exp/i.test(x[0])) || L.find(x=>!aiPlatny(x[0])) || L[0] || [''])[0]; };
 
 /* ——— skrót danych ze strony ——— */
 function aiKontekst(){
@@ -46,41 +49,31 @@ Inne typy: {"typ":"wydatek","kwota":12.5,"opis":"…","kategoria":"jedzenie"} ·
   + (AI.ust.dane?`\n\nAktualne dane ze strony (do wglądu, nie powtarzaj ich bez potrzeby):\n${aiKontekst()}`:'');
 }
 
-/* ——— wywołania API (strumień SSE) ——— */
+/* ——— wywołania API Gemini (strumień SSE) ——— */
 async function aiSSE(res, naTekst){
   const rd=res.body.getReader(), dec=new TextDecoder(); let buf='';
   for(;;){ const {done,value}=await rd.read(); if(done) break; buf+=dec.decode(value,{stream:true});
     let i; while((i=buf.indexOf('\n'))>=0){ const l=buf.slice(0,i).trim(); buf=buf.slice(i+1); if(!l.startsWith('data:')) continue; const d=l.slice(5).trim(); if(!d||d==='[DONE]') continue; try{ naTekst(JSON.parse(d)); }catch(e){} } }
 }
 async function aiBlad(res){ let t=''; try{ const j=await res.json(); t=(j.error&&(j.error.message||j.error.status))||JSON.stringify(j).slice(0,200); }catch(e){}
-  const s=res.status; return (s===401||s===403?'Klucz API jest nieprawidłowy albo nie ma dostępu. ':s===429?'Limit zapytań lub brak środków na koncie API. ':s===404?'Ten model nie jest dostępny dla Twojego klucza. ':`Błąd ${s}. `)+(t||''); }
+  const s=res.status; return (s===400&&/API key/i.test(t)||s===401||s===403?'Klucz API jest nieprawidłowy. Sprawdź, czy skopiowałeś cały klucz z Google AI Studio. ':s===429?'Wykorzystany darmowy limit zapytań — odczekaj minutę (limit na minutę) albo do jutra (limit dzienny). ':s===404?'Ten model nie jest dostępny dla Twojego klucza — wybierz inny (np. Flash). ':`Błąd ${s}. `)+(t&&s!==429?t:''); }
 async function aiPytaj(msgs, naKawalek, signal){
-  const s=AI.ust.silnik, k=aiKlucz(s), model=aiModel(s), sys=aiSystem();
-  if(s==='claude'){
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST', signal, headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model, max_tokens:2048, stream:true, system:sys, messages:msgs.map(m=>({role:m.r==='u'?'user':'assistant', content:m.t}))})});
-    if(!res.ok) throw new Error(await aiBlad(res));
-    await aiSSE(res, j=>{ if(j.type==='content_block_delta' && j.delta && j.delta.type==='text_delta') naKawalek(j.delta.text); if(j.type==='error') throw new Error(j.error&&j.error.message||'Błąd strumienia'); });
-  } else {
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`,{method:'POST', signal, headers:{'content-type':'application/json','x-goog-api-key':k},
-      body:JSON.stringify({systemInstruction:{parts:[{text:sys}]}, contents:msgs.map(m=>({role:m.r==='u'?'user':'model', parts:[{text:m.t}]}))})});
-    if(!res.ok) throw new Error(await aiBlad(res));
-    await aiSSE(res, j=>{ const p=j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts; if(p) p.forEach(x=>{ if(x.text&&!x.thought) naKawalek(x.text); }); });
-  }
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(aiModel())}:streamGenerateContent?alt=sse`,{method:'POST', signal, headers:{'content-type':'application/json','x-goog-api-key':aiKlucz()},
+    body:JSON.stringify({systemInstruction:{parts:[{text:aiSystem()}]}, contents:msgs.map(m=>({role:m.r==='u'?'user':'model', parts:[{text:m.t}]}))})});
+  if(!res.ok) throw new Error(await aiBlad(res));
+  await aiSSE(res, j=>{ const p=j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts; if(p) p.forEach(x=>{ if(x.text&&!x.thought) naKawalek(x.text); }); });
 }
-async function aiPobierzModele(s){
-  const k=aiKlucz(s); if(!k) return;
-  try{
-    if(s==='claude'){ const r=await fetch('https://api.anthropic.com/v1/models?limit=100',{headers:{'x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}}); if(!r.ok) throw new Error(await aiBlad(r));
-      const j=await r.json(), L=(j.data||[]).filter(m=>!m.lifecycle||m.lifecycle==='active').map(m=>[m.id, m.display_name||m.id]); if(L.length) AI.modele.claude=L; }
-    else { const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':k}}); if(!r.ok) throw new Error(await aiBlad(r));
-      const j=await r.json(), L=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent') && /gemini/i.test(m.name) && !/embedding|aqa|tts|image|audio|live|robotics|computer-use/i.test(m.name))
-        .map(m=>[m.name.replace(/^models\//,''), m.displayName||m.name]).sort((a,b)=>b[0].localeCompare(a[0],undefined,{numeric:true})); if(L.length) AI.modele.gemini=L; }
-    store.set('aiModele', JSON.stringify(AI.modele)); AI.blad='';
-  }catch(e){ AI.blad=`Lista modeli ${AI_SIL[s].n}: ${e.message}`; }
+async function aiPobierzModele(){
+  const k=aiKlucz(); if(!k) return;
+  try{ const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':k}}); if(!r.ok) throw new Error(await aiBlad(r));
+    const j=await r.json(), L=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent') && /gemini/i.test(m.name) && !/embedding|aqa|tts|image|audio|live|transcribe|translate|robotics|computer-use/i.test(m.name))
+      .map(m=>[m.name.replace(/^models\//,''), m.displayName||m.name])
+      .sort((a,b)=>(aiPlatny(a[0])-aiPlatny(b[0])) || b[0].localeCompare(a[0],undefined,{numeric:true}));   /* darmowe na górze */
+    if(L.length){ AI.modele=L; store.set('aiModeleG', JSON.stringify(L)); } AI.blad='';
+  }catch(e){ AI.blad='Lista modeli: '+e.message; }
   aiRender();
 }
-try{ const m=JSON.parse(store.get('aiModele','{}')); if(m&&typeof m==='object') AI.modele=m; }catch(e){}
+try{ const m=JSON.parse(store.get('aiModeleG','null')); if(Array.isArray(m)&&m.length) AI.modele=m; }catch(e){}
 
 /* ——— Markdown (prosty, bezpieczny) + akcje ——— */
 function aiMd(t){
@@ -116,18 +109,18 @@ function aiRender(){
   b.hidden=AI.otw;
   let p=$('#aiPanel'); if(!AI.otw){ p&&p.remove(); return; }
   if(!p){ p=document.createElement('section'); p.id='aiPanel'; p.className='ai-panel'; p.setAttribute('role','dialog'); p.setAttribute('aria-label','Asystent AI'); document.body.appendChild(p); }
-  const s=AI.ust.silnik, maKlucz=!!aiKlucz(s), szkic=($('#aiWe')||{}).value||'';
-  const glowa=`<header class="ai-top"><div class="seg ai-sil" role="tablist" aria-label="Silnik">${Object.entries(AI_SIL).map(([k,v])=>`<button type="button" data-aisil="${k}" aria-selected="${k===s}">${v.n}</button>`).join('')}</div>
-      <select id="aiModel" class="ai-model" aria-label="Model" title="Model („moc”)">${aiModele(s).map(([id,n])=>`<option value="${esc(id)}"${id===aiModel(s)?' selected':''}>${esc(n)}</option>`).join('')}</select>
-      <button type="button" class="ai-ib" data-aiact="nowa" title="Nowa rozmowa" aria-label="Nowa rozmowa">${aiIk('nowa')}</button><button type="button" class="ai-ib" data-aiact="ust" title="Ustawienia i klucze API" aria-label="Ustawienia" aria-pressed="${AI.widok==='ust'}">${aiIk('zeb')}</button><button type="button" class="ai-ib" data-aiact="zamknij" title="Zamknij" aria-label="Zamknij">${aiIk('x')}</button></header>`;
+  const maKlucz=!!aiKlucz(), szkic=($('#aiWe')||{}).value||'';
+  const glowa=`<header class="ai-top"><span class="ai-logo" aria-hidden="true">✦</span><b class="ai-nazwa">Gemini</b>
+      <select id="aiModel" class="ai-model" aria-label="Model" title="Model">${aiModele().map(([id,n])=>`<option value="${esc(id)}"${id===aiModel()?' selected':''}>${esc(n)}${aiPlatny(id)?' · płatny':''}</option>`).join('')}</select>
+      <button type="button" class="ai-ib" data-aiact="nowa" title="Nowa rozmowa" aria-label="Nowa rozmowa">${aiIk('nowa')}</button><button type="button" class="ai-ib" data-aiact="ust" title="Ustawienia i klucz API" aria-label="Ustawienia" aria-pressed="${AI.widok==='ust'}">${aiIk('zeb')}</button><button type="button" class="ai-ib" data-aiact="zamknij" title="Zamknij" aria-label="Zamknij">${aiIk('x')}</button></header>`;
   if(AI.widok==='ust' || !maKlucz){
-    p.innerHTML=glowa+`<div class="ai-ust">${maKlucz?'':`<p class="ai-info"><b>Żeby zacząć, wklej klucz API ${AI_SIL[s].n}.</b> Klucz zostaje tylko w tej przeglądarce.</p>`}
-      ${Object.entries(AI_SIL).map(([k,v])=>`<label class="ai-f"><span class="label">Klucz API ${v.n} ${aiKlucz(k)?'<em>zapisany</em>':''}</span><input type="password" data-aiklucz="${k}" value="${esc(aiKlucz(k))}" placeholder="${k==='claude'?'sk-ant-…':'AIza…'}" autocomplete="off" spellcheck="false">
-        <a href="${v.skad}" target="_blank" rel="noopener">Skąd wziąć klucz ${v.n} →</a></label>`).join('')}
+    p.innerHTML=glowa+`<div class="ai-ust">${maKlucz?'':`<div class="ai-info"><b>Darmowy klucz Gemini w 1 minutę:</b><ol><li>Otwórz <a href="${AI_SKAD}" target="_blank" rel="noopener">Google AI Studio → API keys</a> i zaloguj się kontem Google.</li><li>Kliknij <b>„Create API key”</b> (utwórz klucz).</li><li>Skopiuj klucz (zaczyna się od <code>AIza</code>) i wklej go poniżej.</li></ol></div>`}
+      <label class="ai-f"><span class="label">Klucz API Gemini ${maKlucz?'<em>zapisany</em>':''}</span><input type="password" data-aiklucz="1" value="${esc(aiKlucz())}" placeholder="AIza…" autocomplete="off" spellcheck="false">
+        <a href="${AI_SKAD}" target="_blank" rel="noopener">Utwórz lub skopiuj klucz w Google AI Studio →</a></label>
       <label class="ai-chk"><input type="checkbox" id="aiDane"${AI.ust.dane?' checked':''}><span>Dołączaj dane ze strony (zadania, kalendarz, wydatki miesiąca, zasoby WoT), żeby asystent wiedział, co u Ciebie</span></label>
-      <p class="ai-pom">Klucze są zapisane wyłącznie w tej przeglądarce — nie trafiają do Arkusza ani kopii zapasowej, więc na telefonie wpisujesz je osobno. Zapytania idą bezpośrednio do Anthropic / Google i są płatne według cennika API. Ustaw limit wydatków na koncie API.</p>
+      <p class="ai-pom">Darmowe są modele <b>Flash</b> i <b>Flash-Lite</b> (z limitem zapytań na minutę i na dzień); modele oznaczone „płatny” wymagają włączenia płatności w Google. Na darmowym poziomie Google może wykorzystywać treść rozmów do ulepszania swoich usług — nie wpisuj haseł ani wrażliwych danych. Klucz jest zapisany tylko w tej przeglądarce (nie trafia do Arkusza ani kopii), więc na telefonie wklejasz go osobno.</p>
       ${AI.blad?`<p class="ai-blad">${esc(AI.blad)}</p>`:''}
-      <div class="ai-ustb"><button type="button" class="uk-btn" data-aiact="modele">Odśwież listę modeli</button>${maKlucz?'<button type="button" class="uk-btn uk-ok" data-aiact="czat">Gotowe</button>':''}</div></div>`;
+      <div class="ai-ustb"><button type="button" class="uk-btn" data-aiact="modele"${maKlucz?'':' disabled'}>Odśwież listę modeli</button>${maKlucz?'<button type="button" class="uk-btn uk-ok" data-aiact="czat">Gotowe</button>':''}</div></div>`;
     return; }
   p.innerHTML=glowa+`<div class="ai-msgs" id="aiMsgs" aria-live="polite">${AI.msg.length?AI.msg.map((m,i)=>`<div class="ai-m ${m.r==='u'?'u':'a'}${m.blad?' blad':''}">${m.r==='u'?esc(m.t).replace(/\n/g,'<br>'):aiMd(m.t)||(AI.pisze&&i===AI.msg.length-1?'<span class="ai-kropki"><i></i><i></i><i></i></span>':'')}</div>`).join('')
       :`<div class="ai-pusto"><b>Cześć, w czym pomóc?</b><div class="ai-podp">${['Co mam dziś do zrobienia?','Ile wydałem w tym miesiącu?','Dodaj zadanie: oddać projekt z dróg w piątek','Wytłumacz krótko nośność graniczną gruntu'].map(x=>`<button type="button" data-aipodp="${esc(x)}">${esc(x)}</button>`).join('')}</div></div>`}</div>
@@ -146,9 +139,8 @@ async function aiWyslij(tekst){
   AI.pisze=null; aiZapiszRozm(); aiRender(); const w=$('#aiWe'); w&&w.focus();
 }
 document.addEventListener('click', e=>{
-  if(e.target.closest('#aiFab')){ AI.otw=true; AI.widok='czat'; aiRender(); const w=$('#aiWe'); w&&w.focus(); if(!AI.modele[AI.ust.silnik]) aiPobierzModele(AI.ust.silnik); return; }
+  if(e.target.closest('#aiFab')){ AI.otw=true; AI.widok='czat'; aiRender(); const w=$('#aiWe'); w&&w.focus(); if(!AI.modele) aiPobierzModele(); return; }
   const p=e.target.closest('#aiPanel'); if(!p) return;
-  const sil=e.target.closest('[data-aisil]'); if(sil){ AI.ust.silnik=sil.dataset.aisil; aiZapiszUst(); AI.blad=''; aiRender(); if(!AI.modele[AI.ust.silnik]) aiPobierzModele(AI.ust.silnik); return; }
   const pod=e.target.closest('[data-aipodp]'); if(pod) return aiWyslij(pod.dataset.aipodp);
   const ak=e.target.closest('[data-aiakcja]'); if(ak && !ak.disabled){ let wyn=''; try{ wyn=aiAkcjaWykonaj(JSON.parse(ak.dataset.aiakcja)); }catch(err){ wyn='Nie udało się: '+err.message; } ak.disabled=true; ak.classList.add('ok'); ak.innerHTML='<span>✓</span>'+esc(wyn||'Dodano'); return; }
   const a=e.target.closest('[data-aiact]'); if(!a) return; const c=a.dataset.aiact;
@@ -157,16 +149,16 @@ document.addEventListener('click', e=>{
   if(c==='czat'){ AI.widok='czat'; return aiRender(); }
   if(c==='nowa'){ if(AI.pisze) AI.pisze.abort(); AI.msg=[]; aiZapiszRozm(); AI.widok='czat'; return aiRender(); }
   if(c==='stop'){ AI.pisze&&AI.pisze.abort(); return; }
-  if(c==='modele'){ AI.blad=''; return Promise.all(['claude','gemini'].map(aiPobierzModele)); }
+  if(c==='modele'){ AI.blad=''; return aiPobierzModele(); }
 });
 document.addEventListener('submit', e=>{ if(e.target.id!=='aiForm') return; e.preventDefault(); aiWyslij($('#aiWe').value); });
 document.addEventListener('keydown', e=>{ if(e.target.id==='aiWe' && e.key==='Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); aiWyslij(e.target.value); }
   if(e.key==='Escape' && AI.otw && e.target.closest && e.target.closest('#aiPanel')){ AI.otw=false; aiRender(); } });
 document.addEventListener('input', e=>{ const t=e.target;
   if(t.id==='aiWe'){ t.style.height='auto'; t.style.height=Math.min(120,t.scrollHeight)+'px'; }
-  if(t.dataset && t.dataset.aiklucz){ try{ const k=AI_SIL[t.dataset.aiklucz].klucz, v=t.value.trim(); v?localStorage.setItem(k,v):localStorage.removeItem(k); }catch(err){} } });
+  if(t.dataset && t.dataset.aiklucz){ try{ const v=t.value.trim(); v?localStorage.setItem(AI_KLUCZ,v):localStorage.removeItem(AI_KLUCZ); }catch(err){} } });
 document.addEventListener('change', e=>{ const t=e.target;
-  if(t.id==='aiModel'){ AI.ust.model[AI.ust.silnik]=t.value; aiZapiszUst(); }
+  if(t.id==='aiModel'){ AI.ust.model=t.value; aiZapiszUst(); }
   if(t.id==='aiDane'){ AI.ust.dane=t.checked; aiZapiszUst(); }
-  if(t.dataset && t.dataset.aiklucz && t.value.trim()) aiPobierzModele(t.dataset.aiklucz); });
+  if(t.dataset && t.dataset.aiklucz && t.value.trim()){ AI.modele=null; aiPobierzModele(); } });
 if(!/[?&]widzet=1/.test(location.search)) aiRender();
