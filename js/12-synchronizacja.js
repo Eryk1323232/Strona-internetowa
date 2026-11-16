@@ -181,9 +181,6 @@ function arkuszDb(url, klucz){
     let wzF=true;   /* WoT → Zakupy (js/41-wot-zakupy.js) */
     gdb.collection('wotZakupy').onSnapshot(s=>{ if(wzF&&s.empty&&wyslijLokalne()&&WZ.length){ wzF=false; WZ.forEach(wzPush); return ok(); }
       wzF=false; WZ=s.docs.map(d=>wzNorm(d.id,d.data())); saveWz(); wzRefresh(); ok(); }, fail);
-    let wcF=true;   /* WoT → Cele (js/23-wot-cele.js) */
-    gdb.collection('wotCele').onSnapshot(s=>{ if(wcF&&s.empty&&wyslijLokalne()&&WC.length){ wcF=false; WC.forEach(wcPush); return ok(); }
-      wcF=false; WC=s.docs.map(d=>wcNorm(d.id,d.data())); saveWc(); wcRefresh(); ok(); }, fail);
     Object.keys(MXC).forEach(k=>{ let first=true; const col=MXC[k].col;
       gdb.collection(col).onSnapshot(s=>{ if(first&&s.empty&&wyslijLokalne()&&MXS[k].length){ first=false; MXS[k].forEach(m=>{ const {id,...d}=m; cloud(db=>db.collection(col).doc(id).set(d)); }); return ok(); }
         first=false; MXS[k]=s.docs.map(d=>mxNorm(d.id,d.data())); saveMx(k); if(!(mxM&&mxM.mode==='edit')) mxRefresh(); ok(); }, fail); });

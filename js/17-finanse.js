@@ -26,7 +26,9 @@
      • t 'skb' — przełożenie wewnątrz oszczędnościowego (wolne ↔ skarbonka), saldo konta się nie zmienia
      F.skarb = cfg.ss (stan skarbonki w dniu „od”) + suma sk×a;  F.wolne = oszczędn. − skarbonka.
      „Razem” i karta Pieniędzy liczą główne + WOLNE oszczędności (skarbonka osobno).
-     cfg.skCel — cel (zł, opcjonalny), cfg.skNa — na co oszczędzasz.
+     cfg.skCele — lista celów [{id, n nazwa, k kwota}] w kolejności ważności. Skarbonka jest jedna: pieniądze zapełniają
+     cele po kolei (finSkCele: pierwszy cel do pełna, nadwyżka idzie na następny). W Arkuszu lista leci jako tekst JSON.
+     (Dawne pola skCel / skNa — jeden cel — są zamieniane na pierwszą pozycję listy.)
    Kategorie: FIN_KAT_WYD (wydatki) i FIN_KAT_WPL (wpływy) niżej.
    Strona główna: widżet „Szybki wydatek” (widgetFin) — wpis trafia do FIN.ops, czyli prosto do Finansów.
    Operacje z przyszłą datą = zaplanowane: nie zmieniają salda dziś, ale liczą się w „zostaje”.
@@ -42,7 +44,12 @@ const finKatOpts = (t, cur='') => { const L=t==='wpl'?FIN_KAT_WPL:FIN_KAT_WYD; r
 const FIN_OKRES = {d:['Dziennie','dzień',1], t:['Tygodniowo','tydzień',7], m:['Miesięcznie','miesiąc',30]};   /* [2] używane tylko dla d/t — miesiąc liczy finAvg z pełnych miesięcy */
 const finIso = v => /^\d{4}-\d{2}-\d{2}$/.test(v);
 const finR = v => Math.round((+v||0)*100)/100;
-const finCfgNorm = (v={}) => ({od:finIso(v.od)?v.od:todayISO(), sg:finR(v.sg), so:finR(v.so), ss:Math.max(0,finR(v.ss)), skCel:Math.max(0,finR(v.skCel)), skNa:String(v.skNa||'').slice(0,40), zak:v.zak!==false, sub:v.sub!==false, u:+v.u||0});
+function finCeleNorm(v){ let L=v.skCele; if(typeof L==='string'){ try{ L=JSON.parse(L); }catch(e){ L=null; } }
+  if(!Array.isArray(L)) L=finR(v.skCel)>0?[{id:'c1', n:v.skNa, k:v.skCel}]:[];   /* stary pojedynczy cel */
+  return L.filter(c=>c&&finR(c.k)>0).slice(0,12).map((c,i)=>({id:String(c.id||'c'+(i+1)), n:String(c.n||'').slice(0,40), k:finR(c.k)})); }
+const finCfgNorm = (v={}) => ({od:finIso(v.od)?v.od:todayISO(), sg:finR(v.sg), so:finR(v.so), ss:Math.max(0,finR(v.ss)), skCele:finCeleNorm(v), zak:v.zak!==false, sub:v.sub!==false, u:+v.u||0});
+/* cele z podziałem skarbonki po kolei: ma = ile z celu już jest, pct, brak */
+function finSkCele(skarb){ let rest=Math.max(0,skarb); return FIN.cfg.skCele.map(c=>{ const ma=Math.min(rest,c.k); rest=finR(rest-ma); return {...c, ma, brak:finR(c.k-ma), pct:Math.min(100,ma/c.k*100)}; }); }
 const finONorm = (id,v={}) => { const t=FIN_TYP[v.t]?v.t:'wyd', k=t==='skb'?'oszcz':(FIN_KONTA[v.k]?v.k:'glowne'), s=+v.sk||0;
   const sk=t==='skb'?(s<0?-1:1):t==='prz'?(k==='glowne'&&s>0?1:k==='oszcz'&&s<0?-1:0):0;
   return {id, t, k, d:finIso(v.d)?v.d:todayISO(), a:Math.abs(finR(v.a)), kat:String(v.kat||'').slice(0,40), n:String(v.n||'').slice(0,80), c:+v.c||0, sk}; };
@@ -56,7 +63,7 @@ try{ const s=JSON.parse(store.get('finStale','null')); if(Array.isArray(s)) FIN.
 const saveFin = () => { store.set('finOps', JSON.stringify(FIN.ops)); store.set('finCfg', JSON.stringify(FIN.cfg)); store.set('finStale', JSON.stringify(FIN.stale)); };
 const finPushS = x => { const {id,...d}=x; cloud(db=>db.collection('finStale').doc(id).set(d)); };
 const finPushO = x => { const {id,...d}=x; cloud(db=>db.collection('finOps').doc(id).set(d)); };
-const finPushCfg = () => cloud(db=>db.collection('finCfg').doc('cfg').set({...FIN.cfg}));
+const finPushCfg = () => cloud(db=>db.collection('finCfg').doc('cfg').set({...FIN.cfg, skCele:JSON.stringify(FIN.cfg.skCele)}));
 
 let finM = false;                                   /* czy okienko jest otwarte */
 let finOkres = FIN_OKRES[store.get('finOkres','d')] ? store.get('finOkres','d') : 'd';
@@ -313,9 +320,9 @@ function finStaleHtml(F){
 }
 /* ——— skarbonka ——— */
 const finIleL = (n,a,b,c) => n===1?a:(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?b:c;
-function finSkCell(F){ const C=FIN.cfg, cel=C.skCel, pct=cel?Math.min(100,F.skarb/cel*100):0;
-  return `<div class="cell fin-acc fin-skc${finPrz==='sk'?' open':''}"><span class="label">Skarbonka${C.skNa?' · '+esc(C.skNa):''}</span><span class="big">${fmt(F.skarb,2)}<small>zł</small></span>
-    ${cel?`<div class="fin-skbar" title="${fmt(pct,0)} % celu"><i style="width:${pct.toFixed(1)}%"></i></div><p>${pct>=100?`<span class="ic-ok">${icn('cel')} cel osiągnięty</span>`:`${fmt(pct,0)} % z ${fmt(cel,0)} zł · brakuje ${fmt(cel-F.skarb,2)} zł`}</p>`:''}
+function finSkCell(F){ const L=finSkCele(F.skarb), nr=L.findIndex(c=>c.brak>0.004), c=nr<0?L[L.length-1]:L[nr];   /* bieżący = pierwszy nieosiągnięty */
+  return `<div class="cell fin-acc fin-skc${finPrz==='sk'?' open':''}"><span class="label">Skarbonka${c&&c.n?' · '+esc(c.n):''}</span><span class="big">${fmt(F.skarb,2)}<small>zł</small></span>
+    ${c?`<div class="fin-skbar" title="${fmt(c.pct,0)} % celu"><i style="width:${c.pct.toFixed(1)}%"></i></div><p>${nr<0?`<span class="ic-ok">${icn('cel')} ${L.length>1?'wszystkie cele osiągnięte':'cel osiągnięty'}</span>`:`${L.length>1?`cel ${nr+1} z ${L.length} · `:''}${fmt(c.pct,0)} % z ${fmt(c.k,0)} zł · brakuje ${fmt(c.brak,2)} zł`}</p>`:''}
     <p>${finSign(F.skMies)} zł w tym miesiącu</p>${finSkPanel(F)}</div>`; }
 function finSkPanel(F){
   const msg=finPrzMsg&&finPrzMsg.k==='sk'?`<div class="fin-pmsg">${esc(finPrzMsg.txt)}<button type="button" data-finundo="${esc(finPrzMsg.id)}">Cofnij</button></div>`:'';
@@ -331,17 +338,27 @@ function finSkHtml(F){
   const C=FIN.cfg, k=(id,f)=>esc('c|'+id+'|'+f), L=[...F.skL].sort((a,b)=>b.d.localeCompare(a.d)||b.c-a.c);
   const wplaty=L.filter(o=>o.sk>0), suma=wplaty.reduce((a,o)=>a+o.a,0), pierwsza=wplaty.length?wplaty[wplaty.length-1].d:'';
   const tyg=pierwsza?Math.max(1,(finDni(pierwsza,F.td)+1)/7):1, netto=F.skarb-C.ss, tempo=pierwsza?netto/tyg:0;
-  const brak=C.skCel-F.skarb, kiedy=C.skCel&&brak>0.004&&tempo>0.004?Math.ceil(brak/tempo):0;
-  const kiedyTxt=kiedy?(()=>{ const d=finD(F.td); d.setDate(d.getDate()+kiedy*7); return `w tym tempie cel za ok. ${kiedy} ${finIleL(kiedy,'tydzień','tygodnie','tygodni')} (${d.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})})`; })():'';
+  const Cele=finSkCele(F.skarb), osiag=Cele.filter(c=>c.brak<=0.004).length, celSuma=Cele.reduce((a,c)=>a+c.k,0), celBrak=Cele.reduce((a,c)=>a+c.brak,0);
+  let narast=0; const kiedy=c=>{ narast+=c.brak; if(c.brak<=0.004||tempo<=0.004) return ''; const t=Math.ceil(narast/tempo), d=finD(F.td); d.setDate(d.getDate()+t*7);
+    return `za ok. ${t} ${finIleL(t,'tydzień','tygodnie','tygodni')} (${d.toLocaleDateString('pl-PL',{day:'numeric',month:'short',year:'numeric'})})`; };
   const opis=o=>o.t==='skb'?(o.sk>0?'Odłożone z wolnych oszczędności':'Wyjęte do wolnych oszczędności'):(o.sk>0?'Przelew z konta głównego':'Przelew na konto główne');
   return `<p class="fin-skinfo">Wydzielona część konta oszczędnościowego — nie wlicza się do „Razem” ani do wolnych oszczędności. Wpłacasz przelewem z głównego z zaznaczonym <b>„do skarbonki”</b> albo przyciskiem <b>Odłóż</b> na kafelku Skarbonki (z pieniędzy, które już są na oszczędnościowym).</p>
     <div class="grid g4 px-cells fin-skstat">
       <div class="cell"><span class="label">Odłożone</span><span class="big">${fmt(F.skarb,2)}<small>zł</small></span><p>${wplaty.length} ${finIleL(wplaty.length,'wpłata','wpłaty','wpłat')} · razem ${fmt(suma,2)} zł</p></div>
       <div class="cell"><span class="label">W tym miesiącu</span><span class="big ${finCls(F.skMies)}">${finSign(F.skMies)}<small>zł</small></span><p>${esc(finMName(F.td.slice(0,7)))}</p></div>
       <div class="cell"><span class="label">Średnio</span><span class="big">${fmt(Math.max(0,tempo),2)}<small>zł / tydz.</small></span><p>${pierwsza?`od ${dPL(pierwsza)} · ≈ ${fmt(Math.max(0,tempo)*52/12,0)} zł / mies.`:'policzę po pierwszej wpłacie'}</p></div>
-      <div class="cell fin-skcel"><span class="label">Cel</span><div class="fin-skin"><input class="g-in g-num" inputmode="decimal" data-fn="${k('x','skCel')}" value="${C.skCel?fmt(C.skCel,2).replace(/ /g,''):''}" placeholder="np. 2000" aria-label="Cel skarbonki w zł"><span>zł</span></div>
-        <input class="g-in g-txt" data-fn="${k('x','skNa')}" value="${esc(C.skNa)}" placeholder="na co? np. wakacje" aria-label="Na co oszczędzasz" maxlength="40">
-        <p>${C.skCel?(brak>0.004?`brakuje ${fmt(brak,2)} zł${kiedyTxt?' · '+kiedyTxt:''}`:`<span class="ic-ok">${icn('cel')} cel osiągnięty</span>`):'opcjonalnie — pokaże pasek postępu'}</p></div></div>
+      <div class="cell"><span class="label">Cele</span><span class="big">${osiag}<small>/ ${Cele.length}</small></span><p>${Cele.length?(celBrak>0.004?`do wszystkich brakuje ${fmt(celBrak,2)} zł z ${fmt(celSuma,0)} zł`:`<span class="ic-ok">${icn('cel')} wszystko uzbierane</span>`):'dodaj cel poniżej'}</p></div></div>
+    <div class="fin-cele"><h4>Cele skarbonki</h4>
+      ${Cele.length?`<ul class="fin-cl">${Cele.map((c,i)=>{ const kt=kiedy(c); return `<li class="fin-ci${c.brak<=0.004?' ok':''}"><span class="fin-cnr">${i+1}</span>
+        <div class="fin-cm"><div class="fin-cr"><input class="g-in g-txt fin-cn" data-skcel="${esc(c.id)}|n" value="${esc(c.n)}" placeholder="na co? np. wakacje" maxlength="40" aria-label="Nazwa celu ${i+1}">
+            <span class="fin-ck"><input class="g-in g-num" inputmode="decimal" data-skcel="${esc(c.id)}|k" value="${fmt(c.k,2).replace(/[\s\u00a0]/g,'').replace(/,00$/,'')}" aria-label="Kwota celu ${i+1}"><span>zł</span></span></div>
+          <div class="fin-skbar"><i style="width:${c.pct.toFixed(1)}%"></i></div>
+          <p>${c.brak<=0.004?`<span class="ic-ok">${icn('cel')} osiągnięty</span>`:`${fmt(c.ma,2)} z ${fmt(c.k,2)} zł (${fmt(c.pct,0)} %) · brakuje ${fmt(c.brak,2)} zł${kt?' · w tym tempie '+kt:''}`}</p></div>
+        <div class="fin-cb"><button type="button" class="uk-ik" data-skcelact="up|${esc(c.id)}" aria-label="Cel ${i+1} wyżej" title="Wyżej (ważniejszy)"${i?'':' disabled'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+          <button type="button" class="uk-ik" data-skcelact="down|${esc(c.id)}" aria-label="Cel ${i+1} niżej" title="Niżej"${i<Cele.length-1?'':' disabled'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button>
+          <button type="button" class="del" data-skcelact="del|${esc(c.id)}" aria-label="Usuń cel ${esc(c.n||i+1)}">×</button></div></li>`; }).join('')}</ul>`:'<p class="nt-none">Brak celów — dodaj pierwszy, a na kafelku Skarbonki pojawi się pasek postępu.</p>'}
+      ${Cele.length<12?`<form class="fin-cadd" data-nodraft><input name="n" class="g-in g-txt" placeholder="Nowy cel, np. laptop" maxlength="40" aria-label="Nazwa nowego celu" autocomplete="off"><input name="k" class="g-in g-num" inputmode="decimal" placeholder="kwota zł" aria-label="Kwota nowego celu" autocomplete="off"><button type="submit" class="wz-add">Dodaj cel</button></form>`:''}
+      ${Cele.length>1?'<p class="fin-chint">Skarbonka zapełnia cele po kolei — najpierw pierwszy, nadwyżka idzie na następny. Strzałkami ustawiasz, który jest ważniejszy.</p>':''}</div>
     ${L.length?`<ul class="fin-skl">${L.slice(0,8).map(o=>`<li><span class="fin-skd">${esc(dPL(o.d).slice(0,5))}</span><span class="fin-skn">${opis(o)}</span><b class="${o.sk>0?'bk-plus':'bk-minus'}">${o.sk>0?'+':'−'}${fmt(o.a,2)} zł</b></li>`).join('')}${L.length>8?`<li class="fin-skmore">+ ${L.length-8} starszych — w Historii (oznaczone „Skarbonka”)</li>`:''}</ul>`:'<p class="nt-none">Jeszcze nic nie odłożono.</p>'}`;
 }
 
@@ -424,6 +441,8 @@ document.addEventListener('submit', e=>{
 });
 document.addEventListener('change', e=>{
   const el=e.target;
+  if(el.dataset && el.dataset.skcel){ const [id,f]=el.dataset.skcel.split('|'), v=el.value;   /* edycja celu skarbonki */
+    return void setTimeout(()=>finUpdCfg(c=>{ c.skCele=c.skCele.map(x=>{ if(x.id!==id) return x; if(f==='n') return {...x, n:String(v).trim()}; const n=bkNum(v); return (!isNaN(n)&&n>0)?{...x, k:n}:x; }); }),0); }
   if(el.name==='t' && el.closest('form.fin-add')){ finTyp=el.value; store.set('finTyp',finTyp); const fm=el.closest('form'); fm.dataset.t=finTyp; fm.kat.innerHTML=finKatOpts(finTyp); return; }
   if(el.dataset && el.dataset.finsk){ store.set(el.dataset.finsk, el.checked?'1':'0'); return finRender(); }
   const key=el.dataset&&el.dataset.fn; if(!key) return;
@@ -431,7 +450,7 @@ document.addEventListener('change', e=>{
   setTimeout(()=>{
     if(kind==='s') finUpdS(id, x=>{ if(f==='a'){ const n=bkNum(v); if(!isNaN(n)&&n>0) x.a=n; } else if(f==='dz'){ const n=Math.round(bkNum(v)); if(n>=1&&n<=31) x.dz=n; }
       else if(f==='od'){ if(finIso(v)) x.od=v; } else if(f==='do'){ x.do=finIso(v)?v:''; } else if(f==='t'){ x.t=v; const L=v==='wpl'?FIN_KAT_WPL:FIN_KAT_WYD; if(!L.includes(x.kat)) x.kat=''; } else if(f==='n'){ if(String(v).trim()) x.n=String(v).trim(); } else x[f]=String(v).trim(); });
-    else if(kind==='c') finUpdCfg(c=>{ if(f==='skNa'){ c.skNa=String(v).trim(); return; } if(f==='skCel'||f==='ss'){ const n=String(v).trim()?bkNum(v):0; if(!isNaN(n)&&n>=0) c[f]=n; return; } if(f==='sg'||f==='so'){ const n=String(v).trim()?bkNum(v):0; if(!isNaN(n)) c[f]=n; } else if(f==='od'){ if(finIso(v)) c.od=v; } else c[f]=!!v; });
+    else if(kind==='c') finUpdCfg(c=>{ if(f==='ss'){ const n=String(v).trim()?bkNum(v):0; if(!isNaN(n)&&n>=0) c[f]=n; return; } if(f==='sg'||f==='so'){ const n=String(v).trim()?bkNum(v):0; if(!isNaN(n)) c[f]=n; } else if(f==='od'){ if(finIso(v)) c.od=v; } else c[f]=!!v; });
     else finUpdO(id, o=>{ if(f==='a'){ const n=bkNum(v); if(!isNaN(n)&&n>0) o.a=n; } else if(f==='d'){ if(finIso(v)) o.d=v; } else if(f==='kat'||f==='n'){ o[f]=String(v).trim(); } else if(f==='k'){ o.k=v; } });
   },0);
 });
@@ -471,3 +490,12 @@ const finTipHide = () => { const t=$('#finTip'); if(t) t.hidden=true; };
 document.addEventListener('mouseover', e=>{ if(!finM) return; const c=e.target.closest&&e.target.closest('rect.fin-hit'); if(c) finTipShow(c); else if(e.target.closest&&!e.target.closest('.fin-tip')) finTipHide(); });
 document.addEventListener('focusin', e=>{ if(e.target.matches&&e.target.matches('rect.fin-hit')) finTipShow(e.target); });
 document.addEventListener('focusout', e=>{ if(e.target.matches&&e.target.matches('rect.fin-hit')) finTipHide(); });
+
+/* cele skarbonki: dodawanie, kolejność, usuwanie */
+document.addEventListener('submit', e=>{ const f=e.target; if(!f.matches||!f.matches('.fin-cadd')) return; e.preventDefault();
+  const k=bkNum(f.elements.k.value); if(isNaN(k)||k<=0){ f.elements.k.focus(); return; }
+  const n=f.elements.n.value.trim(); finUpdCfg(c=>{ c.skCele=[...c.skCele, {id:uid('c'), n, k}]; }); const q=$('.fin-cadd [name=n]'); q&&q.focus({preventScroll:true}); });
+document.addEventListener('click', e=>{ const b=e.target.closest&&e.target.closest('[data-skcelact]'); if(!b||b.disabled) return; const [a,id]=b.dataset.skcelact.split('|');
+  if(a==='del'){ if(!b.dataset.pewne){ b.dataset.pewne='1'; b.textContent='Usunąć?'; b.classList.add('armed'); setTimeout(()=>{ if(b.isConnected){ delete b.dataset.pewne; b.textContent='×'; b.classList.remove('armed'); } },3000); return; }
+    return finUpdCfg(c=>{ c.skCele=c.skCele.filter(x=>x.id!==id); }); }
+  finUpdCfg(c=>{ const L=[...c.skCele], i=L.findIndex(x=>x.id===id), j=i+(a==='up'?-1:1); if(i<0||j<0||j>=L.length) return; [L[i],L[j]]=[L[j],L[i]]; c.skCele=L; }); });

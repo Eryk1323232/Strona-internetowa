@@ -20,7 +20,7 @@ const SZ_SLOWA = {
   kalkulatory:'mma mieszanki asfalt liczenie masa receptura',
   dyski:'drive google linki semestr materiały',
   praca:'inżynierska badania laboratorium wyniki mma wyniki pawła moje lepiszcze sbs olej mieszanki',
-  wot:'world of tanks czołgi obligacje gry cele expienie free xp',
+  wot:'world of tanks czołgi obligacje gry tryby garaż zakupy expienie free xp',
   silownia:'trening siłownia plan ćwiczenia waga serie gymrun',
   pozostale:'pozostałe posiadówki imprezy domówki rozliczenie znajomi',
   pieniadze:'finanse wydatki przychody konto oszczędności zakłady bukmacher subskrypcje kasa budżet'

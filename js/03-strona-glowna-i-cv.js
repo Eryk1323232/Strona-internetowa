@@ -2,7 +2,7 @@
    STRONA GŁÓWNA I CV
    ════════════════════════════════════════════════════════════════════════
    pStart() – strona główna: powitanie, pulpit (js/26-pulpit.js) i widżety
-              (pogoda, szybkie notatki, szybki wydatek → js/17-finanse.js, cele WoT).
+              (pogoda, szybkie notatki, szybki wydatek → js/17-finanse.js).
               • pogodę pobiera js/11-pasek-dolny.js.
    pCV()    – podstrona O mnie → CV: w js/18-cv.js.
    Każda funkcja pXxx() zwraca HTML strony jako tekst; router wstawia go do <div id="page">.
@@ -20,7 +20,6 @@ function pStart(){
   ${typeof homeDash==='function'?homeDash():''}
   <section class="home-widgets">
     ${typeof widgetFin==='function'?widgetFin():''}
-    ${typeof hdCeleWrap==='function'?hdCeleWrap():''}
     ${widgetWeather()}
     ${widgetQuick()}
   </section></div>`;   /* .bento: układ kafli różnej wielkości (css/32-wyglad-nowoczesny.css) */

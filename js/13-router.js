@@ -29,7 +29,7 @@ const ROUTES = {
 };
 
 /* ——— router ——— */
-let wotTab = store.get('wotTab','przep'); if(wotTab==='bast') wotTab='tryby';   /* Ostatni Bastion jest teraz w Trybach */
+let wotTab = store.get('wotTab','przep'); if(wotTab==='bast') wotTab='tryby'; if(wotTab==='cele') wotTab='przep';   /* Ostatni Bastion jest teraz w Trybach */
 function render(){
   let key=(location.hash||'#'+store.get('startStrona','start')).slice(1);   /* strona po otwarciu: Ustawienia → Ogólne */
   const RD0={'o-mnie':1,'studia':1,'gry':1,'inne':1,'subskrypcje':1};

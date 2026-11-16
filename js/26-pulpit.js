@@ -5,7 +5,6 @@
      • Na dziś      — zadania z „Mojego dnia” i z terminem dziś/zaległym (odhaczanie, szybkie dodanie)
      • Trening      — trening w trakcie albo następny dzień planu (przycisk start otwiera okienko treningu)
      • Najbliższe   — 14 dni z kalendarza (zadania, płatności, subskrypcje) → #kalendarz
-     • Cele WoT     — postęp celów na bieżący miesiąc (odhaczanie)
    Odświeżenie po zmianie: homeRefresh() (podmienia #homeDash).
    ════════════════════════════════════════════════════════════════════════ */
 const hdIle = (n,a,b,c) => n===1?a:(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?b:c;
@@ -44,29 +43,18 @@ function hdNajblizsze(){
     ${L.length?`<ul class="hd-list hd-ev">${L.slice(0,7).map(e=>`<li class="k-${e.k}"><span class="hd-date"><b>${new Date(e.d+'T12:00').getDate()}</b><small>${new Date(e.d+'T12:00').toLocaleDateString('pl-PL',{weekday:'short'})}</small></span><span class="hd-t"><i class="kal-dot"></i>${esc(e.n)}<small>${hdDni(e.d)}${e.tm?', '+e.tm:''}${e.sub?' · '+esc(e.sub):''}</small></span>${e.kw?`<b class="${e.wpl?'plus':'minus'}">${e.wpl?'+':'−'}${fmt(e.kw,Number.isInteger(e.kw)?0:2)} zł</b>`:''}</li>`).join('')}</ul>${L.length>7?`<a class="hd-more" href="#kalendarz">+${L.length-7} więcej w kalendarzu</a>`:''}`
       :`<p class="w-sub">Nic nie zaplanowano. Terminy zadań, opłaty stałe i subskrypcje pojawią się tutaj.</p>`}</article>`;
 }
-function hdCele(){
-  if(typeof WC==='undefined') return '';
-  const m=todayISO().slice(0,7), L=WC.filter(x=>x.o===m).sort((a,b)=>a.done-b.done||a.c-b.c), z=L.filter(x=>x.done).length, pct=L.length?Math.round(z/L.length*100):0;
-  return `<article class="widget hd-card hd-cele"><div class="w-head"><span class="label">Cele WoT · ${new Date(m+'-01T12:00').toLocaleDateString('pl-PL',{month:'long'})}</span><a class="w-sub hd-go" href="#wot" data-hdwot="1">Cele →</a></div>
-    <div class="hd-big"><b>${z}<small> / ${L.length}</small></b><span>${L.length?pct+' %':'brak celów na ten miesiąc'}</span></div>
-    <div class="wc-prog" aria-hidden="true"><i style="width:${pct}%"></i></div>
-    ${L.length?`<ul class="hd-list">${L.slice(0,4).map(x=>`<li class="${x.done?'done':''}"><button type="button" class="td-chk sm" data-hdcel="${esc(x.id)}" aria-pressed="${x.done}" aria-label="Cel zrobiony"></button><span class="hd-t">${esc(x.t)}</span></li>`).join('')}</ul>`:''}</article>`;
-}
 function homeDash(){ return `<section class="hd-grid" id="homeDash">${hdTodo()}${hdTrening()}${hdNajblizsze()}</section>`; }
-function homeRefresh(){ const h=$('#homeDash'); if(h) h.innerHTML=hdTodo()+hdTrening()+hdNajblizsze(); const c=$('#hdCele'); if(c) c.outerHTML=hdCeleWrap(); }
-const hdCeleWrap = () => `<div id="hdCele">${hdCele()}</div>`;
+function homeRefresh(){ const h=$('#homeDash'); if(h) h.innerHTML=hdTodo()+hdTrening()+hdNajblizsze(); }
 
 /* otwiera okienko treningu po przejściu do Siłowni */
 function hdOtworzTrening(m){ const go=()=>setTimeout(()=>{ if(typeof trRender!=='function') return; trM=m; trRender(); },30);
   if(location.hash==='#silownia') go(); else { addEventListener('hashchange', go, {once:true}); location.hash='#silownia'; } }
 
 document.addEventListener('click', e=>{
-  if(!e.target.closest('.home-dash,#homeDash,#hdCele')) return;
+  if(!e.target.closest('.home-dash,#homeDash')) return;
   const t=e.target.closest('[data-hdtodo]'); if(t && typeof tdSet==='function'){ tdSet(t.dataset.hdtodo,{done:true}); return homeRefresh(); }
-  const c=e.target.closest('[data-hdcel]'); if(c && typeof wcSet==='function'){ const x=WC.find(y=>y.id===c.dataset.hdcel); if(x) wcSet(x.id,{done:!x.done}); return homeRefresh(); }
   const s=e.target.closest('[data-hdstart]'); if(s){ const [pid,did]=s.dataset.hdstart.split('|'); return hdOtworzTrening({mode:'log', pid, did, d:todayISO(), tid:trOpenId(pid,did,todayISO())}); }
   const o=e.target.closest('[data-hdtr]'); if(o){ const x=TR.find(y=>y.id===o.dataset.hdtr); if(x) return hdOtworzTrening({mode:'log', pid:x.pid, did:x.did, d:x.d, tid:x.id}); }
-  const w=e.target.closest('[data-hdwot]'); if(w){ store.set('wotTab','cele'); if(typeof wotTab!=='undefined') wotTab='cele'; }
 });
 document.addEventListener('submit', e=>{
   const f=e.target; if(!f.matches('form.hd-add')) return; e.preventDefault();

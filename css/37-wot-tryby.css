@@ -36,3 +36,19 @@
 .ty-dol{display:flex;justify-content:flex-end;margin-top:8px}
 .ty-usun{color:var(--bad,#d64545)!important}
 @media (max-width:620px){ .ty-in{width:84px} .ty-ok{width:56px} .ty-dodaj label,.ty-dodaj [name]{flex:1 1 100%;width:100%!important} .ty-dodaj .wz-add{width:100%} .ty-cells .big{font-size:22px} }
+/* nagrody za poziomy */
+.ty-panel{width:min(1040px,100%)}
+.ty-ng{display:inline-flex;align-items:center;gap:5px;margin:2px 4px 2px 0;padding:3px 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);background:color-mix(in srgb,var(--c) 12%,transparent);font:500 12px var(--f-body);color:var(--ink);white-space:nowrap}
+.ty-ng::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.ty-ng button{border:0;background:none;color:var(--muted);cursor:pointer;padding:0 0 0 2px;font-size:14px;line-height:1}
+.ty-ng button:hover{color:var(--bad,#d64545)}
+.ty-ngc{min-width:180px}
+.ty-ngadd{width:24px;height:24px;border-radius:50%;border:1px dashed var(--line);background:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;vertical-align:middle}
+.ty-ngadd:hover,.ty-ngadd[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.ty-ngrow td{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.ty-ngform{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ty-ngform select{width:170px} .ty-ngo{flex:1 1 180px} .ty-ngil{width:110px}
+.ty-ngsum{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.ty-ngsum>div{padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface,#fff)}
+.ty-ngl{margin-top:6px} .ty-ngl i{color:var(--muted);font-size:13px}
+@media (max-width:620px){ .ty-ngsum{grid-template-columns:1fr} .ty-ngc{min-width:140px} .ty-ngform select,.ty-ngil,.ty-ngo{flex:1 1 100%;width:100%} }

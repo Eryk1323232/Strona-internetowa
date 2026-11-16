@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════════════════
    WORLD OF TANKS + FARMING SIMULATOR
    ════════════════════════════════════════════════════════════════════════
-   WOT_TABS  – lista zakładek WoT (przepustka, obligacje, magazyn, expienie, MOE, Tryby → js/45-wot-tryby.js (dawny Ostatni Bastion), Zakupy → js/41-wot-zakupy.js, Garaż → js/42-wot-garaz.js, Cele → js/23-wot-cele.js).
+   WOT_TABS  – lista zakładek WoT (przepustka, obligacje, magazyn, expienie, MOE, Tryby → js/45-wot-tryby.js (dawny Ostatni Bastion), Zakupy → js/41-wot-zakupy.js, Garaż → js/42-wot-garaz.js).
    wotPanel(k) – rysuje zawartość zakładki k; wotSummary(k) – kafle z liczbami nad nią.
    S         – stan WoT (garaż, magazyn, żetony, obligacje, expienie) zapisywany w przeglądarce.
    Expienie — „światełka” przy Modułach i Potrzebnym XP: czy starcza wolnego XP z konta (fxpWolne() — wolne XP z panelu zasobów / Wargaming API, js/44-wot-zasoby.js):
@@ -12,7 +12,7 @@
    cloud(fn) – zapis do chmury (Arkusz Google, patrz 12-synchronizacja.js).
    ════════════════════════════════════════════════════════════════════════ */
 
-const WOT_TABS = [['przep','Przepustka'],['oblig','Obligacje'],['mag','Magazyn'],['gar','Garaż'],['exp','Expienie'],['moe','Kalkulator MOE'],['tryby','Tryby'],['zak','Zakupy'],['cele','Cele']];
+const WOT_TABS = [['przep','Przepustka'],['oblig','Obligacje'],['mag','Magazyn'],['gar','Garaż'],['exp','Expienie'],['moe','Kalkulator MOE'],['tryby','Tryby'],['zak','Zakupy']];
 const TIERS = ['V','VI','VII','VIII','IX','X'];
 
 /* liczniki wyliczane ze stanu */
@@ -82,7 +82,6 @@ document.addEventListener('input', e=>{ const t=e.target; if(!t.matches||!t.matc
   const raw=t.value.replace(/\D/g,''); const out=grp(raw); if(out===t.value) return; t.value=out;
   let k=0, c=0; while(c<out.length && k<digBefore){ if(/\d/.test(out[c])) k++; c++; } t.setSelectionRange(c,c); });
 function wotPanel(k){
-  if(k==='cele') return celeHtml();
   if(k==='zak') return wzHtml();   /* js/41-wot-zakupy.js */
   if(k==='gar') return grHtml();   /* js/42-wot-garaz.js */
   if(k==='tryby') return tyHtml();   /* js/45-wot-tryby.js */
