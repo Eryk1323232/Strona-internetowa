@@ -190,7 +190,7 @@
 .nt-rich hr{border:0;border-top:1px solid var(--line);margin:16px 0}
 .nt-rich table.nt-tbl,.nt-rich table{border-collapse:collapse;margin:10px 0;min-width:50%;max-width:100%}
 .nt-rich td,.nt-rich th{border:1px solid var(--line);padding:6px 10px;min-width:70px;vertical-align:top}
-.nt-rich tr:first-child td{background:color-mix(in srgb,var(--ink) 5%,transparent);font-weight:600}
+.nt-rich tr:first-child>td{background:color-mix(in srgb,var(--ink) 5%,transparent);font-weight:600}
 /* checklista — okrągłe pola jak w Apple Notatkach */
 .nt-rich ul.nt-ck{list-style:none;padding-left:2px}
 .nt-rich ul.nt-ck>li{position:relative;padding:3px 0 3px 32px}

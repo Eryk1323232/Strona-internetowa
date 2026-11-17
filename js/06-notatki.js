@@ -100,7 +100,7 @@ function ntHtmlToMd(root){
     else if(t==='BLOCKQUOTE') inl(n).split('\n').forEach(l=>out.push('> '+l));
     else if(t==='PRE') out.push('```\n'+n.textContent+'\n```');
     else if(t==='HR') out.push('---');
-    else if(t==='TABLE' && n.classList.contains('nt-kol')) n.querySelectorAll('td').forEach(td=>each(td));   /* „strony obok”: zwykły tekst, strona po stronie */
+    else if(t==='TABLE' && n.classList.contains('nt-kol')) n.querySelectorAll(':scope>tbody>tr>td').forEach(td=>each(td));   /* „strony obok”: zwykły tekst, strona po stronie */
     else if(t==='TABLE') [...n.querySelectorAll('tr')].forEach(tr=>out.push('| '+[...tr.children].map(td=>inl(td).trim()).join(' | ')+' |'));
     else out.push(inl(n).replace(/\n$/,''));
   });
@@ -398,7 +398,6 @@ function ntExec(cmd, val){
   else if(cmd==='insertUnorderedList'){ const ul=ntClosest('ul'); if(ul && ul.classList.contains('nt-ck')) ul.classList.remove('nt-ck'); else if(ul || ntClosest('ol') || !ntMakeList('ul')) document.execCommand(cmd); }
   else if(cmd==='insertOrderedList'){ if(ntClosest('ul,ol') || !ntMakeList('ol')) document.execCommand(cmd); }
   else if(cmd==='quote'){ document.execCommand('formatBlock', false, ntClosest('blockquote')?'div':'blockquote'); }
-  else if(cmd==='table'){ const row='<tr><td><br></td><td><br></td><td><br></td></tr>'; document.execCommand('insertHTML', false, `<table class="nt-tbl"><tbody>${row}${row}${row}</tbody></table><div><br></div>`); }
   else if(cmd==='hl'){ const on=ntClosest('span[style*="background"]'); document.execCommand('styleWithCSS',false,true); document.execCommand('hiliteColor', false, on?'transparent':'rgba(227,194,74,.45)'); }
   else if(cmd==='clear'){ document.execCommand('removeFormat'); document.execCommand('unlink'); document.execCommand('formatBlock', false, 'div'); }
   else if(cmd==='style'){ document.execCommand('formatBlock', false, val); }
@@ -418,7 +417,7 @@ function ntToolState(){
     b.setAttribute('aria-pressed', on); });
   const blk=ntBlock(), tag=blk&&blk.nodeType===1?blk.tagName.toLowerCase():'div', st=$('#ntStyle');
   if(st) st.value=['h1','h2','h3','pre'].includes(tag)?tag:'div';
-  tb.classList.toggle('has-link', !!ntClosest('a[href]')); tb.classList.toggle('has-tbl', !!ntClosest('td,th'));
+  tb.classList.toggle('has-link', !!ntClosest('a[href]')); { const tc=ntClosest('td,th'); tb.classList.toggle('has-tbl', !!tc && !tc.closest('table').classList.contains('nt-kol')); }
   const sz=$('#ntSize'); if(sz && document.activeElement!==sz){ const nd=s.anchorNode&&(s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement); if(nd){ const pt=Math.round(parseFloat(getComputedStyle(nd).fontSize)*.75), o=[...sz.options].reduce((x,y)=>Math.abs(+y.value-pt)<Math.abs(+x.value-pt)?y:x); sz.value=o.value; } }
   const no=ntClosest('ol'), nb=tb.querySelector('[data-ntcmd="num"]'); if(nb) nb.setAttribute('aria-pressed', !!(no && ntListaKorzen(no).classList.contains('nt-num')));
 }
@@ -449,7 +448,7 @@ function ntPrintHtml(n){
     ul.nt-ck{list-style:none;padding-left:4px} ul.nt-ck li::before{content:"☐ "} ul.nt-ck li.done::before{content:"☑ "} ul.nt-ck li.done{color:#888;text-decoration:line-through}
     ol ol{list-style:lower-alpha} ol ol ol{list-style:lower-roman} ol.nt-num,ol.nt-num ol{list-style:none;counter-reset:n;padding-left:0} ol.nt-num ol{padding-left:18px} ol.nt-num li{counter-increment:n} ol.nt-num li::before{content:counters(n,".") ". ";font-weight:600}
     blockquote{border-left:3px solid #c8252b;margin:6px 0;padding-left:12px;color:#444} pre{background:#f4f4f4;padding:10px;white-space:pre-wrap}
-    img{max-width:100%;max-height:120mm;width:auto;height:auto;border-radius:6px;display:block;margin:4px 0} table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} table.nt-kol,table.nt-kol tbody,table.nt-kol tr,table.nt-kol td{display:block;width:auto;border:0;padding:0} table.nt-kol td+td{break-before:page;page-break-before:always} a{color:#c8252b}</style></head>
+    img{max-width:100%;max-height:120mm;width:auto;height:auto;border-radius:6px;display:block;margin:4px 0} table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} table.nt-kol,table.nt-kol>tbody,table.nt-kol>tbody>tr,table.nt-kol>tbody>tr>td{display:block;width:auto;border:0;padding:0} table.nt-kol>tbody>tr>td+td{break-before:page;page-break-before:always} a{color:#c8252b}</style></head>
     <body><h1 class="t">${esc(ntTitle(n))}</h1><div class="d">${esc(n.cat?n.cat+' · ':'')}${ntWhen(n.u,true)}</div><div class="nt-pc">${(ntSel===n.id&&ntRich())?ntClean(ntRich().innerHTML).replace(/<img ([^>]*)data-zid="([\w-]+)"/g,(m,x,z)=>`<img ${x}data-zid="${z}" src="${(typeof NTZ_URL!=='undefined'&&NTZ_URL[z])||''}"`):ntHtml(n)}</div></body></html>`;
 }
 function ntOpen(id){ ntFlush(); ntSel=id; ntMenu=''; ntRefresh(true); if(!ntWide()) window.scrollTo(0,0); }
@@ -568,8 +567,8 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Tab' && ntClosest('li') && !ntClosest('td,th')){ e.preventDefault(); return ntExec(e.shiftKey?'outdent':'indent'); }
   /* Tab w tabeli: następna komórka, w ostatniej — nowy wiersz */
   if(e.key==='Tab'){ const td=ntClosest('td,th'); if(!td){ e.preventDefault(); document.execCommand('insertText', false, '\u2003'); return; } e.preventDefault();
-    const cells=[...td.closest('table').querySelectorAll('td,th')], i=cells.indexOf(td); let nx=cells[i+(e.shiftKey?-1:1)];
-    if(!nx && !e.shiftKey && td.closest('table.nt-kol')){ const t=td.closest('table'); let d=t.nextElementSibling; if(!d){ d=document.createElement('div'); d.innerHTML='<br>'; t.after(d); ntSave(); } nx=d; }
+    const cells=[...td.closest('table').querySelectorAll(':scope>tbody>tr>td,:scope>tbody>tr>th')], i=cells.indexOf(td); let nx=cells[i+(e.shiftKey?-1:1)];
+    if(!nx && !e.shiftKey && td.closest('table').classList.contains('nt-kol')){ const t=td.closest('table'); let d=t.nextElementSibling; if(!d){ d=document.createElement('div'); d.innerHTML='<br>'; t.after(d); ntSave(); } nx=d; }
     else if(!nx && !e.shiftKey){ const tr=td.closest('tr'), nr=tr.cloneNode(true); nr.querySelectorAll('td,th').forEach(c=>c.innerHTML='<br>'); tr.after(nr); nx=nr.firstElementChild; ntSave(); }
     if(nx){ const rg=document.createRange(); rg.selectNodeContents(nx); rg.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); } return; }
   /* Enter w cytacie: kończy cytat i zaczyna zwykły akapit (Shift+Enter — nowa linia w cytacie) */

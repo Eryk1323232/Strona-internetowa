@@ -43,14 +43,14 @@ function ntKolumny(){
     kursor=el=>{ const rg=document.createRange(); rg.selectNodeContents(el); rg.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); };
   if(kol){
     const out=document.createDocumentFragment();
-    kol.querySelectorAll('td').forEach(c=>{ if(!c.textContent.trim() && !c.querySelector('img,li,table')) return;
+    kol.querySelectorAll(':scope>tbody>tr>td').forEach(c=>{ if(!c.textContent.trim() && !c.querySelector('img,li,table')) return;
       if([...c.children].some(x=>/^(DIV|P|UL|OL|H1|H2|H3|BLOCKQUOTE|PRE|TABLE)$/.test(x.tagName))) [...c.childNodes].forEach(n=>out.appendChild(n));
       else { const d=document.createElement('div'); [...c.childNodes].forEach(n=>d.appendChild(n)); out.appendChild(d); } });
     if(!out.childNodes.length) out.appendChild(pusty());
     const last=out.lastChild; kol.replaceWith(out); if(last&&last.nodeType===1) kursor(last); return true; }
   if(ntClosest('td,th')) return true;   /* zwykła tabela — bez zagnieżdżania */
   const ist=r.querySelector(':scope > table.nt-kol');
-  if(ist){ const td=document.createElement('td'); td.appendChild(pusty()); ist.querySelector('tr').appendChild(td); kursor(td); return true; }
+  if(ist){ const td=document.createElement('td'); td.appendChild(pusty()); ist.querySelector(':scope>tbody>tr').appendChild(td); kursor(td); return true; }
   const t=document.createElement('table'); t.className='nt-tbl nt-kol'; t.innerHTML='<tbody><tr><td></td><td></td></tr></tbody>';
   const [l,p]=t.querySelectorAll('td'); [...r.childNodes].forEach(n=>l.appendChild(n)); if(!l.childNodes.length) l.appendChild(pusty()); p.appendChild(pusty());
   r.appendChild(t); kursor(p); return true;
@@ -65,6 +65,11 @@ function ntTabela(cmd){
 }
 function ntExecWord(cmd, val){
   if(cmd==='cols') return ntKolumny();
+  if(cmd==='table'){ if(!val){ ntTabWybor(); return true; }
+    const [w,k]=String(val).split('x').map(Number), row='<tr>'+'<td><br></td>'.repeat(k)+'</tr>';
+    document.execCommand('insertHTML', false, `<table class="nt-tbl" data-nowa="1"><tbody>${row.repeat(w)}</tbody></table><div><br></div>`);
+    const t=ntRich().querySelector('table[data-nowa]'); if(t){ t.removeAttribute('data-nowa'); const rg=document.createRange(); rg.selectNodeContents(t.querySelector('td')); rg.collapse(true); const sl=getSelection(); sl.removeAllRanges(); sl.addRange(rg); }
+    return true; }
   if(cmd==='indent') return ntLiPoziom(1) || true;
   if(cmd==='outdent') return ntLiPoziom(-1) || true;
   if(cmd==='num'){ let ol=ntClosest('ol'); if(!ol){ ntExec('insertOrderedList'); ol=ntClosest('ol'); if(!ol) return true; } ntListaKorzen(ol).classList.toggle('nt-num'); return true; }
@@ -191,9 +196,25 @@ document.addEventListener('mousedown', e=>{
   let td=e.target&&e.target.closest&&e.target.closest('#ntRich td');
   if(e.target&&(e.target.id==='ntRich'||(e.target.classList&&e.target.classList.contains('nt-paper')))){   /* kliknięcie pod podziałem → najbliższa połowa, nie osobny akapit pod spodem */
     const t=(ntRich()||document).querySelector(':scope > table.nt-kol'); if(!t||e.clientY<t.getBoundingClientRect().bottom) return;
-    td=[...t.querySelectorAll('td')].find(c=>{ const b=c.getBoundingClientRect(); return e.clientX<=b.right; })||t.querySelector('td:last-child'); }
-  else if(!td||!td.closest('table.nt-kol')||e.target!==td) return;
+    td=[...t.querySelectorAll(':scope>tbody>tr>td')].find(c=>{ const b=c.getBoundingClientRect(); return e.clientX<=b.right; })||t.querySelector(':scope>tbody>tr>td:last-child'); }
+  else if(!td||!td.closest('table').classList.contains('nt-kol')||e.target!==td) return;
   if(!td) return;
   e.preventDefault(); let k=td.lastElementChild; if(!k){ k=document.createElement('div'); k.innerHTML='<br>'; td.appendChild(k); }
   const rg=document.createRange(); rg.selectNodeContents(k); rg.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); ntRich().focus();
 });
+
+/* Tabela jak w Wordzie: siatka do wybrania liczby wierszy i kolumn (najedź, kliknij) */
+function ntTabWybor(){
+  const st=document.querySelector('.nt-tabsel'); if(st){ st.remove(); return; }
+  const b=document.querySelector('[data-ntcmd="table"]'); if(!b) return;
+  const W=8, K=10, p=document.createElement('div'); p.className='nt-tabsel';
+  p.innerHTML=`<div class="nt-tsg">${Array.from({length:W*K},(_,i)=>`<i data-w="${Math.floor(i/K)+1}" data-k="${i%K+1}"></i>`).join('')}</div><p>Wstaw tabelę</p>`;
+  document.body.appendChild(p); const R=b.getBoundingClientRect();
+  p.style.left=Math.max(8,Math.min(R.left, innerWidth-p.offsetWidth-8))+'px'; p.style.top=(R.bottom+6)+'px';
+  const pod=(w,k)=>{ p.querySelectorAll('i').forEach(c=>c.classList.toggle('on', +c.dataset.w<=w && +c.dataset.k<=k)); p.querySelector('p').textContent=w&&k?`Tabela ${w} × ${k}`:'Wstaw tabelę'; };
+  p.addEventListener('mouseover', e=>{ const c=e.target.closest('i'); if(c) pod(+c.dataset.w,+c.dataset.k); });
+  p.addEventListener('mousedown', e=>e.preventDefault());
+  p.addEventListener('click', e=>{ const c=e.target.closest('i'); if(!c) return; p.remove(); ntExec('table', c.dataset.w+'x'+c.dataset.k); });
+  setTimeout(()=>{ const z=e=>{ if(!e.target.closest('.nt-tabsel,[data-ntcmd="table"]')){ p.remove(); document.removeEventListener('mousedown',z); } }; document.addEventListener('mousedown',z); },0);
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ const p=document.querySelector('.nt-tabsel'); if(p) p.remove(); } });
