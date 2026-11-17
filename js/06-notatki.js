@@ -100,6 +100,7 @@ function ntHtmlToMd(root){
     else if(t==='BLOCKQUOTE') inl(n).split('\n').forEach(l=>out.push('> '+l));
     else if(t==='PRE') out.push('```\n'+n.textContent+'\n```');
     else if(t==='HR') out.push('---');
+    else if(t==='TABLE' && n.classList.contains('nt-kol')) n.querySelectorAll('td').forEach(td=>each(td));   /* „strony obok”: zwykły tekst, strona po stronie */
     else if(t==='TABLE') [...n.querySelectorAll('tr')].forEach(tr=>out.push('| '+[...tr.children].map(td=>inl(td).trim()).join(' | ')+' |'));
     else out.push(inl(n).replace(/\n$/,''));
   });
@@ -271,7 +272,7 @@ function ntToolbarHtml(){
     <span class="nt-tb-sep"></span>
     ${b('ck',NT_I.ck,'Checklista (Ctrl+Shift+9)')}${b('insertUnorderedList',NT_I.ul,'Lista punktowana (Ctrl+Shift+8)')}${b('insertOrderedList',NT_I.ol,'Lista numerowana (Ctrl+Shift+7)')}${b('outdent',NT_I.out,'Poziom wyżej (Shift+Tab)')}${b('indent',NT_I.ind,'Poziom niżej — podpunkt (Tab)')}${b('num','1.1','Numeracja wielopoziomowa 1. → 1.1. → 1.1.1.','nt-tb-num')}
     <span class="nt-tb-sep"></span>
-    ${b('quote',NT_I.q,'Cytat')}${b('table',NT_I.tbl,'Tabela')}${b('cols',NT_I.cols,'Podziel na kolumny — pisz obok (jeszcze raz: scal)')}${b('trow','+w','Tabela: dodaj wiersz poniżej','nt-tb-t')}${b('tcol','+k','Tabela: dodaj kolumnę z prawej','nt-tb-t')}${b('trowx','−w','Tabela: usuń wiersz','nt-tb-t')}${b('tcolx','−k','Tabela: usuń kolumnę','nt-tb-t')}${b('insertHorizontalRule',NT_I.hr,'Linia')}${b('link',NT_I.link,'Link (Ctrl+K)')}${b('openlink',NT_I.open,'Otwórz link','nt-tb-open')}
+    ${b('quote',NT_I.q,'Cytat')}${b('table',NT_I.tbl,'Tabela')}${b('cols',NT_I.cols,'Strona obok: dzieli notatkę na dwie strony obok siebie (w wydruku to kolejna strona). Jeszcze raz — scala')}${b('trow','+w','Tabela: dodaj wiersz poniżej','nt-tb-t')}${b('tcol','+k','Tabela: dodaj kolumnę z prawej','nt-tb-t')}${b('trowx','−w','Tabela: usuń wiersz','nt-tb-t')}${b('tcolx','−k','Tabela: usuń kolumnę','nt-tb-t')}${b('insertHorizontalRule',NT_I.hr,'Linia')}${b('link',NT_I.link,'Link (Ctrl+K)')}${b('openlink',NT_I.open,'Otwórz link','nt-tb-open')}
     <span class="nt-tb-sep"></span>
     ${b('undo',NT_I.undo,'Cofnij (Ctrl+Z)')}${b('redo',NT_I.redo,'Ponów (Ctrl+Y)')}${b('clear',NT_I.clr,'Wyczyść formatowanie')}</div>
     <div class="nt-colbar" hidden><span>Tekst</span>${[['auto','Automatyczny'],['#E5484D','Czerwony'],['#E8890C','Pomarańczowy'],['#1E9E6A','Zielony'],['#2F6FEB','Niebieski'],['#8E4EC6','Fioletowy'],['#8B8D98','Szary']].map(([c,n])=>`<button type="button" class="nt-tb-b nt-sw${c==='auto'?' auto':''}" data-ntcmd="color" data-v="${c}" style="--c:${c==='auto'?'currentColor':c}" title="${n}" aria-label="Kolor tekstu: ${n}">A</button>`).join('')}
@@ -445,7 +446,7 @@ function ntPrintHtml(n){
     ul.nt-ck{list-style:none;padding-left:4px} ul.nt-ck li::before{content:"☐ "} ul.nt-ck li.done::before{content:"☑ "} ul.nt-ck li.done{color:#888;text-decoration:line-through}
     ol ol{list-style:lower-alpha} ol ol ol{list-style:lower-roman} ol.nt-num,ol.nt-num ol{list-style:none;counter-reset:n;padding-left:0} ol.nt-num ol{padding-left:18px} ol.nt-num li{counter-increment:n} ol.nt-num li::before{content:counters(n,".") ". ";font-weight:600}
     blockquote{border-left:3px solid #c8252b;margin:6px 0;padding-left:12px;color:#444} pre{background:#f4f4f4;padding:10px;white-space:pre-wrap}
-    img{max-width:100%;max-height:120mm;width:auto;height:auto;border-radius:6px;display:block;margin:4px 0} table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} table.nt-kol{width:100%;table-layout:fixed} table.nt-kol td{border:0;border-left:1px dashed #bbb;vertical-align:top;padding:0 0 0 14px} table.nt-kol td:first-child{border-left:0;padding-left:0} a{color:#c8252b}</style></head>
+    img{max-width:100%;max-height:120mm;width:auto;height:auto;border-radius:6px;display:block;margin:4px 0} table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} table.nt-kol,table.nt-kol tbody,table.nt-kol tr,table.nt-kol td{display:block;width:auto;border:0;padding:0} table.nt-kol td+td{break-before:page;page-break-before:always} a{color:#c8252b}</style></head>
     <body><h1 class="t">${esc(ntTitle(n))}</h1><div class="d">${esc(n.cat?n.cat+' · ':'')}${ntWhen(n.u,true)}</div><div class="nt-pc">${(ntSel===n.id&&ntRich())?ntClean(ntRich().innerHTML).replace(/<img ([^>]*)data-zid="([\w-]+)"/g,(m,x,z)=>`<img ${x}data-zid="${z}" src="${(typeof NTZ_URL!=='undefined'&&NTZ_URL[z])||''}"`):ntHtml(n)}</div></body></html>`;
 }
 function ntOpen(id){ ntFlush(); ntSel=id; ntMenu=''; ntRefresh(true); if(!ntWide()) window.scrollTo(0,0); }

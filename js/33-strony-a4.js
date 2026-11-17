@@ -62,6 +62,7 @@ async function a4Tick(){
   let warstwa=papier.querySelector('.nt-pbs');
   if(klucz===a4Klucz && warstwa) return; if(a4Licze) return;
   a4Klucz=klucz;
+  if(r.querySelector('table.nt-kol')){ if(warstwa) warstwa.innerHTML=''; return; }   /* „strona obok”: w wydruku strony idą jedna po drugiej, linie nie pasują do edytora */
   if(!a4Wl){ if(warstwa) warstwa.remove(); return; }
   a4Licze=true;
   try{

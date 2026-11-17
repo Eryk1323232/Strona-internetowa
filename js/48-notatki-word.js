@@ -25,25 +25,24 @@ function ntLiPoziom(d){
       rodzic.after(li); if(!L.children.length) L.remove(); } });
   return true;
 }
-/* Kolumny: blok z kursorem (cała lista też) trafia do lewej kolumny, kursor ląduje w prawej; drugi klik scala z powrotem */
+/* „Strona obok”: cała notatka trafia na lewą stronę, obok powstaje pusta prawa (w wydruku to kolejna strona);
+   kursor w stronach + przycisk = scal wszystko z powrotem; kursor poza nimi, gdy już są — dodaje kolejną stronę obok */
 function ntKolumny(){
-  const r=ntRich(), kol=ntClosest('table.nt-kol'), kursor=el=>{ const rg=document.createRange(); rg.selectNodeContents(el); rg.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); };
+  const r=ntRich(), kol=ntClosest('table.nt-kol'), pusty=()=>{ const d=document.createElement('div'); d.innerHTML='<br>'; return d; },
+    kursor=el=>{ const rg=document.createRange(); rg.selectNodeContents(el); rg.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); };
   if(kol){
     const out=document.createDocumentFragment();
     kol.querySelectorAll('td').forEach(c=>{ if(!c.textContent.trim() && !c.querySelector('img,li,table')) return;
       if([...c.children].some(x=>/^(DIV|P|UL|OL|H1|H2|H3|BLOCKQUOTE|PRE|TABLE)$/.test(x.tagName))) [...c.childNodes].forEach(n=>out.appendChild(n));
       else { const d=document.createElement('div'); [...c.childNodes].forEach(n=>d.appendChild(n)); out.appendChild(d); } });
-    if(!out.childNodes.length){ const d=document.createElement('div'); d.innerHTML='<br>'; out.appendChild(d); }
+    if(!out.childNodes.length) out.appendChild(pusty());
     const last=out.lastChild; kol.replaceWith(out); if(last&&last.nodeType===1) kursor(last); return true; }
   if(ntClosest('td,th')) return true;   /* zwykła tabela — bez zagnieżdżania */
-  const s=getSelection(); if(!s.rangeCount||!r.contains(s.anchorNode)) return true;
-  let blk=s.anchorNode; while(blk.parentNode && blk.parentNode!==r) blk=blk.parentNode;
-  if(blk===r) { blk=document.createElement('div'); blk.innerHTML='<br>'; r.appendChild(blk); }
-  if(blk.nodeType===3){ const d=document.createElement('div'); blk.replaceWith(d); d.appendChild(blk); blk=d; }
-  const t=document.createElement('table'); t.className='nt-tbl nt-kol'; t.innerHTML='<tbody><tr><td></td><td><div><br></div></td></tr></tbody>';
-  blk.before(t); t.querySelector('td').appendChild(blk);
-  if(!t.nextSibling){ const d=document.createElement('div'); d.innerHTML='<br>'; t.after(d); }
-  kursor(t.querySelectorAll('td')[1]); return true;
+  const ist=r.querySelector(':scope > table.nt-kol');
+  if(ist){ const td=document.createElement('td'); td.appendChild(pusty()); ist.querySelector('tr').appendChild(td); kursor(td); return true; }
+  const t=document.createElement('table'); t.className='nt-tbl nt-kol'; t.innerHTML='<tbody><tr><td></td><td></td></tr></tbody>';
+  const [l,p]=t.querySelectorAll('td'); [...r.childNodes].forEach(n=>l.appendChild(n)); if(!l.childNodes.length) l.appendChild(pusty()); p.appendChild(pusty());
+  r.appendChild(t); r.appendChild(pusty()); kursor(p); return true;
 }
 function ntTabela(cmd){
   const td=ntClosest('td,th'); if(!td) return true; const tr=td.parentElement, tb=tr.parentElement, i=[...tr.children].indexOf(td);
