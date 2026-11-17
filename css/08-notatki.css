@@ -270,3 +270,10 @@
 .nt-tb-b.nt-tb-pages.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
 @media print{ .nt-pbs{display:none} }
 @media (max-width:700px){ .nt-pb span{left:auto;right:0;margin-left:0;transform:translateY(-50%);font-size:9.5px;padding:2px 4px} }
+
+/* ——— pełny ekran edytora (przycisk w pasku notatki) ——— */
+body.nt-full .nt-ed{position:fixed;inset:0 0 var(--sbar-h,40px) 0;z-index:70;background:var(--surface,var(--bg));border:0;border-radius:0}
+body.nt-full .nt-ed .nt-paper{padding-left:max(24px,calc((100vw - 980px)/2));padding-right:max(24px,calc((100vw - 980px)/2))}
+body.nt-full .nt-ed .nt-back{display:none}
+body.nt-full{overflow:hidden}
+body.nt-full .ai-fab{display:none}

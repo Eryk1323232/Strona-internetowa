@@ -238,6 +238,7 @@ function ntListHtml(){
 }
 /* ——— widok: edytor ——— */
 const NT_I = {
+  full:'<svg viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>', fullx:'<svg viewBox="0 0 16 16"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg>',
   back:'<svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5"/></svg>', pin:'<svg viewBox="0 0 16 16"><path d="M6 1.5h4l-.6 4.2 2.6 2.3v1.5H4V8l2.6-2.3z"/><path d="M8 9.5V15"/></svg>',
   more:'<svg viewBox="0 0 16 16"><circle cx="3" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="13" cy="8" r="1.2"/></svg>', col:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11" /></svg>',
   ul:'<svg viewBox="0 0 16 16"><circle cx="2.5" cy="4" r=".9"/><circle cx="2.5" cy="8" r=".9"/><circle cx="2.5" cy="12" r=".9"/><path d="M6 4h8M6 8h8M6 12h8"/></svg>',
@@ -302,6 +303,7 @@ function ntEditorHtml(n){
       ${kosz?'':`<label class="nt-fsel" title="Folder"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4.5V13h13V5.5H7.5L6 3.5H1.5z"/></svg><select id="ntCatSel" aria-label="Folder"><option value="">Bez folderu</option>${F.map(c=>`<option value="${esc(c)}"${n.cat.trim()===c?' selected':''}>${esc(c)}</option>`).join('')}<option value="__new">+ Nowy folder…</option></select></label>
       <span class="nt-ebsp"></span>
       <div class="nt-mw"><button type="button" class="nt-ib" data-ntmenu="col" aria-label="Kolor" aria-expanded="${ntMenu==='col'}" title="Kolor"><i class="nt-coldot"${n.col?` style="background:${NT_KOLORY[n.col]}"`:''}></i></button>${ntMenu==='col'?ntMenuHtml(n):''}</div>
+      <button type="button" class="nt-ib nt-fullb" data-act="ntfull" aria-pressed="${document.body.classList.contains('nt-full')}" title="Pełny ekran (Esc — wyjście)">${document.body.classList.contains('nt-full')?NT_I.fullx:NT_I.full}</button>
       <button type="button" class="nt-ib${n.pin?' on':''}" data-act="ntpin" aria-pressed="${n.pin}" title="${n.pin?'Odepnij':'Przypnij'}">${NT_I.pin}</button>
       <div class="nt-mw"><button type="button" class="nt-ib" data-ntmenu="more" aria-label="Więcej" aria-expanded="${ntMenu==='more'}" title="Więcej">${NT_I.more}</button>${ntMenu==='more'?ntMenuHtml(n):''}</div>`}
     </div>
@@ -483,6 +485,7 @@ document.addEventListener('click', e=>{
     case 'ntnew': ntNew(); break;
     case 'ntback': ntFlush(); ntSel=''; ntMenu=''; ntRefresh(true); break;
     case 'ntpin': if(n) ntSet(n.id,{pin:!n.pin}); break;
+    case 'ntfull': ntPelny(); break;
     case 'ntarch': if(n){ ntMenu=''; const was=n.arch; ntSet(n.id,{arch:!n.arch, pin:false}); if(!was && ntCat!=='__arch'){ ntSel=''; ntRefresh(true); } } break;
     case 'ntdup': if(n){ ntMenu=''; const c=ntNorm(uid('n'),{...n, t:(n.t||ntTitle(n))+' (kopia)', pin:false, c:Date.now(), u:Date.now()}); N=[c,...N]; ntSel=c.id; saveNotes(); ntPush(c); ntRefresh(true); } break;
     case 'ntcopy': if(n){ ntMenu=''; const r=ntRich(); const txt=(n.t?n.t+'\n\n':'')+(r?r.innerText:n.b); (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>ntStatus('Skopiowano do schowka')).catch(()=>ntStatus('Nie udało się skopiować')); document.querySelectorAll('.nt-pop').forEach(p=>p.remove()); } break;
@@ -582,3 +585,10 @@ document.addEventListener('keydown', e=>{
 document.addEventListener('focusin', e=>{ if(e.target.id==='ntRich' && !ntWide()) document.body.classList.add('nt-typing'); });
 document.addEventListener('focusout', e=>{ if(e.target.id==='ntRich') setTimeout(()=>{ if(!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('.nt-tbw,#ntRich'))) document.body.classList.remove('nt-typing'); },120); });
 window.addEventListener('beforeunload', ntFlush);
+
+/* pełny ekran edytora: przycisk w pasku notatki, Esc wychodzi; zamyka się przy powrocie do listy i wyjściu z Notatek */
+function ntPelny(wl){ const on=wl===undefined?!document.body.classList.contains('nt-full'):wl; document.body.classList.toggle('nt-full', on);
+  const b=document.querySelector('.nt-fullb'); if(b){ b.innerHTML=on?NT_I.fullx:NT_I.full; b.setAttribute('aria-pressed',on); }
+  const r=ntRich(); if(on&&r&&document.activeElement!==r) r.focus(); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && document.body.classList.contains('nt-full') && !document.querySelector('.tr-modal,.rys-modal')){ e.preventDefault(); ntPelny(false); } });
+document.addEventListener('click', e=>{ if(e.target.closest&&e.target.closest('[data-act="ntback"]')) ntPelny(false); }, true);

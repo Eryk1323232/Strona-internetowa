@@ -52,7 +52,7 @@ function render(){
   if(key==='todo') $('#tdSync').textContent=syncText();
   if(key!=='todo') tdRenaming=false;
   tdDrawerRender();
-  if(key==='notatki') ntGrow(); else { ntFlush(); ntSel=''; }
+  if(key==='notatki') ntGrow(); else { ntFlush(); ntSel=''; document.body.classList.remove('nt-full'); }
   if(key!=='silownia' && trM){ trM=null; trRender(); }
   if(key!=='praca' && mxM){ mxM=null; mxRender(); }   /* Wyniki Pawła / moje są w Pracy */
   if(key!=='pozostale' && pozM){ pozM=null; pozRender(); }
