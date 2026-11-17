@@ -18,7 +18,7 @@ function ntKursorZachowaj(fn){ const s=getSelection(), a=s.rangeCount?[s.anchorN
 let ntPt=12;
 function ntPtFix(){
   const r=ntRich(); if(!r) return;
-  const zn=r.querySelectorAll('span[style*="xxx-large"],font[size="7"]'); if(!zn.length) return;
+  const zn=[...r.querySelectorAll('font[size="7"],span[style*="font-size"]')].filter(el=>el.tagName==='FONT'||/xxx-large|(^|[^\d.])48px/.test(el.getAttribute('style')||''));   /* Chrome: <font size=7> / xxx-large, Firefox: czasem 48px */ if(!zn.length) return;
   ntKursorZachowaj(()=>zn.forEach(el=>{
     let sp=el; if(el.tagName==='FONT'){ sp=document.createElement('span'); while(el.firstChild) sp.appendChild(el.firstChild); el.replaceWith(sp); }
     sp.style.fontSize=ntPt+'pt'; sp.removeAttribute('size');
@@ -70,7 +70,7 @@ function ntExecWord(cmd, val){
   if(cmd==='num'){ let ol=ntClosest('ol'); if(!ol){ ntExec('insertOrderedList'); ol=ntClosest('ol'); if(!ol) return true; } ntListaKorzen(ol).classList.toggle('nt-num'); return true; }
   if(cmd==='color'||cmd==='hlc'||cmd==='size'){ document.execCommand('styleWithCSS', false, true);
     if(cmd==='hlc') document.execCommand('hiliteColor', false, val);
-    else if(cmd==='size'){ ntPt=+val||12; document.execCommand('fontSize', false, 7); ntPtFix(); }
+    else if(cmd==='size'){ ntPt=+val||12; document.execCommand('styleWithCSS', false, false); document.execCommand('fontSize', false, 7); ntPtFix(); }
     else if(val==='auto'){ document.execCommand('foreColor', false, '#010203');   /* znacznik → zdejmujemy kolor */
       ntRich().querySelectorAll('span,font').forEach(e=>{ const c=e.style.color.replace(/\s/g,''); if(c==='rgb(1,2,3)'||e.getAttribute('color')==='#010203'){ e.style.color=''; e.removeAttribute('color'); if(!e.getAttribute('style')&&!e.attributes.length) e.replaceWith(...e.childNodes); else if(!e.getAttribute('style')) e.removeAttribute('style'); } }); }
     else document.execCommand('foreColor', false, val);
