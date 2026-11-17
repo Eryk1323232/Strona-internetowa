@@ -38,8 +38,12 @@
 .rys-pom{font-size:12.5px;color:var(--muted);margin:10px 2px 0;min-height:1.4em}
 .rys-dol{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 
-/* „Strona obok” (przycisk w pasku): strony jak kartki obok siebie; w wydruku kolejne strony (ntPrintHtml) */
-.nt-rich table.nt-kol{width:100%;table-layout:fixed;min-width:0;margin:6px 0;border-collapse:separate;border-spacing:12px 0;margin-left:-12px;width:calc(100% + 24px);counter-reset:kp}
-.nt-rich table.nt-kol td,.nt-rich table.nt-kol tr:first-child td{counter-increment:kp;height:22rem;min-width:0;padding:10px 14px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font-weight:inherit;overflow-wrap:anywhere}
-.nt-rich table.nt-kol td::before{content:"Strona " counter(kp);display:block;margin-bottom:6px;font:600 10px/1 var(--f-body,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);user-select:none;pointer-events:none}
-@media (max-width:700px){ .nt-rich table.nt-kol,.nt-rich table.nt-kol tbody,.nt-rich table.nt-kol tr,.nt-rich table.nt-kol td{display:block;width:auto;margin-left:0} .nt-rich table.nt-kol td{height:auto;min-height:8rem;margin-bottom:10px} }
+/* „Strona obok” (przycisk w pasku): notatka podzielona pionową kreską na pół — obie połowy na całą wysokość, każda pisze się osobno;
+   w wydruku (ntPrintHtml) to kolejne strony jedna po drugiej */
+.nt-rich table.nt-kol{width:100%;table-layout:fixed;min-width:0;margin:0;border-collapse:collapse;counter-reset:kp}
+.nt-rich table.nt-kol td,.nt-rich table.nt-kol tr:first-child td{counter-increment:kp;height:60vh;min-width:0;padding:2px 20px 24px;border:0;border-radius:0;background:none;font-weight:inherit;overflow-wrap:anywhere;cursor:text}
+.nt-rich table.nt-kol td:first-child{padding-left:0}
+.nt-rich table.nt-kol td:last-child{padding-right:0}
+.nt-rich table.nt-kol td+td,.nt-rich table.nt-kol tr:first-child td+td{border-left:2px solid color-mix(in srgb,var(--accent) 45%,var(--line))}
+.nt-rich table.nt-kol td::before{content:"Strona " counter(kp);display:block;margin-bottom:6px;font:600 10px/1 var(--f-body,system-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);opacity:.7;user-select:none;pointer-events:none}
+@media (max-width:700px){ .nt-rich table.nt-kol,.nt-rich table.nt-kol tbody,.nt-rich table.nt-kol tr,.nt-rich table.nt-kol td{display:block;width:auto} .nt-rich table.nt-kol td{height:auto;min-height:40vh;padding:2px 0 18px} .nt-rich table.nt-kol td+td,.nt-rich table.nt-kol tr:first-child td+td{border-left:0;border-top:2px solid color-mix(in srgb,var(--accent) 45%,var(--line));padding-top:12px} }

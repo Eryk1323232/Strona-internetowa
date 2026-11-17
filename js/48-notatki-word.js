@@ -174,3 +174,10 @@ document.addEventListener('click', e=>{ if(!RYS) return;
   if(e.target.id==='rysScrim') rysZamknij(); });
 document.addEventListener('input', e=>{ if(!RYS) return; if(e.target.id==='rysGr') RYS.gr=+e.target.value; if(e.target.id==='rysSmart'){ RYS.smart=e.target.checked; store.set('rysSmart',RYS.smart?'1':'0'); } });
 document.addEventListener('keydown', e=>{ if(!RYS) return; if(e.key==='Escape'){ e.stopPropagation(); rysZamknij(); } else if((e.ctrlKey||e.metaKey)&&(e.key==='z'||e.key==='Z')){ e.preventDefault(); e.stopPropagation(); RYS.el.pop(); rysRysuj(); rysPasek(); } }, true);
+
+/* „Strona obok”: kliknięcie w puste miejsce połowy ustawia kursor na końcu jej tekstu */
+document.addEventListener('mousedown', e=>{
+  const td=e.target&&e.target.closest&&e.target.closest('#ntRich td'); if(!td||!td.closest('table.nt-kol')||e.target!==td) return;
+  e.preventDefault(); let k=td.lastElementChild; if(!k){ k=document.createElement('div'); k.innerHTML='<br>'; td.appendChild(k); }
+  const rg=document.createRange(); rg.selectNodeContents(k); rg.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); ntRich().focus();
+});
