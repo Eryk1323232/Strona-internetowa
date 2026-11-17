@@ -48,7 +48,7 @@ function ntClean(html){
     if(n.nodeType!==1 || !NT_TAGS.has(n.tagName)){ if(n.nodeType===1 && !/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|SVG|IMG|VIDEO|AUDIO|LINK|META)$/.test(n.tagName)){ walk(n); n.replaceWith(...n.childNodes); } else n.remove(); return; }
     [...n.attributes].forEach(a=>{ const k=a.name.toLowerCase();
       if(n.tagName==='IMG'){ if(!((k==='data-zid'&&/^[\w-]{1,60}$/.test(a.value))||(k==='class'&&a.value.split(/\s+/).includes('nt-img')))) n.removeAttribute(a.name); else if(k==='class') n.setAttribute('class','nt-img'); }
-      else if(k==='class'){ const c=a.value.split(/\s+/).filter(x=>/^(nt-ck|done|nt-tbl|nt-hl|nt-num)$/.test(x)).join(' '); c?n.setAttribute('class',c):n.removeAttribute('class'); }
+      else if(k==='class'){ const c=a.value.split(/\s+/).filter(x=>/^(nt-ck|done|nt-tbl|nt-kol|nt-hl|nt-num)$/.test(x)).join(' '); c?n.setAttribute('class',c):n.removeAttribute('class'); }
       else if(k==='href' && n.tagName==='A'){ if(!/^(https?:|mailto:)/i.test(a.value.trim())) n.removeAttribute('href'); }
       else if(k==='style'){ const st=ntStyl(n.tagName, a.value); st?n.setAttribute('style',st):n.removeAttribute('style'); }
       else n.removeAttribute(a.name); });
@@ -244,6 +244,7 @@ const NT_I = {
   ck:'<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="4" height="4" rx="1"/><path d="m2.4 4.5 1 1 1.6-2"/><rect x="1.5" y="9.5" width="4" height="4" rx="1"/><path d="M8 4.5h6.5M8 11.5h6.5"/></svg>',
   q:'<svg viewBox="0 0 16 16"><path d="M3 3v10"/><path d="M6 5h8M6 8h8M6 11h5"/></svg>', hr:'<svg viewBox="0 0 16 16"><path d="M1.5 8h13"/><path d="M4 4.5h8M4 11.5h8" opacity=".4"/></svg>',
   link:'<svg viewBox="0 0 16 16"><path d="M6.5 9.5a3 3 0 0 0 4.2 0l2.3-2.3a3 3 0 0 0-4.2-4.2L7.6 4.2"/><path d="M9.5 6.5a3 3 0 0 0-4.2 0L3 8.8A3 3 0 0 0 7.2 13l1.2-1.2"/></svg>',
+  cols:'<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M8 2.5v11"/><path d="M3.5 5.5h2.5M3.5 8h2.5M10 5.5h2.5" opacity=".55"/></svg>',
   tbl:'<svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M1.5 6.5h13M1.5 10h13M6 2.5v11M10.5 2.5v11"/></svg>',
   hl:'<svg viewBox="0 0 16 16"><path d="m9.5 2.5 4 4-6 6H3.5v-4z"/><path d="M2 14.5h12" stroke-width="2.2" class="nt-hlbar"/></svg>',
   undo:'<svg viewBox="0 0 16 16"><path d="M5 3 2 6l3 3"/><path d="M2 6h7.5a4 4 0 0 1 0 8H6"/></svg>', redo:'<svg viewBox="0 0 16 16"><path d="m11 3 3 3-3 3"/><path d="M14 6H6.5a4 4 0 0 0 0 8H10"/></svg>',
@@ -270,7 +271,7 @@ function ntToolbarHtml(){
     <span class="nt-tb-sep"></span>
     ${b('ck',NT_I.ck,'Checklista (Ctrl+Shift+9)')}${b('insertUnorderedList',NT_I.ul,'Lista punktowana (Ctrl+Shift+8)')}${b('insertOrderedList',NT_I.ol,'Lista numerowana (Ctrl+Shift+7)')}${b('outdent',NT_I.out,'Poziom wyżej (Shift+Tab)')}${b('indent',NT_I.ind,'Poziom niżej — podpunkt (Tab)')}${b('num','1.1','Numeracja wielopoziomowa 1. → 1.1. → 1.1.1.','nt-tb-num')}
     <span class="nt-tb-sep"></span>
-    ${b('quote',NT_I.q,'Cytat')}${b('table',NT_I.tbl,'Tabela')}${b('trow','+w','Tabela: dodaj wiersz poniżej','nt-tb-t')}${b('tcol','+k','Tabela: dodaj kolumnę z prawej','nt-tb-t')}${b('trowx','−w','Tabela: usuń wiersz','nt-tb-t')}${b('tcolx','−k','Tabela: usuń kolumnę','nt-tb-t')}${b('insertHorizontalRule',NT_I.hr,'Linia')}${b('link',NT_I.link,'Link (Ctrl+K)')}${b('openlink',NT_I.open,'Otwórz link','nt-tb-open')}
+    ${b('quote',NT_I.q,'Cytat')}${b('table',NT_I.tbl,'Tabela')}${b('cols',NT_I.cols,'Podziel na kolumny — pisz obok (jeszcze raz: scal)')}${b('trow','+w','Tabela: dodaj wiersz poniżej','nt-tb-t')}${b('tcol','+k','Tabela: dodaj kolumnę z prawej','nt-tb-t')}${b('trowx','−w','Tabela: usuń wiersz','nt-tb-t')}${b('tcolx','−k','Tabela: usuń kolumnę','nt-tb-t')}${b('insertHorizontalRule',NT_I.hr,'Linia')}${b('link',NT_I.link,'Link (Ctrl+K)')}${b('openlink',NT_I.open,'Otwórz link','nt-tb-open')}
     <span class="nt-tb-sep"></span>
     ${b('undo',NT_I.undo,'Cofnij (Ctrl+Z)')}${b('redo',NT_I.redo,'Ponów (Ctrl+Y)')}${b('clear',NT_I.clr,'Wyczyść formatowanie')}</div>
     <div class="nt-colbar" hidden><span>Tekst</span>${[['auto','Automatyczny'],['#E5484D','Czerwony'],['#E8890C','Pomarańczowy'],['#1E9E6A','Zielony'],['#2F6FEB','Niebieski'],['#8E4EC6','Fioletowy'],['#8B8D98','Szary']].map(([c,n])=>`<button type="button" class="nt-tb-b nt-sw${c==='auto'?' auto':''}" data-ntcmd="color" data-v="${c}" style="--c:${c==='auto'?'currentColor':c}" title="${n}" aria-label="Kolor tekstu: ${n}">A</button>`).join('')}
@@ -409,6 +410,7 @@ function ntToolState(){
     else if(c==='insertUnorderedList'){ const u=ntClosest('ul'); on=!!u && !u.classList.contains('nt-ck'); }
     else if(c==='ck'){ const u=ntClosest('ul'); on=!!u && u.classList.contains('nt-ck'); }
     else if(c==='quote') on=!!ntClosest('blockquote');
+    else if(c==='cols') on=!!ntClosest('table.nt-kol');
     else if(c==='hl') on=!!ntClosest('span[style*="background"]');
     b.setAttribute('aria-pressed', on); });
   const blk=ntBlock(), tag=blk&&blk.nodeType===1?blk.tagName.toLowerCase():'div', st=$('#ntStyle');
@@ -443,7 +445,7 @@ function ntPrintHtml(n){
     ul.nt-ck{list-style:none;padding-left:4px} ul.nt-ck li::before{content:"☐ "} ul.nt-ck li.done::before{content:"☑ "} ul.nt-ck li.done{color:#888;text-decoration:line-through}
     ol ol{list-style:lower-alpha} ol ol ol{list-style:lower-roman} ol.nt-num,ol.nt-num ol{list-style:none;counter-reset:n;padding-left:0} ol.nt-num ol{padding-left:18px} ol.nt-num li{counter-increment:n} ol.nt-num li::before{content:counters(n,".") ". ";font-weight:600}
     blockquote{border-left:3px solid #c8252b;margin:6px 0;padding-left:12px;color:#444} pre{background:#f4f4f4;padding:10px;white-space:pre-wrap}
-    img{max-width:100%;max-height:120mm;width:auto;height:auto;border-radius:6px;display:block;margin:4px 0} table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} a{color:#c8252b}</style></head>
+    img{max-width:100%;max-height:120mm;width:auto;height:auto;border-radius:6px;display:block;margin:4px 0} table{border-collapse:collapse} td,th{border:1px solid #bbb;padding:5px 9px} table.nt-kol{width:100%;table-layout:fixed} table.nt-kol td{border:0;border-left:1px dashed #bbb;vertical-align:top;padding:0 0 0 14px} table.nt-kol td:first-child{border-left:0;padding-left:0} a{color:#c8252b}</style></head>
     <body><h1 class="t">${esc(ntTitle(n))}</h1><div class="d">${esc(n.cat?n.cat+' · ':'')}${ntWhen(n.u,true)}</div><div class="nt-pc">${(ntSel===n.id&&ntRich())?ntClean(ntRich().innerHTML).replace(/<img ([^>]*)data-zid="([\w-]+)"/g,(m,x,z)=>`<img ${x}data-zid="${z}" src="${(typeof NTZ_URL!=='undefined'&&NTZ_URL[z])||''}"`):ntHtml(n)}</div></body></html>`;
 }
 function ntOpen(id){ ntFlush(); ntSel=id; ntMenu=''; ntRefresh(true); if(!ntWide()) window.scrollTo(0,0); }
@@ -562,7 +564,8 @@ document.addEventListener('keydown', e=>{
   /* Tab w tabeli: następna komórka, w ostatniej — nowy wiersz */
   if(e.key==='Tab'){ const td=ntClosest('td,th'); if(!td){ e.preventDefault(); document.execCommand('insertText', false, '\u2003'); return; } e.preventDefault();
     const cells=[...td.closest('table').querySelectorAll('td,th')], i=cells.indexOf(td); let nx=cells[i+(e.shiftKey?-1:1)];
-    if(!nx && !e.shiftKey){ const tr=td.closest('tr'), nr=tr.cloneNode(true); nr.querySelectorAll('td,th').forEach(c=>c.innerHTML='<br>'); tr.after(nr); nx=nr.firstElementChild; ntSave(); }
+    if(!nx && !e.shiftKey && td.closest('table.nt-kol')){ const t=td.closest('table'); let d=t.nextElementSibling; if(!d){ d=document.createElement('div'); d.innerHTML='<br>'; t.after(d); ntSave(); } nx=d; }
+    else if(!nx && !e.shiftKey){ const tr=td.closest('tr'), nr=tr.cloneNode(true); nr.querySelectorAll('td,th').forEach(c=>c.innerHTML='<br>'); tr.after(nr); nx=nr.firstElementChild; ntSave(); }
     if(nx){ const rg=document.createRange(); rg.selectNodeContents(nx); rg.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); } return; }
   /* Enter w cytacie: kończy cytat i zaczyna zwykły akapit (Shift+Enter — nowa linia w cytacie) */
   if(e.key==='Enter' && !e.shiftKey){ const bq=ntClosest('blockquote'); if(bq){ e.preventDefault();

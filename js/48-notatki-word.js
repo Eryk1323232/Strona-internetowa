@@ -25,6 +25,26 @@ function ntLiPoziom(d){
       rodzic.after(li); if(!L.children.length) L.remove(); } });
   return true;
 }
+/* Kolumny: blok z kursorem (cała lista też) trafia do lewej kolumny, kursor ląduje w prawej; drugi klik scala z powrotem */
+function ntKolumny(){
+  const r=ntRich(), kol=ntClosest('table.nt-kol'), kursor=el=>{ const rg=document.createRange(); rg.selectNodeContents(el); rg.collapse(false); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); };
+  if(kol){
+    const out=document.createDocumentFragment();
+    kol.querySelectorAll('td').forEach(c=>{ if(!c.textContent.trim() && !c.querySelector('img,li,table')) return;
+      if([...c.children].some(x=>/^(DIV|P|UL|OL|H1|H2|H3|BLOCKQUOTE|PRE|TABLE)$/.test(x.tagName))) [...c.childNodes].forEach(n=>out.appendChild(n));
+      else { const d=document.createElement('div'); [...c.childNodes].forEach(n=>d.appendChild(n)); out.appendChild(d); } });
+    if(!out.childNodes.length){ const d=document.createElement('div'); d.innerHTML='<br>'; out.appendChild(d); }
+    const last=out.lastChild; kol.replaceWith(out); if(last&&last.nodeType===1) kursor(last); return true; }
+  if(ntClosest('td,th')) return true;   /* zwykła tabela — bez zagnieżdżania */
+  const s=getSelection(); if(!s.rangeCount||!r.contains(s.anchorNode)) return true;
+  let blk=s.anchorNode; while(blk.parentNode && blk.parentNode!==r) blk=blk.parentNode;
+  if(blk===r) { blk=document.createElement('div'); blk.innerHTML='<br>'; r.appendChild(blk); }
+  if(blk.nodeType===3){ const d=document.createElement('div'); blk.replaceWith(d); d.appendChild(blk); blk=d; }
+  const t=document.createElement('table'); t.className='nt-tbl nt-kol'; t.innerHTML='<tbody><tr><td></td><td><div><br></div></td></tr></tbody>';
+  blk.before(t); t.querySelector('td').appendChild(blk);
+  if(!t.nextSibling){ const d=document.createElement('div'); d.innerHTML='<br>'; t.after(d); }
+  kursor(t.querySelectorAll('td')[1]); return true;
+}
 function ntTabela(cmd){
   const td=ntClosest('td,th'); if(!td) return true; const tr=td.parentElement, tb=tr.parentElement, i=[...tr.children].indexOf(td);
   if(cmd==='trow'){ const n=tr.cloneNode(true); [...n.children].forEach(c=>c.innerHTML='<br>'); tr.after(n); }
@@ -34,6 +54,7 @@ function ntTabela(cmd){
   return true;
 }
 function ntExecWord(cmd, val){
+  if(cmd==='cols') return ntKolumny();
   if(cmd==='indent') return ntLiPoziom(1) || true;
   if(cmd==='outdent') return ntLiPoziom(-1) || true;
   if(cmd==='num'){ let ol=ntClosest('ol'); if(!ol){ ntExec('insertOrderedList'); ol=ntClosest('ol'); if(!ol) return true; } ntListaKorzen(ol).classList.toggle('nt-num'); return true; }
