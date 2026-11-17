@@ -17,7 +17,7 @@ const SET_KAT = [
   ['sync','Synchronizacja','<path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/>'],
   ['info','O stronie','<circle cx="12" cy="12" r="8.5"/><path d="M12 11v6M12 7.5v.5"/>']
 ];
-const SET_WERSJA = 'v92';
+const SET_WERSJA = 'v93';
 const SET_ROZM = [['0.9','Mały'],['1','Normalny'],['1.1','Duży'],['1.2','Bardzo duży']];
 let setOpen=false, setKat=store.get('setKat','ogolne');
 /* instalacja jako aplikacja: Chrome/Android wysyła „beforeinstallprompt” — zapamiętujemy i pokazujemy przycisk */
@@ -44,6 +44,7 @@ function setTresc(k){
   if(k==='wyglad'){ const m=store.get('motyw','jasny');
     return `<h3>Wygląd</h3>
     <div class="set-block"><b>Motyw</b><div class="set-themes">${[['jasny','Jasny'],['auto','Jak w systemie'],['ciemny','Ciemny']].map(([v,n])=>`<button type="button" class="set-th th-${v}" data-set="motyw" data-v="${v}" aria-pressed="${m===v}"><span class="set-prev" aria-hidden="true"><i></i><i></i><i></i></span><span>${n}</span></button>`).join('')}</div></div>
+    ${setRow('Układ menu','Gdzie stoi menu na komputerze (na telefonie zawsze wysuwane)',setSeg('menuUklad', store.get('menuUklad','lewo'), [['lewo','Z lewej'],['prawo','Z prawej'],['gora','U góry']]))}
     ${setRow('Rozmiar strony','Powiększa lub zmniejsza tekst i wszystkie elementy',setSeg('rozmiar', store.get('rozmiar','1'), SET_ROZM))}`; }
   if(k==='dane'){ const t=typeof kopiaT==='function'?kopiaT():0, dni=store.get('kopiaDni','7');
     return `<h3>Dane i kopie</h3>
@@ -94,6 +95,7 @@ document.addEventListener('click', e=>{
   if(s){ const n=s.dataset.set, v=s.dataset.v; store.set(n,v);
     if(n==='motyw'){ if(typeof theme!=='undefined') theme=v; setOdswiezMotyw(); }
     if(n==='rozmiar') setRozmiar(v);
+    if(n==='menuUklad' && typeof muUstaw==='function') muUstaw(v);
     if(n==='kopiaDni' && typeof kopiaBtn==='function') kopiaBtn();
     return setRender(); }
   const a=e.target.closest('[data-setact]'); if(!a) return;

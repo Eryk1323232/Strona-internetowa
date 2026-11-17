@@ -1,0 +1,55 @@
+/* ════════ Menu: układ (lewo / prawo / góra), zwinięte menu, zwijane kategorie — js/52-uklad-menu.js ════════ */
+.mu-tog{display:flex;align-items:center;gap:8px;width:100%;margin-top:2px;padding:9px 12px;border:0;border-radius:10px;background:none;color:var(--muted);font:500 12.5px var(--f-body);cursor:pointer;opacity:.75}
+.mu-tog:hover{opacity:1;color:var(--ink);background:var(--surface)}
+.mu-tog svg,.mu-gb svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* zwijane kategorie w menu bocznym */
+.navtree li.mu-grp{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;border-radius:8px}
+.navtree li.mu-grp::after{content:"";width:6px;height:6px;margin-right:4px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);opacity:0;transition:transform .15s,opacity .15s}
+.navtree li.mu-grp:hover{color:var(--ink)} .navtree li.mu-grp:hover::after,.navtree li.mu-grp.zw::after{opacity:.8}
+.navtree li.mu-grp.zw::after{transform:rotate(-45deg)}
+.navtree li.mu-ukr{display:none}
+@media (max-width:900px){ .mu-tog{display:none} }
+
+@media (min-width:901px){
+  /* menu po prawej */
+  body.mu-prawo .shell{grid-template-columns:minmax(0,1fr) var(--side-w)}
+  body.mu-prawo .side{order:2}
+  body.mu-prawo .mainc{padding:12px 0 12px 12px}
+
+  /* zwinięte menu boczne: same ikony */
+  body.mu-mini{--side-w:78px}
+  body.mu-mini .side{padding-left:10px;padding-right:10px}
+  body.mu-mini .brand-row{flex-direction:column;gap:6px}
+  body.mu-mini .brand-row .brand{flex:none;padding:2px 0 6px;justify-content:center}
+  body.mu-mini .brand-word,body.mu-mini .navtree .top span,body.mu-mini .mu-tog span,body.mu-mini .uk-navpen span{display:none}
+  body.mu-mini .set-btn{margin:0}
+  body.mu-mini .logo-img,body.mu-mini .logo-img img{width:42px!important;height:42px!important}
+  body.mu-mini .navtree .top{justify-content:center;padding:0}
+  body.mu-mini .navtree li.grp{height:1px;padding:0;margin:10px 12px;background:var(--line);font-size:0;overflow:hidden}
+  body.mu-mini .navtree li.mu-ukr{display:block}
+  body.mu-mini .mu-tog,body.mu-mini .uk-navpen{justify-content:center;padding:9px 0}
+
+  /* klasyczne menu u góry */
+  body.mu-gora .shell{display:flex;flex-direction:column}
+  body.mu-gora .side{align-self:stretch;width:auto;position:sticky;top:14px;z-index:40;height:auto;flex-direction:row;align-items:center;gap:14px;padding:10px 16px;overflow:visible;border-bottom:1px solid var(--shell-line);background:var(--shell);border-radius:28px 28px 0 0}
+  body.mu-gora .brand-row{flex:none}
+  body.mu-gora .brand{padding:0 4px}
+  body.mu-gora .logo-img,body.mu-gora .logo-img img{width:40px!important;height:40px!important}
+  body.mu-gora .topnav{flex:1;min-width:0}
+  body.mu-gora .navtree{flex-direction:row;flex-wrap:wrap;align-items:center;gap:2px}
+  body.mu-gora .navtree .top{height:38px;padding:0 12px;gap:8px}
+  body.mu-gora .navtree .top .ni{width:17px;height:17px}
+  body.mu-gora .uk-navbox,body.mu-gora .mu-tog{display:none}
+  body.mu-gora .mainc{padding:12px}
+  .mu-g{position:relative}
+  .mu-gb{display:flex;align-items:center;gap:6px;height:38px;padding:0 12px;border:0;border-radius:12px;background:none;color:color-mix(in srgb,var(--ink) 78%,var(--muted));font:500 14px/1 var(--f-body);cursor:pointer}
+  .mu-gb:hover,.mu-g.open>.mu-gb{background:color-mix(in srgb,var(--surface) 55%,transparent);color:var(--ink)}
+  .mu-g.on>.mu-gb{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(28,29,60,.05),0 6px 18px -10px rgba(28,29,60,.22)}
+  .mu-g.open>.mu-gb svg{transform:rotate(180deg)}
+  .mu-sub{display:none;position:absolute;left:0;top:calc(100% + 6px);z-index:50;min-width:210px;list-style:none;margin:0;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px -18px rgba(20,22,50,.35)}
+  .mu-g.open>.mu-sub{display:flex;flex-direction:column;gap:2px}
+  .mu-g:hover>.mu-sub{display:flex;flex-direction:column;gap:2px}
+  .mu-g:hover>.mu-sub::before{content:"";position:absolute;left:0;right:0;top:-8px;height:8px}
+  .mu-sub .top{height:38px!important}
+  .mu-sub .top[aria-current="page"]{box-shadow:none;background:color-mix(in srgb,var(--accent) 12%,transparent)}
+}
