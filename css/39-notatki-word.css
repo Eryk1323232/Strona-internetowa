@@ -1,6 +1,6 @@
 /* ════════ Notatki „Word” + rysunek (js/48-notatki-word.js) ════════ */
 @media (min-width:901px){ .nt-tb{flex-wrap:wrap;overflow:visible;row-gap:3px} }
-.nt-size select{width:96px}
+.nt-size select{width:58px}
 .nt-tb-ix{font-size:13px!important} .nt-tb-ix sub,.nt-tb-ix sup{font-size:9px}
 .nt-tb-num{font:700 12px var(--f-display)!important;letter-spacing:-.02em}
 .nt-tb-t{display:none!important;font:700 11.5px var(--f-body)!important;color:var(--accent)!important}

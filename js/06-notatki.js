@@ -262,7 +262,7 @@ function ntToolbarHtml(){
   const b=(cmd,inner,title,cls='')=>`<button type="button" class="nt-tb-b ${cls}" data-ntcmd="${cmd}" title="${title}" aria-label="${title}">${inner}</button>`;
   return `<div class="nt-tbw"><div class="nt-tb" role="toolbar" aria-label="Formatowanie" id="ntTb">
     <label class="nt-style" title="Styl akapitu"><select id="ntStyle" aria-label="Styl akapitu"><option value="h1">Tytuł</option><option value="h2">Nagłówek</option><option value="h3">Podnagłówek</option><option value="div" selected>Tekst</option><option value="pre">Monospace</option></select></label>
-    <label class="nt-style nt-size" title="Rozmiar tekstu"><select id="ntSize" aria-label="Rozmiar tekstu"><option value="2">Mały</option><option value="3" selected>Normalny</option><option value="4">Większy</option><option value="5">Duży</option><option value="6">Bardzo duży</option></select></label>
+    <label class="nt-style nt-size" title="Rozmiar czcionki (pt, jak w Wordzie)"><select id="ntSize" aria-label="Rozmiar czcionki"><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12" selected>12</option><option value="14">14</option><option value="16">16</option><option value="18">18</option><option value="20">20</option><option value="22">22</option><option value="24">24</option><option value="26">26</option><option value="28">28</option><option value="36">36</option><option value="48">48</option><option value="72">72</option></select></label>
     <span class="nt-tb-sep"></span>
     ${b('img',NT_I.img,'Wstaw zdjęcie (można też wkleić Ctrl+V lub przeciągnąć)')}${b('draw',NT_I.draw,'Rysunek (z inteligentnymi kształtami)')}${b('pages',NT_I.pages,'Pokaż koniec stron A4 (jak w wydruku PDF)','nt-tb-pages')}
     <span class="nt-tb-sep"></span>
@@ -368,7 +368,7 @@ function ntBlock(){ const s=getSelection(); if(!s.rangeCount) return null; let n
   while(n && n!==r){ if(n.nodeType===1 && /^(DIV|P|H1|H2|H3|BLOCKQUOTE|PRE|LI|TD|TH)$/.test(n.tagName)) return n; n=n.parentNode; } return null; }
 function ntClosest(tag){ const s=getSelection(); if(!s.rangeCount) return null; let n=s.anchorNode; const r=ntRich(); if(!r||!r.contains(n)) return null;
   while(n && n!==r){ if(n.nodeType===1 && n.matches(tag)) return n; n=n.parentNode; } return null; }
-function ntSave(){ const r=ntRich(); if(!r||!ntSel) return; ntSet(ntSel,{h:ntClean(r.innerHTML), b:ntHtmlToMd(r)},true); ntToolState(); }
+function ntSave(){ const r=ntRich(); if(!r||!ntSel) return; if(typeof ntPtFix==='function') ntPtFix(); ntSet(ntSel,{h:ntClean(r.innerHTML), b:ntHtmlToMd(r)},true); ntToolState(); }
 /* nowa lista w miejscu bieżącego akapitu (bez sklejania z listą obok, co robi przeglądarka) */
 function ntMakeList(kind){
   const s=getSelection(), r=ntRich(); let blk=ntBlock();
@@ -417,6 +417,7 @@ function ntToolState(){
   const blk=ntBlock(), tag=blk&&blk.nodeType===1?blk.tagName.toLowerCase():'div', st=$('#ntStyle');
   if(st) st.value=['h1','h2','h3','pre'].includes(tag)?tag:'div';
   tb.classList.toggle('has-link', !!ntClosest('a[href]')); tb.classList.toggle('has-tbl', !!ntClosest('td,th'));
+  const sz=$('#ntSize'); if(sz && document.activeElement!==sz){ const nd=s.anchorNode&&(s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement); if(nd){ const pt=Math.round(parseFloat(getComputedStyle(nd).fontSize)*.75), o=[...sz.options].reduce((x,y)=>Math.abs(+y.value-pt)<Math.abs(+x.value-pt)?y:x); sz.value=o.value; } }
   const no=ntClosest('ol'), nb=tb.querySelector('[data-ntcmd="num"]'); if(nb) nb.setAttribute('aria-pressed', !!(no && ntListaKorzen(no).classList.contains('nt-num')));
 }
 /* skróty w pisaniu: „- ”, „1. ”, „[] ”, „# ”, „## ”, „> ” na początku akapitu */
@@ -441,7 +442,7 @@ function ntPrint(n){
 /* dokument do druku (używa go też podgląd końca stron A4 w js/33-strony-a4.js) */
 function ntPrintHtml(n){
   return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${esc(ntTitle(n))}</title><style>
-    body{font:15px/1.65 -apple-system,"Segoe UI",Inter,Arial,sans-serif;color:#111;max-width:720px;margin:32px auto;padding:0 20px}
+    body{font:12pt/1.6 -apple-system,"Segoe UI",Inter,Arial,sans-serif;color:#111;max-width:720px;margin:32px auto;padding:0 20px}
     h1.t{font-size:26px;margin:0 0 4px} .d{color:#777;font-size:12px;margin-bottom:22px} h1{font-size:22px}h2{font-size:18px}h3{font-size:16px}
     ul.nt-ck{list-style:none;padding-left:4px} ul.nt-ck li::before{content:"☐ "} ul.nt-ck li.done::before{content:"☑ "} ul.nt-ck li.done{color:#888;text-decoration:line-through}
     ol ol{list-style:lower-alpha} ol ol ol{list-style:lower-roman} ol.nt-num,ol.nt-num ol{list-style:none;counter-reset:n;padding-left:0} ol.nt-num ol{padding-left:18px} ol.nt-num li{counter-increment:n} ol.nt-num li::before{content:counters(n,".") ". ";font-weight:600}

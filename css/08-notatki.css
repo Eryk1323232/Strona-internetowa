@@ -172,7 +172,7 @@
 .nt-linkbar button{height:32px;border:0;border-radius:var(--r-sm);background:var(--ink);color:var(--bg);padding:0 12px;cursor:pointer;font-size:13px}
 .nt-linkbar button[data-ntcmd]{background:none;color:var(--muted);border:1px solid var(--line)}
 /* treść */
-.nt-rich{min-height:50vh;outline:none;font-family:var(--f-body);font-size:16.5px;line-height:1.7;color:var(--ink);overflow-wrap:anywhere;caret-color:var(--accent);-webkit-user-modify:read-write}
+.nt-rich{min-height:50vh;outline:none;font-family:var(--f-body);font-size:12pt;line-height:1.7;color:var(--ink);overflow-wrap:anywhere;caret-color:var(--accent);-webkit-user-modify:read-write}
 .nt-rich:empty::before{content:attr(data-ph);color:var(--muted);pointer-events:none}
 .nt-rich[contenteditable="false"]{opacity:.75}
 .nt-rich h1,.nt-rich h2,.nt-rich h3{font-family:var(--f-body)!important;text-transform:none!important;letter-spacing:-.005em!important;color:var(--ink);line-height:1.3}
@@ -234,7 +234,7 @@
   .nt-ebar{position:sticky;top:64px;z-index:6;border-radius:var(--r) var(--r) 0 0}
   .nt-back{display:inline-flex}
   .nt-paper{overflow:visible;padding:14px 16px 40px}
-  .nt-rich{min-height:55vh;font-size:17px}
+  .nt-rich{min-height:55vh;font-size:12pt}
   .nt-tbw{top:112px;margin:0 -6px 10px}
   .nt-tb{scrollbar-width:none}
   .nt-tb::-webkit-scrollbar{display:none}

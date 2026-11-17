@@ -13,6 +13,17 @@
 const ntListaKorzen = L => { let k=L; while(k.parentElement && k.parentElement.closest('ul,ol') && ntRich().contains(k.parentElement.closest('ul,ol'))) k=k.parentElement.closest('ul,ol'); return k; };
 function ntKursorZachowaj(fn){ const s=getSelection(), a=s.rangeCount?[s.anchorNode,s.anchorOffset,s.focusNode,s.focusOffset]:null; fn();
   if(a){ try{ s.setBaseAndExtent(a[0],a[1],a[2],a[3]); }catch(e){} } }
+/* Rozmiar w punktach jak w Wordzie: execCommand(fontSize,7) tylko ZNAKUJE tekst (xxx-large), tu zamieniamy znacznik na font-size:Npt
+   (także dla tekstu pisanego dalej po wybraniu rozmiaru bez zaznaczenia — woła to ntSave przy pisaniu) */
+let ntPt=12;
+function ntPtFix(){
+  const r=ntRich(); if(!r) return;
+  const zn=r.querySelectorAll('span[style*="xxx-large"],font[size="7"]'); if(!zn.length) return;
+  ntKursorZachowaj(()=>zn.forEach(el=>{
+    let sp=el; if(el.tagName==='FONT'){ sp=document.createElement('span'); while(el.firstChild) sp.appendChild(el.firstChild); el.replaceWith(sp); }
+    sp.style.fontSize=ntPt+'pt'; sp.removeAttribute('size');
+    sp.querySelectorAll('[style*="font-size"]').forEach(x=>{ x.style.fontSize=''; if(x.tagName==='SPAN'&&!x.getAttribute('style')) x.replaceWith(...x.childNodes); }); }));
+}
 function ntLiPoziom(d){
   const li=ntClosest('li'); if(!li) return false; const L=li.parentElement;
   ntKursorZachowaj(()=>{
@@ -59,7 +70,7 @@ function ntExecWord(cmd, val){
   if(cmd==='num'){ let ol=ntClosest('ol'); if(!ol){ ntExec('insertOrderedList'); ol=ntClosest('ol'); if(!ol) return true; } ntListaKorzen(ol).classList.toggle('nt-num'); return true; }
   if(cmd==='color'||cmd==='hlc'||cmd==='size'){ document.execCommand('styleWithCSS', false, true);
     if(cmd==='hlc') document.execCommand('hiliteColor', false, val);
-    else if(cmd==='size') document.execCommand('fontSize', false, val);
+    else if(cmd==='size'){ ntPt=+val||12; document.execCommand('fontSize', false, 7); ntPtFix(); }
     else if(val==='auto'){ document.execCommand('foreColor', false, '#010203');   /* znacznik → zdejmujemy kolor */
       ntRich().querySelectorAll('span,font').forEach(e=>{ const c=e.style.color.replace(/\s/g,''); if(c==='rgb(1,2,3)'||e.getAttribute('color')==='#010203'){ e.style.color=''; e.removeAttribute('color'); if(!e.getAttribute('style')&&!e.attributes.length) e.replaceWith(...e.childNodes); else if(!e.getAttribute('style')) e.removeAttribute('style'); } }); }
     else document.execCommand('foreColor', false, val);
