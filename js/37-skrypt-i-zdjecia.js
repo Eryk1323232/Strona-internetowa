@@ -10,7 +10,7 @@
      na drugim urządzeniu; usunięte pliki są 30 dni w koszu Dysku Google).
    zdjUzywane() — zbiór id wszystkich zdjęć użytych na stronie (także w notatkach w koszu).
    ════════════════════════════════════════════════════════════════════════ */
-const SKRYPT_WYMAGANY = 3;
+const SKRYPT_WYMAGANY = 4;   /* 4 = Google Kalendarz */
 let skryptStan = (()=>{ try{ return JSON.parse(store.get('skryptWer','null')); }catch(e){ return null; } })();   /* {v, t} */
 let zdjStan = null, zdjMsg = '';
 const skryptStary = () => !!(skryptStan && skryptStan.v < SKRYPT_WYMAGANY);
@@ -28,11 +28,12 @@ async function skryptSprawdz(wymus){
 function skryptKropka(){ const b=document.getElementById('setBtn'); if(b){ b.classList.toggle('uwaga', skryptStary()); if(skryptStary()) b.title='Ustawienia — skrypt Apps Script wymaga aktualizacji'; } }
 function skryptKartaHtml(){
   if(!skryptStan) return `<div class="set-skr"><i aria-hidden="true"></i><div><b>Skrypt Apps Script</b><span>Sprawdzam wersję…</span></div></div>`;
-  if(!skryptStary()) return `<div class="set-skr ok"><i aria-hidden="true"></i><div><b>Skrypt Apps Script jest aktualny</b><span>Wersja ${skryptStan.v} · zdjęcia, skrzynka i zapis danych działają w pełni.</span></div><button type="button" class="td-btn" data-setact="skryptspr">Sprawdź</button></div>`;
-  return `<div class="set-skr zle"><i aria-hidden="true"></i><div><b>Skrypt Apps Script wymaga aktualizacji</b><span>Masz wersję ${skryptStan.v||'starą'}, strona potrzebuje ${SKRYPT_WYMAGANY}. Do tego czasu zdjęcia zostają tylko na urządzeniu, z którego je dodano.</span>
+  if(!skryptStary()) return `<div class="set-skr ok"><i aria-hidden="true"></i><div><b>Skrypt Apps Script jest aktualny</b><span>Wersja ${skryptStan.v} · zdjęcia, skrzynka, Google Kalendarz i zapis danych działają w pełni.</span></div><button type="button" class="td-btn" data-setact="skryptspr">Sprawdź</button></div>`;
+  return `<div class="set-skr zle"><i aria-hidden="true"></i><div><b>Skrypt Apps Script wymaga aktualizacji</b><span>Masz wersję ${skryptStan.v||'starą'}, strona potrzebuje ${SKRYPT_WYMAGANY}. Do tego czasu nie działa Google Kalendarz, a zdjęcia zostają tylko na urządzeniu, z którego je dodano.</span>
     <ol><li>Kliknij <b>Kopiuj nowy Kod.gs</b> — skopiuje się cały skrypt z Twoim hasłem już w środku.</li>
     <li>Otwórz Arkusz → <b>Rozszerzenia → Apps Script</b>, zaznacz cały stary kod (Ctrl+A) i wklej nowy (Ctrl+V), zapisz (Ctrl+S).</li>
-    <li><b>Wdróż → Zarządzaj wdrożeniami → ołówek → Wersja: „Nowa wersja” → Wdróż.</b> Adres zostaje ten sam.</li></ol>
+    <li><b>Wdróż → Zarządzaj wdrożeniami → ołówek → Wersja: „Nowa wersja” → Wdróż.</b> Adres zostaje ten sam.</li>
+    <li>Google zapyta o dostęp do <b>Kalendarza</b> — kliknij Zezwól. (Jeśli nie zapyta: u góry wybierz funkcję <b>test</b> → Uruchom.)</li></ol>
     <div class="set-acts"><button type="button" class="set-main" data-setact="skryptkopiuj">Kopiuj nowy Kod.gs</button><button type="button" class="td-btn" data-setact="skryptspr">Sprawdź ponownie</button></div><p class="set-note" id="skrMsg"></p></div></div>`;
 }
 async function skryptKopiuj(btn){

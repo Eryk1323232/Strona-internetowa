@@ -21,9 +21,15 @@
    Najwygodniej: na stronie ⚙ → Synchronizacja → „Kopiuj nowy Kod.gs” (wstawia od razu Twoje hasło).
    Po wklejeniu nowej wersji tego pliku: Wdróż → Zarządzaj wdrożeniami → ołówek →
    Wersja: Nowa wersja → Wdróż, i zgódź się na dostęp do Dysku (Google zapyta raz).
+
+   GOOGLE KALENDARZ (zakładka Kalendarz i widżet na stronie głównej) — od wersji 4.
+   Wydarzenia dodane na stronie trafiają od razu do Twojego głównego Kalendarza Google
+   (z przypomnieniem na telefon, jeśli je wybierzesz), a wydarzenia z Kalendarza Google
+   widać na stronie. Po wklejeniu tej wersji Google raz zapyta o dostęp do Kalendarza —
+   jeśli nie zapyta przy wdrażaniu: wybierz u góry funkcję „test” → Uruchom → Zezwól.
    ════════════════════════════════════════════════════════════════════════ */
 
-const WERSJA_SKRYPTU = 3;              // strona sprawdza ten numer (⚙ → Synchronizacja) — nie zmieniaj
+const WERSJA_SKRYPTU = 4;              // strona sprawdza ten numer (⚙ → Synchronizacja) — nie zmieniaj
 const KLUCZ = 'zmien-mnie';            // ← TU wpisz swoje hasło (min. kilkanaście znaków)
 const SKRZYNKA_FOLDER = 'Pracownia – Skrzynka';   // folder na Dysku Google
 const SKRZYNKA_DNI = 7;                            // po ilu dniach pliki ze skrzynki idą do kosza
@@ -161,6 +167,7 @@ function plikZeSkrzynki(folder, id) {
 function skrzynka(akcja, p) {
   if (akcja === 'wersja') return { wersja: WERSJA_SKRYPTU };
   if (String(akcja).indexOf('zdjeci') === 0) return zdjecia(akcja, p);   /* zdjęcia z Notatek — osobny, stały folder */
+  if (String(akcja).indexOf('gk') === 0) return googleKalendarz(akcja, p);   /* Google Kalendarz */
   const folder = folderSkrzynki();
   if (akcja === 'lista') {
     const wynik = [], granica = Date.now() - SKRZYNKA_DNI * 864e5, it = folder.getFiles();
@@ -221,8 +228,65 @@ function zdjecia(akcja, p) {
   throw new Error('Nieznana akcja zdjęć: ' + akcja);
 }
 
+/* ——— GOOGLE KALENDARZ ———
+   gkLista (GET) od, do — czas w ms → wydarzenia ze wszystkich kalendarzy zaznaczonych w Google Kalendarzu
+   gkDodaj (GET) t — tytuł, s, e — początek/koniec w ms, cd=1 — cały dzień (s, e = południe pierwszego/ostatniego dnia),
+                 przyp — '' = domyślne przypomnienie kalendarza, 'x' = bez, liczba = minut przed, gdzie, opis
+                 → nowe wydarzenie w głównym kalendarzu
+   gkUsun  (GET) id, cal → usuwa wydarzenie (tylko z Twoich kalendarzy, bez powtarzających się) */
+function gkObiekt(ev, cal, tz) {
+  const cd = ev.isAllDayEvent();
+  return { id: ev.getId(), cal: cal.getId(), kn: cal.getName(), kol: cal.getColor(), t: ev.getTitle(), cd: cd,
+    s: cd ? Utilities.formatDate(ev.getAllDayStartDate(), tz, 'yyyy-MM-dd') : ev.getStartTime().getTime(),
+    e: cd ? Utilities.formatDate(ev.getAllDayEndDate(), tz, 'yyyy-MM-dd') : ev.getEndTime().getTime(),
+    g: ev.getLocation(), own: cal.isOwnedByMe(), prim: cal.isMyPrimaryCalendar(), rec: ev.isRecurringEvent() };
+}
+function googleKalendarz(akcja, p) {
+  const tz = Session.getScriptTimeZone();
+  if (akcja === 'gkLista') {
+    const od = new Date(+p.od), dO = new Date(+p.do);
+    if (isNaN(od) || isNaN(dO) || dO - od > 400 * 864e5) throw new Error('Zły zakres dat');
+    const wynik = [];
+    CalendarApp.getAllCalendars().forEach(cal => {
+      try {
+        if (cal.isHidden() || !cal.isSelected()) return;
+        cal.getEvents(od, dO).forEach(ev => { if (wynik.length < 2000) wynik.push(gkObiekt(ev, cal, tz)); });
+      } catch (e) {}
+    });
+    return wynik;
+  }
+  if (akcja === 'gkDodaj') {
+    const cal = CalendarApp.getDefaultCalendar(), t = String(p.t || '').trim().slice(0, 300);
+    if (!t) throw new Error('Brak tytułu');
+    const s = new Date(+p.s), e = new Date(+p.e || +p.s), opcje = {};
+    if (isNaN(s)) throw new Error('Zła data');
+    if (p.gdzie) opcje.location = String(p.gdzie).slice(0, 300);
+    if (p.opis) opcje.description = String(p.opis).slice(0, 5000);
+    let ev;
+    if (String(p.cd) === '1') {
+      const dk = new Date(e.getTime() + 864e5);          /* koniec całodniowego = dzień po ostatnim */
+      ev = e > s ? cal.createAllDayEvent(t, s, dk, opcje) : cal.createAllDayEvent(t, s, opcje);
+    } else ev = cal.createEvent(t, s, e > s ? e : new Date(s.getTime() + 36e5), opcje);
+    const pr = String(p.przyp || '');
+    if (pr === 'x') ev.removeAllReminders();
+    else if (/^\d+$/.test(pr)) { ev.removeAllReminders(); ev.addPopupReminder(Math.min(+pr, 40320)); }
+    return gkObiekt(ev, cal, tz);
+  }
+  if (akcja === 'gkUsun') {
+    const cal = (p.cal && CalendarApp.getCalendarById(String(p.cal))) || CalendarApp.getDefaultCalendar();
+    if (!cal.isOwnedByMe()) throw new Error('To nie jest Twój kalendarz');
+    const ev = cal.getEventById(String(p.id || ''));
+    if (!ev) return {};
+    if (ev.isRecurringEvent()) throw new Error('Wydarzenie powtarzające się usuń w Google Kalendarzu');
+    ev.deleteEvent();
+    return {};
+  }
+  throw new Error('Nieznana akcja kalendarza: ' + akcja);
+}
+
 /* ——— test: w edytorze wybierz „test” i kliknij Uruchom — w Dzienniku zobaczysz listę kart ——— */
 function test() {
   Logger.log(Object.keys(wszystkieDane()));
   Logger.log('Skrzynka: ' + skrzynka('lista', {}).length + ' plików');   // przy okazji Google poprosi o dostęp do Dysku
+  Logger.log('Kalendarz: ' + CalendarApp.getDefaultCalendar().getName());   // … i do Kalendarza
 }

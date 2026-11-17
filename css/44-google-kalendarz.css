@@ -1,0 +1,64 @@
+/* ════════════════════════════════════════════════════════════════════════
+   GOOGLE KALENDARZ (js/53-google-kalendarz.js)
+   • kolor kategorii „gk” (wydarzenia z Google; konkretne wydarzenie może mieć kolor swojego kalendarza),
+   • status połączenia, formularz dodawania w Kalendarzu, widżet „Kalendarz” na stronie głównej (.hd-kal)
+   ════════════════════════════════════════════════════════════════════════ */
+.k-gk{--k:#1A73E8}
+:root[data-theme="dark"] .k-gk{--k:#7BAAF7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .k-gk{--k:#7BAAF7}}
+
+/* status: „Google · 18:04” / wysyłanie / błąd / niepołączony */
+.gk-st{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px;border-radius:999px;font:500 12px var(--f-body);color:var(--muted);white-space:nowrap}
+.gk-st::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--line)}
+.gk-st.ok::before{background:#1A73E8} .gk-st.busy::before{background:#E0A82F;animation:gkPuls 1s ease-in-out infinite alternate}
+.gk-st.zle{color:var(--bad)} .gk-st.zle::before{background:var(--bad)}
+.w-head .gk-st{height:auto;padding:0;margin-left:auto;margin-right:10px}
+@keyframes gkPuls{to{opacity:.3}}
+
+/* wiersz wydarzenia z Google */
+.gk-it{border-left:3px solid var(--k,#1A73E8);justify-content:flex-start}
+.gk-it>span:not(.kal-tm){flex:1}
+.gk-it .kal-tm{display:inline-block;flex:none;align-self:center;white-space:nowrap}
+.gk-it.tmp{opacity:.6}
+.gk-del{flex:none;margin-left:auto;min-width:28px;height:28px;border:0;border-radius:8px;background:none;color:var(--muted);font:600 15px var(--f-body);cursor:pointer;padding:0 6px}
+.gk-del:hover{color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.gk-del.pyt{font-size:12px;color:#fff;background:var(--bad)}
+
+/* formularz w panelu dnia: tytuł / od – do / Dodaj / przypomnienie / dokąd */
+.kal-add.do-gk .kal-tmin{flex:1 1 0}
+.gk-przyp{flex:1 1 100%;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:13px var(--f-body);padding:0 8px}
+.gk-cel{flex:1 1 100%;display:flex;gap:4px;padding:3px;border-radius:11px;background:var(--soft)}
+.gk-cel button{flex:1;height:30px;border:0;border-radius:8px;background:none;color:var(--muted);font:500 12.5px var(--f-body);cursor:pointer}
+.gk-cel button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.gk-cel button:disabled{opacity:.45;cursor:not-allowed}
+
+/* ——— widżet na stronie głównej ——— */
+.hk-body{display:grid;grid-template-columns:minmax(250px,320px) minmax(0,1fr);gap:22px;align-items:start}
+.hk-bar{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.hk-bar b{flex:1;text-align:center;font-size:15px;font-weight:700;text-transform:capitalize}
+.hk-bar .kal-arr{width:30px;height:30px;font-size:15px}
+.hk-bar .td-btn{order:3}
+.hk-wd,.hk-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center}
+.hk-wd span{font:600 11px var(--f-body);color:var(--muted);padding:2px 0 4px}
+.hk-c{display:flex;flex-direction:column;align-items:center;gap:2px;height:40px;padding:5px 0 0;border:0;border-radius:10px;background:none;color:var(--ink);font:500 13px var(--f-body);cursor:pointer}
+.hk-c:hover{background:var(--soft)}
+.hk-c.out{opacity:.4}
+.hk-c.today span{display:inline-grid;place-items:center;width:24px;height:24px;margin-top:-3px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700}
+.hk-c.sel{background:color-mix(in srgb,var(--accent) 12%,var(--surface));box-shadow:inset 0 0 0 1.5px var(--accent)}
+.hk-dots{display:flex;gap:2px;height:6px;font-style:normal}
+.hk-dots b{width:5px;height:5px;border-radius:50%;background:var(--k)}
+.hk-dzien{display:flex;flex-direction:column;gap:10px;min-width:0}
+.hk-dt{display:flex;align-items:baseline;gap:10px}
+.hk-dt .label::first-letter{text-transform:uppercase}
+.hk-dt b{font-size:19px;font-weight:700}
+.hk-lista{display:flex;flex-direction:column;gap:6px;max-height:230px;overflow:auto}
+.hk-lista .kal-it.k-todo,.hk-lista .kal-it.k-tren,.hk-lista .kal-it.k-plat{border-left:3px solid var(--k)}
+.hk-lista .kal-it .kal-dot{display:none}
+.hk-lista .kal-it.done span{text-decoration:line-through;color:var(--muted)}
+.hk-add{display:flex;gap:6px;margin-top:auto}
+.hk-add input{height:38px;border:1px dashed var(--line);border-radius:10px;background:none;color:var(--ink);font:14px var(--f-body);padding:0 10px;min-width:0}
+.hk-add input[name=t]{flex:1}
+.hk-add input:focus{outline:none;border-style:solid;border-color:var(--accent);background:var(--surface)}
+.hk-add button{height:38px;border:0;border-radius:10px;background:var(--btn);color:var(--btn-ink);font:600 13px var(--f-body);padding:0 14px;cursor:pointer}
+@media (max-width:900px){ .hk-body{grid-template-columns:minmax(0,1fr);gap:14px} .hk-lista{max-height:none} }
+@media (max-width:520px){ .hk-add{flex-wrap:wrap} .hk-add input[name=t]{flex:1 1 100%} .hk-add input[name=tm]{flex:1} }

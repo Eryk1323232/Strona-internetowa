@@ -33,6 +33,7 @@ css/
   17-pieniadze.css          Pieniądze → okienko Zakłady (bukmacherka)
   18-finanse.css            Pieniądze → okienko Finanse
   20-skrzynka.css           Skrzynka: ikonka w nagłówku i panel przesyłania
+  44-google-kalendarz.css   Google Kalendarz: status, formularz, widżet „Kalendarz” na stronie głównej
   14-wyglad.css             styl „krem + ceramika” — ładuje się ostatni i nadpisuje resztę
 js/
   00-ustawienia.js          adres i hasło Arkusza Google (zapis danych na GitHub Pages)
@@ -54,6 +55,7 @@ js/
   19-skrzynka.js            Skrzynka (ikonka w rogu): pliki i tekst telefon ↔ komputer przez Dysk Google
   18-cv.js                  CV: podgląd, edycja całego CV, eksport do PDF (dane kontaktowe tylko w Arkuszu)
   17-finanse.js             Finanse: konto główne + oszczędnościowe, wydatki/wpływy, stałe wpływy i opłaty, średnie, wlicza Zakłady i Subskrypcje
+  53-google-kalendarz.js    Google Kalendarz: wydarzenia z Google w Kalendarzu, dodawanie/usuwanie, widżet na stronie głównej
   14-szkice-formularzy.js   niezapisany tekst w formularzach przeżywa odświeżenie (localStorage) — ładuje się ostatni
 kalkulatory/
   masa.html                 kalkulator MASA Web (Studia → Kalkulatory → Liczenie MMA), otwierany w okienku;

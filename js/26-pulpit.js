@@ -4,7 +4,8 @@
    homeDash() wstawia pStart (js/03). Karty:
      • Na dziś      — zadania z „Mojego dnia” i z terminem dziś/zaległym (odhaczanie, szybkie dodanie)
      • Trening      — trening w trakcie albo następny dzień planu (przycisk start otwiera okienko treningu)
-     • Najbliższe   — 14 dni z kalendarza (zadania, płatności, subskrypcje) → #kalendarz
+     • Najbliższe   — 14 dni z kalendarza (zadania, płatności, subskrypcje, Google) → #kalendarz
+     • Kalendarz    — mini-miesiąc + wybrany dzień + dodawanie do Google Kalendarza (hdKalendarz, js/53)
    Odświeżenie po zmianie: homeRefresh() (podmienia #homeDash).
    ════════════════════════════════════════════════════════════════════════ */
 const hdIle = (n,a,b,c) => n===1?a:(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?b:c;
@@ -43,8 +44,9 @@ function hdNajblizsze(){
     ${L.length?`<ul class="hd-list hd-ev">${L.slice(0,7).map(e=>`<li class="k-${e.k}"><span class="hd-date"><b>${new Date(e.d+'T12:00').getDate()}</b><small>${new Date(e.d+'T12:00').toLocaleDateString('pl-PL',{weekday:'short'})}</small></span><span class="hd-t"><i class="kal-dot"></i>${esc(e.n)}<small>${hdDni(e.d)}${e.tm?', '+e.tm:''}${e.sub?' · '+esc(e.sub):''}</small></span>${e.kw?`<b class="${e.wpl?'plus':'minus'}">${e.wpl?'+':'−'}${fmt(e.kw,Number.isInteger(e.kw)?0:2)} zł</b>`:''}</li>`).join('')}</ul>${L.length>7?`<a class="hd-more" href="#kalendarz">+${L.length-7} więcej w kalendarzu</a>`:''}`
       :`<p class="w-sub">Nic nie zaplanowano. Terminy zadań, opłaty stałe i subskrypcje pojawią się tutaj.</p>`}</article>`;
 }
-function homeDash(){ return `<section class="hd-grid" id="homeDash">${hdTodo()}${hdTrening()}${hdNajblizsze()}</section>`; }
-function homeRefresh(){ const h=$('#homeDash'); if(h) h.innerHTML=hdTodo()+hdTrening()+hdNajblizsze(); }
+const hdKal = () => typeof hdKalendarz==='function' ? hdKalendarz() : '';
+function homeDash(){ return `<section class="hd-grid" id="homeDash">${hdTodo()}${hdTrening()}${hdNajblizsze()}${hdKal()}</section>`; }
+function homeRefresh(){ const h=$('#homeDash'); if(h) h.innerHTML=hdTodo()+hdTrening()+hdNajblizsze()+(h.classList.contains('wz-hd')?'':hdKal()); }
 
 /* otwiera okienko treningu po przejściu do Siłowni */
 function hdOtworzTrening(m){ const go=()=>setTimeout(()=>{ if(typeof trRender!=='function') return; trM=m; trRender(); },30);

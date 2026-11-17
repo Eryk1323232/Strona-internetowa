@@ -18,7 +18,7 @@ h1.hello-t{font-size:clamp(28px,3.6vw,46px);letter-spacing:-.04em}
 @media (prefers-reduced-motion:no-preference){
   #page.page-in{animation:pageIn .42s cubic-bezier(.2,.8,.25,1)}
   #page.page-in .bento>*,#page.page-in .bento #homeDash>*,#page.page-in .bento .home-widgets>*{animation:pageIn .5s cubic-bezier(.2,.8,.25,1) backwards}
-  #page.page-in .bento .hd-todo{animation-delay:.04s} #page.page-in .bento .hd-trening{animation-delay:.08s} #page.page-in .bento .hd-next{animation-delay:.12s}
+  #page.page-in .bento .hd-todo{animation-delay:.04s} #page.page-in .bento .hd-trening{animation-delay:.08s} #page.page-in .bento .hd-next{animation-delay:.12s} #page.page-in .bento .hd-kal{animation-delay:.14s}
   #page.page-in .bento .w-fin{animation-delay:.16s} #page.page-in .bento .w-weather{animation-delay:.06s} #page.page-in .bento .w-quick{animation-delay:.2s}
 }
 @keyframes pageIn{from{opacity:0;transform:translateY(14px)}}
@@ -26,20 +26,20 @@ h1.hello-t{font-size:clamp(28px,3.6vw,46px);letter-spacing:-.04em}
 /* ——— strona główna: bento ——— */
 .bento{display:grid;gap:16px;width:min(1280px,100%);margin:0 auto;
   grid-template-columns:repeat(4,minmax(0,1fr));
-  grid-template-areas:"hello hello hello wx" "todo todo tr next" "todo todo tr next" "fin fin fin note"}
+  grid-template-areas:"hello hello hello wx" "todo todo tr next" "todo todo tr next" "kal kal kal note" "fin fin fin fin"}
 .bento #homeDash,.bento .home-widgets{display:contents}
 .bento>.hello{grid-area:hello;margin:0;width:auto}
-.bento .hd-todo{grid-area:todo} .bento .hd-trening{grid-area:tr} .bento .hd-next{grid-area:next}
+.bento .hd-todo{grid-area:todo} .bento .hd-trening{grid-area:tr} .bento .hd-next{grid-area:next} .bento .hd-kal{grid-area:kal}
 
 .bento .w-fin{grid-area:fin} .bento .w-weather{grid-area:wx} .bento .w-quick{grid-area:note}
 .bento .widget,.bento .hd-card{margin:0;min-height:0}
 .bento .w-quick{display:flex;flex-direction:column} .bento .w-quick textarea{flex:1;min-height:120px}
 .bento .hd-todo .hd-list{flex:1}
 @media (max-width:1180px){
-  .bento{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"hello hello" "todo tr" "next wx" "fin fin" "note note"}
+  .bento{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"hello hello" "todo tr" "next wx" "kal kal" "fin fin" "note note"}
 }
 @media (max-width:700px){
-  .bento{grid-template-columns:minmax(0,1fr);gap:14px;grid-template-areas:"hello" "todo" "tr" "next" "fin" "wx" "note"}
+  .bento{grid-template-columns:minmax(0,1fr);gap:14px;grid-template-areas:"hello" "todo" "kal" "tr" "next" "fin" "wx" "note"}
 }
 
 /* ——— karty: delikatne uniesienie po najechaniu ——— */
