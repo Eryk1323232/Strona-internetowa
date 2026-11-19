@@ -45,12 +45,17 @@ function arkuszDb(url, klucz){
 
   const adres = extra => url+(url.includes('?')?'&':'?')+'klucz='+encodeURIComponent(klucz)+'&t='+Date.now()+(extra||'');
   const json = async r => { const j=await r.json(); if(!j.ok) throw new Error(j.blad||'Błąd Arkusza'); return j; };
-  let tylkoGet = store.get('arkuszTylkoGet','')===url;   /* ta przeglądarka nie przepuszcza POST do Google → zapis przez GET */
+  /* POST nie przeszedł → zapis przez GET, ale tylko do końca tej sesji: jednorazowa przerwa w sieci nie może na stałe
+     przełączyć przeglądarki na GET (długie notatki nie mieszczą się w adresie i wysyłka staje z „Failed to fetch”) */
+  let tylkoGet = false; try{ localStorage.removeItem('arkuszTylkoGet'); }catch(e){}
   /* zapis przez GET: zmiany w adresie, w paczkach po ~6 000 znaków (limit długości adresu) */
   async function wyslijGetem(ops){
     let dane=null, paczka=[];
     const wyslijPaczke = async () => { if(!paczka.length) return;
-      const j=await json(await fetch(adres('&ops='+encodeURIComponent(JSON.stringify(paczka)))));
+      const op=encodeURIComponent(JSON.stringify(paczka));
+      const j = op.length>7000   /* jedna duża zmiana (np. długa notatka) — w adresie się nie zmieści, więc tylko POST */
+        ? await json(await fetch(url, {method:'POST', body:JSON.stringify({klucz, ops:paczka})}))
+        : await json(await fetch(adres('&ops='+op)));
       if(j.zapisano!==paczka.length) throw new Error('Kod.gs w Arkuszu jest starszy niż strona — wklej nowy Kod.gs i wdróż nową wersję');
       dane=j.dane; paczka=[]; };
     for(const o of ops){
@@ -67,7 +72,7 @@ function arkuszDb(url, klucz){
       catch(e){ if(!(e instanceof TypeError)) throw e; }          /* „Failed to fetch” — spróbuj przez GET */
     }
     const d=await wyslijGetem(body);
-    if(!tylkoGet){ tylkoGet=true; store.set('arkuszTylkoGet', url); }
+    tylkoGet=true;
     return d;
   }
   /* stan z Arkusza + niewysłane zmiany z kolejki */
