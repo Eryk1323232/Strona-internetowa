@@ -65,6 +65,7 @@ function ntTabela(cmd){
 }
 function ntExecWord(cmd, val){
   if(cmd==='cols') return ntKolumny();
+  if(cmd==='eq'){ if(typeof ntEqOtworz==='function') ntEqOtworz(); return true; }
   if(cmd==='table'){ if(!val){ ntTabWybor(); return true; }
     const [w,k]=String(val).split('x').map(Number), row='<tr>'+'<td><br></td>'.repeat(k)+'</tr>';
     document.execCommand('insertHTML', false, `<table class="nt-tbl" data-nowa="1"><tbody>${row.repeat(w)}</tbody></table><div><br></div>`);

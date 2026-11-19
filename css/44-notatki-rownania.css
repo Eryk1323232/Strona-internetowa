@@ -1,0 +1,18 @@
+/* ════════ Notatki: równania (js/53-notatki-rownania.js) ════════ */
+.nt-rich .nt-eq{display:inline-block;padding:0 3px;margin:0 1px;border-radius:5px;cursor:pointer;vertical-align:middle;user-select:none}
+.nt-rich .nt-eq:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.nt-eq math,.eq-pod math{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",math,serif;font-size:1.1em}
+.eq-pan{position:fixed;z-index:95;left:50%;top:18%;transform:translateX(-50%);width:min(560px,calc(100vw - 24px));padding:14px 16px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px -20px rgba(20,22,50,.45)}
+.eq-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.eq-x{border:0;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer}
+.eq-in{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:15px ui-monospace,Consolas,monospace}
+.eq-in:focus{outline:2px solid color-mix(in srgb,var(--accent) 50%,transparent);border-color:var(--accent)}
+.eq-pod{min-height:64px;display:flex;align-items:center;justify-content:center;margin:10px 0;padding:8px;border-radius:10px;background:var(--bg);font-size:22px;overflow-x:auto}
+.eq-pusto{font-size:13px;color:var(--muted)}
+.eq-pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:4px}
+.eq-pal button{height:32px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:15px "Cambria Math",serif;cursor:pointer}
+.eq-pal button:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg))}
+.eq-pom{margin:10px 0 0;font-size:11.5px;line-height:1.5;color:var(--muted)}
+.eq-pom code{padding:0 3px;border-radius:4px;background:var(--bg);font-size:11px}
+.eq-act{display:flex;align-items:center;gap:8px;margin-top:12px}
+.eq-act span{flex:1}

@@ -45,6 +45,7 @@ function ntClean(html){
   const box=document.createElement('div'); box.innerHTML=html;
   const walk=el=>{ [...el.childNodes].forEach(n=>{
     if(n.nodeType===3) return;
+    if(n.nodeType===1 && n.tagName==='SPAN' && n.classList.contains('nt-eq')){ if(typeof eqSpan==='function'){ const t=document.createElement('span'); t.innerHTML=eqSpan(n.getAttribute('data-eq')); n.replaceWith(t.firstChild); } else n.replaceWith(document.createTextNode(n.getAttribute('data-eq')||'')); return; }   /* równanie: odtwórz ze źródła (js/53) */
     if(n.nodeType!==1 || !NT_TAGS.has(n.tagName)){ if(n.nodeType===1 && !/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|SVG|IMG|VIDEO|AUDIO|LINK|META)$/.test(n.tagName)){ walk(n); n.replaceWith(...n.childNodes); } else n.remove(); return; }
     [...n.attributes].forEach(a=>{ const k=a.name.toLowerCase();
       if(n.tagName==='IMG'){ if(!((k==='data-zid'&&/^[\w-]{1,60}$/.test(a.value))||(k==='class'&&a.value.split(/\s+/).includes('nt-img')))) n.removeAttribute(a.name); else if(k==='class') n.setAttribute('class','nt-img'); }
@@ -83,7 +84,7 @@ function ntMdToHtml(src){
 /* ——— HTML z edytora → zwykły tekst/markdown (pole b) ——— */
 function ntHtmlToMd(root){
   const inl=el=>[...el.childNodes].map(n=>{ if(n.nodeType===3) return n.nodeValue.replace(/ /g,' ');
-    if(n.nodeType!==1) return ''; const t=n.tagName, s=inl(n);
+    if(n.nodeType!==1) return ''; if(n.classList.contains('nt-eq')) return n.getAttribute('data-eq')||''; const t=n.tagName, s=inl(n);
     if(t==='BR') return '\n'; if(t==='IMG') return '(zdjęcie)'; if(!s.trim()) return s;
     if(t==='B'||t==='STRONG') return `**${s}**`; if(t==='I'||t==='EM') return `*${s}*`; if(t==='S'||t==='STRIKE'||t==='DEL') return `~~${s}~~`;
     if(t==='CODE') return '`'+s+'`'; if(t==='A'){ const h=n.getAttribute('href')||''; return h&&h!==s?`${s} (${h})`:s; }
@@ -238,6 +239,7 @@ function ntListHtml(){
 }
 /* ——— widok: edytor ——— */
 const NT_I = {
+  eq:'<svg viewBox="0 0 16 16"><path d="M2.5 4.5h11M5 4.5v8M10.5 4.5v6.5c0 1 .5 1.5 1.5 1.5"/></svg>',
   full:'<svg viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>', fullx:'<svg viewBox="0 0 16 16"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg>',
   back:'<svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5"/></svg>', pin:'<svg viewBox="0 0 16 16"><path d="M6 1.5h4l-.6 4.2 2.6 2.3v1.5H4V8l2.6-2.3z"/><path d="M8 9.5V15"/></svg>',
   more:'<svg viewBox="0 0 16 16"><circle cx="3" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="13" cy="8" r="1.2"/></svg>', col:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5v11" /></svg>',
@@ -273,7 +275,7 @@ function ntToolbarHtml(){
     <span class="nt-tb-sep"></span>
     ${b('ck',NT_I.ck,'Checklista (Ctrl+Shift+9)')}${b('insertUnorderedList',NT_I.ul,'Lista punktowana (Ctrl+Shift+8)')}${b('insertOrderedList',NT_I.ol,'Lista numerowana (Ctrl+Shift+7)')}${b('outdent',NT_I.out,'Poziom wyżej (Shift+Tab)')}${b('indent',NT_I.ind,'Poziom niżej — podpunkt (Tab)')}${b('num','1.1','Numeracja wielopoziomowa 1. → 1.1. → 1.1.1.','nt-tb-num')}
     <span class="nt-tb-sep"></span>
-    ${b('quote',NT_I.q,'Cytat')}${b('table',NT_I.tbl,'Tabela')}${b('cols',NT_I.cols,'Strona obok: dzieli notatkę na dwie strony obok siebie (w wydruku to kolejna strona). Jeszcze raz — scala')}${b('trow','+w','Tabela: dodaj wiersz poniżej','nt-tb-t')}${b('tcol','+k','Tabela: dodaj kolumnę z prawej','nt-tb-t')}${b('trowx','−w','Tabela: usuń wiersz','nt-tb-t')}${b('tcolx','−k','Tabela: usuń kolumnę','nt-tb-t')}${b('insertHorizontalRule',NT_I.hr,'Linia')}${b('link',NT_I.link,'Link (Ctrl+K)')}${b('openlink',NT_I.open,'Otwórz link','nt-tb-open')}
+    ${b('quote',NT_I.q,'Cytat')}${b('eq',NT_I.eq,'Równanie (Alt+=)')}${b('table',NT_I.tbl,'Tabela')}${b('cols',NT_I.cols,'Strona obok: dzieli notatkę na dwie strony obok siebie (w wydruku to kolejna strona). Jeszcze raz — scala')}${b('trow','+w','Tabela: dodaj wiersz poniżej','nt-tb-t')}${b('tcol','+k','Tabela: dodaj kolumnę z prawej','nt-tb-t')}${b('trowx','−w','Tabela: usuń wiersz','nt-tb-t')}${b('tcolx','−k','Tabela: usuń kolumnę','nt-tb-t')}${b('insertHorizontalRule',NT_I.hr,'Linia')}${b('link',NT_I.link,'Link (Ctrl+K)')}${b('openlink',NT_I.open,'Otwórz link','nt-tb-open')}
     <span class="nt-tb-sep"></span>
     ${b('undo',NT_I.undo,'Cofnij (Ctrl+Z)')}${b('redo',NT_I.redo,'Ponów (Ctrl+Y)')}${b('clear',NT_I.clr,'Wyczyść formatowanie')}</div>
     <div class="nt-colbar" hidden><span>Tekst</span>${[['auto','Automatyczny'],['#E5484D','Czerwony'],['#E8890C','Pomarańczowy'],['#1E9E6A','Zielony'],['#2F6FEB','Niebieski'],['#8E4EC6','Fioletowy'],['#8B8D98','Szary']].map(([c,n])=>`<button type="button" class="nt-tb-b nt-sw${c==='auto'?' auto':''}" data-ntcmd="color" data-v="${c}" style="--c:${c==='auto'?'currentColor':c}" title="${n}" aria-label="Kolor tekstu: ${n}">A</button>`).join('')}
