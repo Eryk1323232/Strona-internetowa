@@ -284,3 +284,6 @@ svg.ic{width:1.05em;height:1.05em;vertical-align:-.16em;fill:none;stroke:current
 /* rozwijane listy (natywne <option>) — czytelne w obu motywach, także gdy sam <select> ma przezroczyste tło */
 select option,select optgroup{background-color:var(--surface,#fff);color:var(--ink,#111)}
 select option:checked{background-color:color-mix(in srgb,var(--accent,#5b5bd6) 28%,var(--surface,#fff))}
+
+/* kursor tekstowy: czarny na jasnym motywie, biały na ciemnym (kolor tekstu motywu) */
+input,textarea,select,[contenteditable],[contenteditable] *{caret-color:var(--ink)}

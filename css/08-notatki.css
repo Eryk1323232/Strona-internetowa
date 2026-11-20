@@ -172,7 +172,7 @@
 .nt-linkbar button{height:32px;border:0;border-radius:var(--r-sm);background:var(--ink);color:var(--bg);padding:0 12px;cursor:pointer;font-size:13px}
 .nt-linkbar button[data-ntcmd]{background:none;color:var(--muted);border:1px solid var(--line)}
 /* treść */
-.nt-rich{min-height:50vh;outline:none;font-family:var(--f-body);font-size:12pt;line-height:1.7;color:var(--ink);overflow-wrap:anywhere;caret-color:var(--accent);-webkit-user-modify:read-write}
+.nt-rich{min-height:50vh;outline:none;font-family:var(--f-body);font-size:12pt;line-height:1.7;color:var(--ink);overflow-wrap:anywhere;caret-color:var(--ink);-webkit-user-modify:read-write}
 .nt-rich:empty::before{content:attr(data-ph);color:var(--muted);pointer-events:none}
 .nt-rich[contenteditable="false"]{opacity:.75}
 .nt-rich h1,.nt-rich h2,.nt-rich h3{font-family:var(--f-body)!important;text-transform:none!important;letter-spacing:-.005em!important;color:var(--ink);line-height:1.3}
