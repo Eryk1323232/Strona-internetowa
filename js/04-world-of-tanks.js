@@ -129,7 +129,7 @@ function wotPanel(k){
         return `<div class="branch"><div class="branch-top"><div class="branch-ttl"><span class="label">Gałąź ${bi+1} · ${gd}/${rs.length} skończonych</span>
             <h3>${rs.map(r=>`<span class="${has(r.n)?'got':''}">${esc(r.n)}</span>`).join('<i>→</i>')}</h3></div>
           <div class="branch-sum"><span class="label">Do zdobycia</span><b>${fmt(bt)}</b><small>XP</small></div></div>
-        <div class="tbl-wrap"><table class="exp-t"><thead><tr><th class="c-chk"><span class="sr">Skończony</span></th><th>Czołg</th><th class="n">Moduły</th><th class="n">Potrzebne XP</th><th class="n">Zniżka</th><th class="n">Posiadane</th><th class="n">Do zdobycia</th><th></th></tr></thead><tbody>
+        <div class="tbl-wrap"><table class="exp-t"><thead><tr><th class="c-chk"><span class="sr">Skończony</span></th><th>Czołg</th><th class="n">Moduły</th><th class="n">Potrzebne XP</th><th class="n">Zniżka</th><th class="n" title="XP zebrane NA TYM czołgu — idzie na jego moduły, a reszta na następny czołg w gałęzi (tak jak w grze)">Posiadane <span class="th-hint" aria-hidden="true">?</span></th><th class="n">Do zdobycia</th><th></th></tr></thead><tbody>
         ${rs.map(r=>`<tr class="${has(r.n)?'done':(expRaw(r)>0?'':'dim')}"><td class="c-chk">${box(r.n)}</td>
           <td><input class="ed ed-name" data-id="${esc(r.id)}" data-f="n" value="${esc(r.n)}" aria-label="Nazwa czołgu"></td>
           <td class="n">${xok(r,'mod','modOk','moduły')}</td>
