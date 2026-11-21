@@ -193,3 +193,10 @@ table.fin-ust{min-width:460px}
 .fin-cadd [name=n]{flex:1 1 180px} .fin-cadd [name=k]{flex:0 1 130px}
 .fin-chint{margin:8px 2px 0;font-size:12px;color:var(--muted)}
 @media (max-width:640px){ .fin-ci{flex-wrap:wrap} .fin-cb{margin-left:38px} .fin-ck input{width:84px} }
+
+/* wyrównanie z bankiem */
+.fin-wbtn{margin-top:2px;font-size:12px;padding:5px 12px;color:var(--muted)}
+.fin-wcur{margin:0;font-size:12.5px;color:var(--muted)}
+.fin-wdiff{margin:0;font-size:12.5px;color:var(--muted)}
+.fin-wdiff.plus{color:var(--ok)} .fin-wdiff.minus{color:var(--bad,#d64545)}
+.fin-tag-wyr{background:color-mix(in srgb,var(--muted) 16%,transparent);color:var(--muted)}

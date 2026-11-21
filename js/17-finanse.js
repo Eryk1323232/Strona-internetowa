@@ -36,7 +36,7 @@
 
 const FIN_KONTA = {glowne:'Konto główne', oszcz:'Oszczędnościowe'};
 const FIN_KR = {glowne:'Główne', oszcz:'Oszczędn.'};
-const FIN_TYP = {wyd:'Wydatek', wpl:'Wpływ', prz:'Przelew', skb:'Skarbonka'};
+const FIN_TYP = {wyd:'Wydatek', wpl:'Wpływ', prz:'Przelew', skb:'Skarbonka', wyr:'Wyrównanie'};
 const FIN_KAT_WYD = ['Jedzenie','Transport','Mieszkanie','Studia','Zakupy','Rozrywka','Inne'];   /* kategorie wydatków — dopisz/usuń tutaj */
 const FIN_KAT_WPL = ['Stypendium','Praca','Od rodziców','Inne'];
 /* lista <option> kategorii dla rodzaju operacji; nietypowa kategoria ze starszego wpisu zostaje na liście */
@@ -51,7 +51,7 @@ const finCfgNorm = (v={}) => ({od:finIso(v.od)?v.od:todayISO(), sg:finR(v.sg), s
 /* cele z podziałem skarbonki po kolei: ma = ile z celu już jest, pct, brak */
 function finSkCele(skarb){ let rest=Math.max(0,skarb); return FIN.cfg.skCele.map(c=>{ const ma=Math.min(rest,c.k); rest=finR(rest-ma); return {...c, ma, brak:finR(c.k-ma), pct:Math.min(100,ma/c.k*100)}; }); }
 const finONorm = (id,v={}) => { const t=FIN_TYP[v.t]?v.t:'wyd', k=t==='skb'?'oszcz':(FIN_KONTA[v.k]?v.k:'glowne'), s=+v.sk||0;
-  const sk=t==='skb'?(s<0?-1:1):t==='prz'?(k==='glowne'&&s>0?1:k==='oszcz'&&s<0?-1:0):0;
+  const sk=t==='wyr'||t==='skb'?(s<0?-1:1):t==='prz'?(k==='glowne'&&s>0?1:k==='oszcz'&&s<0?-1:0):0;
   return {id, t, k, d:finIso(v.d)?v.d:todayISO(), a:Math.abs(finR(v.a)), kat:String(v.kat||'').slice(0,40), n:String(v.n||'').slice(0,80), c:+v.c||0, sk}; };
 
 const finSNorm = (id,v={}) => ({id, n:String(v.n||'Stała pozycja').slice(0,50), t:v.t==='wpl'?'wpl':'wyd', a:Math.abs(finR(v.a)), dz:Math.min(31,Math.max(1,Math.round(+v.dz||1))),
@@ -118,11 +118,11 @@ function finCalc(){
   const kon=finD(eom)>finD(td)?eom:td, max=FIN.ops.reduce((m,o)=>o.d>m?o.d:m, kon);
   const all=[...FIN.ops, ...finAuto(od, max>kon?max:kon)];
   const saldo={glowne:C.sg, oszcz:C.so}, poMies={glowne:0, oszcz:0}, przMies={glowne:0, oszcz:0};
-  const ruch=(o,s)=>{ if(o.t==='wpl') s[o.k]+=o.a; else if(o.t==='wyd') s[o.k]-=o.a; else if(o.t==='prz'){ s[o.k]-=o.a; s[o.k==='glowne'?'oszcz':'glowne']+=o.a; } };   /* 'skb' nie zmienia sald kont */
+  const ruch=(o,s)=>{ if(o.t==='wpl') s[o.k]+=o.a; else if(o.t==='wyd') s[o.k]-=o.a; else if(o.t==='prz'){ s[o.k]-=o.a; s[o.k==='glowne'?'oszcz':'glowne']+=o.a; } else if(o.t==='wyr') s[o.k]+=o.sk*o.a; };   /* 'skb' nie zmienia sald kont */
   const liczone=all.filter(o=>o.d>=od && o.d<=td), plan=all.filter(o=>o.d>td && o.d<=eom);
   liczone.forEach(o=>ruch(o,saldo));
   /* „w tym miesiącu” na kartach kont: tylko prawdziwe wpływy i wydatki; przelewy własne osobno (przMies) */
-  liczone.filter(o=>o.d.startsWith(td.slice(0,7))).forEach(o=>ruch(o, o.t==='prz'?przMies:poMies));
+  liczone.filter(o=>o.t!=='wyr' && o.d.startsWith(td.slice(0,7))).forEach(o=>ruch(o, o.t==='prz'?przMies:poMies));
   const po={...saldo}; plan.forEach(o=>ruch(o,po));
   const planSub=plan.filter(o=>o.auto==='sub').reduce((s,o)=>s+o.a,0);
   const planStale=plan.filter(o=>o.auto==='stale'&&o.k==='glowne').reduce((s,o)=>s+(o.t==='wpl'?o.a:-o.a),0);
@@ -135,7 +135,7 @@ function finCalc(){
   mies=Math.max(1,mies); dni=Math.max(1,dni);
   const wyd=przeplyw.filter(o=>o.t==='wyd').reduce((s,o)=>s+o.a,0), wpl=przeplyw.filter(o=>o.t==='wpl').reduce((s,o)=>s+o.a,0);
   /* skarbonka */
-  const skL=liczone.filter(o=>o.sk), skarb=finR(C.ss+skL.reduce((a,o)=>a+o.sk*o.a,0)), wolne=finR(saldo.oszcz-skarb);
+  const skL=liczone.filter(o=>o.sk && o.t!=='wyr'), skarb=finR(C.ss+skL.reduce((a,o)=>a+o.sk*o.a,0)), wolne=finR(saldo.oszcz-skarb);
   const skMies=finR(skL.filter(o=>o.d.startsWith(td.slice(0,7))).reduce((a,o)=>a+o.sk*o.a,0));
   return {all, liczone, plan, saldo, poMies, przMies, po, skL, skarb, wolne, skMies, razem:finR(saldo.glowne+wolne), zostaje:po.glowne, planSub, planStale, planInne, dniDoKonca, eom, td, od, dni, mies, wyd, wpl};
 }
@@ -181,7 +181,7 @@ function finModalHtml(){
   const nieUst=!C.u;
   const naDzien=F.zostaje/F.dniDoKonca;
   const cells=`<div class="grid g4 px-cells fin-cells fin-cells5">
-    ${['glowne','oszcz'].map(kk=>{ const v=kk==='oszcz'?F.wolne:F.saldo[kk]; return `<div class="cell fin-acc${finPrz===kk?' open':''}"><span class="label">${FIN_KONTA[kk]}${kk==='oszcz'&&F.skarb>0.004?' · wolne':''}</span><span class="big ${v<-0.004?'bk-minus':''}">${fmt(v,2)}<small>zł</small></span>${kk==='oszcz'&&F.skarb>0.004?`<p class="fin-skw">na koncie ${fmt(F.saldo.oszcz,2)} zł, w tym skarbonka ${fmt(F.skarb,2)} zł</p>`:''}<p>${finSign(F.poMies[kk])} zł w tym miesiącu</p>${Math.abs(F.przMies[kk])>0.004?`<p class="fin-przm">przelewy własne: ${finSign(F.przMies[kk])} zł</p>`:''}${finPrzHtml(kk,F)}</div>`; }).join('')}
+    ${['glowne','oszcz'].map(kk=>{ const v=kk==='oszcz'?F.wolne:F.saldo[kk]; return `<div class="cell fin-acc${finPrz===kk?' open':''}"><span class="label">${FIN_KONTA[kk]}${kk==='oszcz'&&F.skarb>0.004?' · wolne':''}</span><span class="big ${v<-0.004?'bk-minus':''}">${fmt(v,2)}<small>zł</small></span>${kk==='oszcz'&&F.skarb>0.004?`<p class="fin-skw">na koncie ${fmt(F.saldo.oszcz,2)} zł, w tym skarbonka ${fmt(F.skarb,2)} zł</p>`:''}<p>${finSign(F.poMies[kk])} zł w tym miesiącu</p>${Math.abs(F.przMies[kk])>0.004?`<p class="fin-przm">przelewy własne: ${finSign(F.przMies[kk])} zł</p>`:''}${finPrzHtml(kk,F)}${finWyrHtml(kk,F)}</div>`; }).join('')}
     ${finSkCell(F)}
     <div class="cell"><span class="label">Razem</span><span class="big">${fmt(F.razem,2)}<small>zł</small></span><p>${F.skarb>0.004?'oba konta, bez skarbonki':'oba konta'}${nieUst?' · ustaw salda w „Konta” niżej':''}</p></div>
     <div class="cell fin-zost${F.zostaje<-0.004?' over':''}"><span class="label">Zostaje do ${dPL(F.eom).slice(0,5)}</span><span class="big">${fmt(F.zostaje,2)}<small>zł</small></span>
@@ -210,16 +210,16 @@ function finModalHtml(){
   /* historia wybranego miesiąca, pogrupowana po dniach */
   const H=F.all.filter(o=>o.d.startsWith(finMies) && (finK==='all' || o.k===finK || o.t==='prz')).sort((a,b)=>b.d.localeCompare(a.d)||b.c-a.c);
   const dni={}; H.forEach(o=>(dni[o.d]=dni[o.d]||[]).push(o));
-  const znak=o=>o.t==='wpl'?1:o.t==='wyd'?-1:o.t==='skb'?0:(finK==='all'?0:(o.k===finK?-1:1));
+  const znak=o=>o.t==='wpl'?1:o.t==='wyd'?-1:o.t==='wyr'?o.sk:o.t==='skb'?0:(finK==='all'?0:(o.k===finK?-1:1));
   const wiersz=o=>{ const pre=o.d<C.od, fut=o.d>F.td, s=znak(o), cls=`fin-r-${o.t}${pre?' fin-pre':''}${fut?' fin-fut':''}${o.auto?' fin-auto':''}`;
     const konto=o.t==='skb'?(o.sk>0?'Oszczędn. → Skarbonka':'Skarbonka → Oszczędn.'):o.t==='prz'?(o.sk>0?'Główne → Skarbonka':o.sk<0?'Skarbonka → Główne':`${FIN_KR[o.k]} → ${FIN_KR[o.k==='glowne'?'oszcz':'glowne']}`):FIN_KR[o.k];
-    const ruchW=o.t==='prz'||o.t==='skb';
+    const ruchW=o.t==='prz'||o.t==='skb', wyrW=o.t==='wyr';
     const kw=`<span class="bk-amt"><em aria-hidden="true">${s>0?'+':s<0?'−':'⇄'}</em>`;
     if(o.auto) return `<tr class="${cls}" title="${o.auto==='zak'?'Z okienka Zakłady — zmieniasz tam':o.auto==='sub'?'Z Subskrypcji — zmieniasz tam':'Stała pozycja — zmieniasz w „Stałe wpływy i opłaty”'}"><td><span class="fin-tag fin-tag-${o.auto}">${esc(o.kat)}</span></td><td class="fin-n">${esc(o.n)}${fut?' <small>zaplanowane</small>':''}</td><td class="fin-kc">${konto}</td><td class="n">${kw}<b>${fmt(o.a,2)}</b></span></td><td></td></tr>`;
     return `<tr class="${cls}"${pre?' title="Przed dniem „stan na” — nie liczy się do salda"':''}>
-      <td>${ruchW?`<span class="fin-tag${o.sk?' fin-tag-sk':''}">${o.t==='skb'?'Skarbonka':'Przelew'}</span>`:`<select class="td-sel bk-sel fin-katsel" data-fn="${k('o',o.id,'kat')}" aria-label="Kategoria">${finKatOpts(o.t, o.kat||'Inne')}</select>`}</td>
+      <td>${wyrW?`<span class="fin-tag fin-tag-wyr" title="Ręczne wyrównanie do stanu w banku — nie liczy się do wydatków ani wpływów">Wyrównanie</span>`:ruchW?`<span class="fin-tag${o.sk?' fin-tag-sk':''}">${o.t==='skb'?'Skarbonka':'Przelew'}</span>`:`<select class="td-sel bk-sel fin-katsel" data-fn="${k('o',o.id,'kat')}" aria-label="Kategoria">${finKatOpts(o.t, o.kat||'Inne')}</select>`}</td>
       <td class="fin-n"><input class="g-in g-txt" data-fn="${k('o',o.id,'n')}" value="${esc(o.n)}" placeholder="opis" aria-label="Opis" maxlength="80">${fut?'<small>zaplanowane</small>':''}</td>
-      <td class="fin-kc">${ruchW?konto:`<select class="td-sel bk-sel" data-fn="${k('o',o.id,'k')}" aria-label="Konto">${Object.entries(FIN_KR).map(([v,n])=>`<option value="${v}"${v===o.k?' selected':''}>${n}</option>`).join('')}</select>`}</td>
+      <td class="fin-kc">${ruchW||wyrW?konto:`<select class="td-sel bk-sel" data-fn="${k('o',o.id,'k')}" aria-label="Konto">${Object.entries(FIN_KR).map(([v,n])=>`<option value="${v}"${v===o.k?' selected':''}>${n}</option>`).join('')}</select>`}</td>
       <td class="n">${kw}<input class="g-in g-num bk-a" inputmode="decimal" data-fn="${k('o',o.id,'a')}" value="${fmt(o.a,2).replace(/ /g,'')}" aria-label="Kwota"></span></td>
       <td class="n"><input type="date" class="fin-dt" data-fn="${k('o',o.id,'d')}" value="${esc(o.d)}" aria-label="Zmień datę" title="Zmień datę"><button type="button" class="g-del" data-findel="${esc(o.id)}" aria-label="Usuń operację">×</button></td></tr>`; };
   const histBody=Object.keys(dni).map(d=>{ const L=dni[d], w=L.filter(o=>o.t==='wyd').reduce((s,o)=>s+o.a,0), p=L.filter(o=>o.t==='wpl').reduce((s,o)=>s+o.a,0);
@@ -264,7 +264,7 @@ const finPrzSk = kk => kk==='glowne' ? (store.get('finPrzSk','0')==='1'?1:0) : k
 const finPrzMax = (kk,F) => { const sk=finPrzSk(kk); return Math.max(0, kk==='glowne'?F.saldo.glowne : kk==='oszcz'?(sk?F.skarb:F.wolne) : (sk>0?F.wolne:F.skarb)); };
 function finPrzHtml(kk, F){
   const na=kk==='glowne'?'oszcz':'glowne', dokad=kk==='glowne'?'na oszczędnościowe':'na główne', sk=finPrzSk(kk);
-  const msg=finPrzMsg&&finPrzMsg.k===kk?`<div class="fin-pmsg">${esc(finPrzMsg.txt)}<button type="button" data-finundo="${esc(finPrzMsg.id)}">Cofnij</button></div>`:'';
+  const msg=finPrzMsg&&finPrzMsg.k===kk?`<div class="fin-pmsg">${esc(finPrzMsg.txt)}${finPrzMsg.id?`<button type="button" data-finundo="${esc(finPrzMsg.id)}">Cofnij</button>`:''}</div>`:'';
   if(finPrz!==kk) return `${msg}<button type="button" class="fin-pbtn" data-finprz="${kk}">${kk==='glowne'?'Przelej '+dokad+' →':'← Przelej '+dokad}</button>`;
   const mx=finPrzMax(kk,F);
   const chk=kk==='glowne'?`<label class="fin-skchk"><input type="checkbox" data-finsk="finPrzSk"${sk?' checked':''}><span>do skarbonki</span></label>`
@@ -274,6 +274,31 @@ function finPrzHtml(kk, F){
     <form class="fin-pform" data-from="${kk}"><input name="a" placeholder="Inna kwota" inputmode="decimal" autocomplete="off" aria-label="Kwota przelewu"><button type="submit">Przelej</button><button type="button" class="fin-pcancel" data-finprz="">✕</button></form>
     <span class="tr-err" id="finPErr"></span></div>`;
 }
+/* ——— wyrównanie: wpisujesz stan z banku, różnica trafia jako operacja „Wyrównanie” (t 'wyr', kierunek w sk ±1) ———
+   nie jest wydatkiem ani wpływem: nie zmienia średnich, wykresu, kategorii ani skarbonki — tylko saldo konta */
+const finWyrSaldo = (kk,F) => finR(F.saldo[kk]);   /* oszczędnościowe — całe konto, razem ze skarbonką (tak jak w banku) */
+function finWyrHtml(kk, F){
+  if(finPrz!=='w:'+kk) return `<button type="button" class="fin-pbtn fin-wbtn" data-finprz="w:${kk}" title="Kwota na stronie nie zgadza się z bankiem? Wpisz stan z banku">⚖ Wyrównaj z bankiem</button>`;
+  const cur=finWyrSaldo(kk,F);
+  return `<div class="fin-pbox fin-wbox"><span class="fin-ph">Wyrównanie · ${FIN_KR[kk]}</span>
+    <p class="fin-wcur">Na stronie: <b>${fmt(cur,2)} zł</b>${kk==='oszcz'&&F.skarb>0.004?' (razem ze skarbonką)':''}</p>
+    <form class="fin-pform fin-wform" data-k="${kk}" data-cur="${cur}"><input name="a" placeholder="Stan w banku" inputmode="decimal" autocomplete="off" aria-label="Stan konta w banku"><button type="submit">Wyrównaj</button><button type="button" class="fin-pcancel" data-finprz="">✕</button></form>
+    <p class="fin-wdiff" id="finWDiff">Wpisz, ile dokładnie masz teraz na koncie w banku.</p></div>`;
+}
+function finWyrownaj(kk, bank){
+  const F=finCalc(), d=finR(bank-finWyrSaldo(kk,F)), e=$('#finWDiff');
+  if(isNaN(bank)){ if(e) e.textContent='Wpisz kwotę z banku.'; return; }
+  if(Math.abs(d)<0.005){ finPrz=null; finPrzMsg={id:'', k:kk, txt:'Kwoty się zgadzają — nic do wyrównania.'}; return finRender(); }
+  const o=finONorm(uid('fo'),{t:'wyr', k:kk, d:todayISO(), a:Math.abs(d), sk:d<0?-1:1, kat:'', n:'Wyrównanie do stanu w banku', c:Date.now()});
+  FIN.ops=[...FIN.ops,o]; finPrz=null; finPrzMsg={id:o.id, k:kk, txt:`Wyrównano ${FIN_KR[kk].toLowerCase()} o ${d>0?'+':'−'}${fmt(Math.abs(d),2)} zł — teraz ${fmt(finR(bank),2)} zł.`};
+  saveFin(); finRefresh(); finPushO(o);
+  setTimeout(()=>{ if(finPrzMsg&&finPrzMsg.id===o.id){ finPrzMsg=null; if(finM) finRender(); } }, 12000);
+}
+document.addEventListener('input', e=>{ const f=e.target.closest&&e.target.closest('form.fin-wform'); if(!f) return;
+  const v=bkNum(e.target.value), p=$('#finWDiff'); if(!p) return; const d=finR(v-(+f.dataset.cur));
+  p.textContent=!String(e.target.value).trim()||isNaN(v)?'Wpisz, ile dokładnie masz teraz na koncie w banku.':Math.abs(d)<0.005?'Zgadza się co do grosza.':`Różnica: ${d>0?'+':'−'}${fmt(Math.abs(d),2)} zł — ${d>0?'w banku jest więcej':'w banku jest mniej'}.`;
+  p.classList.toggle('plus', d>0.004); p.classList.toggle('minus', d<-0.004); });
+document.addEventListener('submit', e=>{ const f=e.target.closest&&e.target.closest('form.fin-wform'); if(!f) return; e.preventDefault(); e.stopImmediatePropagation(); finWyrownaj(f.dataset.k, bkNum(f.a.value)); }, true);
 function finPrzelej(from, a){
   const F=finCalc(), mx=finR(finPrzMax(from,F)), sk=finPrzSk(from), err=t=>{ const e=$('#finPErr'); if(e) e.textContent=t; };
   if(isNaN(a)||a<=0) return err('Wpisz kwotę większą od zera.');
